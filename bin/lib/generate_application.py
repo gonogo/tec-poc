@@ -68,6 +68,59 @@ PE3_DECLARATIONS = (
     "appealedNoResponse",
 )
 
+# PE3 notice options under "I did not receive the:" — keep one, strike the others.
+PE3_NOTICE_OPTIONS = (
+    "noticeToOwner",
+    "enforcementNotice",
+    "penaltyChargeNotice",
+)
+
+PE3_REASON_SNIPPETS = (
+    (
+        "I did not receive the relevant notice and only learned of the charge when enforcement began.",
+        "I ask that the order be set aside so I can challenge the penalty.",
+    ),
+    (
+        "I made timely representations but received no rejection notice from the authority.",
+        "I therefore could not appeal within the usual time limits.",
+    ),
+    (
+        "I lodged an appeal with the adjudicator and have had no determination.",
+        "It would be unjust for recovery to proceed while that appeal remains outstanding.",
+    ),
+    (
+        "The details on the order do not match my records for this vehicle.",
+        "I need the opportunity to put my case before any further enforcement.",
+    ),
+)
+
+TE9_TITLE_EXPORT = {
+    "Mr": ("Title - Mr", "/Mister"),
+    "Mrs": ("Title - Mrs", "/Missus"),
+    "Miss": ("Title - Miss", "/Miss"),
+    "Ms": ("Title - Ms", "/Ms"),
+    "Other": ("Title - Other", "/Other"),
+}
+
+TE9_DECLARATION_FIELDS = {
+    "didNotReceivePcn": "did not receive the penalty charge notice - yes",
+    "madeRepresentationsNoRejection": "representations but no rejection notice - yes",
+    "appealedToAdjudicator": "no response to the appeal - yes",
+    "paidInFull": "penalty charge has been paid in full - yes",
+}
+
+TE9_HOW_PAID_EXPORT = {
+    "cash": ("Paid in cash", "/1"),
+    "cheque": ("Paid by cheque", "/2"),
+    "debit": ("Paid by debit card", "/3"),
+    "credit": ("Paid by credit card", "/4"),
+}
+
+# Official TE9 overtype widget rectangles used to draw proper strike-through lines.
+TE9_STRIKE_WITNESS_BELIEVES = (79.87, 164.79, 189.72, 178.39)
+TE9_STRIKE_ON_BEHALF = (162.88, 111.43, 311.45, 124.40)
+TE9_SIGNATURE_BOX = (124.62, 124.96, 345.82, 158.96)
+
 POSTCODE_RE = re.compile(
     r"^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$",
     re.IGNORECASE,
@@ -199,6 +252,8 @@ def build_application(case_data: dict[str, Any], timeliness: str, form: str, rng
 
     if form == "PE3":
         payload["applicationReasonsGiven"] = rng.choice(("Yes", "No"))
+        payload["_pdfNoticeOption"] = rng.choice(PE3_NOTICE_OPTIONS)
+        payload["_pdfReasonsText"] = "\n".join(rng.choice(PE3_REASON_SNIPPETS))
 
     if form == "TE9" and "paidInFull" in selected_declarations:
         payload["applicationDatePaid"] = iso(date_of_contravention + timedelta(days=rng.randint(1, 20)))
@@ -209,32 +264,63 @@ def build_application(case_data: dict[str, Any], timeliness: str, form: str, rng
     return {k: v for k, v in payload.items() if v is not None and v != ""}
 
 
-def unescape_pdf_name(value: str) -> str:
-    return (
-        value.replace("\\(", "(")
-        .replace("\\)", ")")
-        .replace("\\\\", "\\")
+def set_checkbox(writer: PdfWriter, page, field_name: str, on_value: str) -> None:
+    """Set a checkbox/radio-style button to its on-state export value."""
+    writer.update_page_form_field_values(page, {field_name: on_value}, auto_regenerate=False)
+
+
+def draw_strike(c: canvas.Canvas, x0: float, y: float, x1: float, thickness: float = 1.2) -> None:
+    c.setStrokeColor(black)
+    c.setLineWidth(thickness)
+    c.line(x0, y, x1, y)
+
+
+def strike_rect(c: canvas.Canvas, rect: tuple[float, float, float, float]) -> None:
+    x0, y0, x1, y1 = rect
+    mid_y = (y0 + y1) / 2
+    draw_strike(c, x0, mid_y, x1, thickness=1.4)
+
+
+def draw_signature_squiggle(
+    c: canvas.Canvas,
+    rect: tuple[float, float, float, float],
+) -> None:
+    """Draw a simple ink-style squiggle inside a signature box."""
+    x0, y0, x1, y1 = rect
+    pad_x = min(12.0, (x1 - x0) * 0.08)
+    pad_y = min(6.0, (y1 - y0) * 0.2)
+    left = x0 + pad_x
+    right = x1 - pad_x
+    mid_y = (y0 + y1) / 2
+    amp = max(3.0, (y1 - y0) * 0.28 - pad_y)
+
+    c.setStrokeColor(black)
+    c.setLineWidth(1.3)
+    c.setLineCap(1)
+    c.setLineJoin(1)
+    path = c.beginPath()
+    path.moveTo(left, mid_y - amp * 0.2)
+    span = right - left
+    path.curveTo(
+        left + span * 0.18, mid_y + amp,
+        left + span * 0.28, mid_y - amp,
+        left + span * 0.42, mid_y + amp * 0.35,
     )
+    path.curveTo(
+        left + span * 0.55, mid_y + amp,
+        left + span * 0.68, mid_y - amp * 1.1,
+        left + span * 0.82, mid_y + amp * 0.45,
+    )
+    path.curveTo(
+        left + span * 0.90, mid_y + amp * 0.8,
+        left + span * 0.95, mid_y - amp * 0.4,
+        right, mid_y + amp * 0.15,
+    )
+    c.drawPath(path, stroke=1, fill=0)
 
 
-def parse_te9_widgets(template: Path) -> dict[str, tuple[float, float, float, float]]:
-    """TE9 widgets exist as orphaned objects (no AcroForm); parse /T and /Rect from bytes."""
-    raw = template.read_bytes()
-    widgets: dict[str, tuple[float, float, float, float]] = {}
-    for match in re.finditer(rb"/Subtype/Widget/T\(((?:\\.|[^\\)])*)\)", raw):
-        name = unescape_pdf_name(match.group(1).decode("latin1"))
-        window = raw[max(0, match.start() - 250) : match.start()]
-        rect = re.search(
-            rb"/Rect\[\s*([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s*\]",
-            window,
-        )
-        if rect:
-            widgets[name] = tuple(float(g) for g in rect.groups())  # type: ignore[assignment]
-    return widgets
-
-
-def merge_overlay(template: Path, out_pdf: Path, draw) -> None:
-    reader = PdfReader(str(template))
+def merge_overlay_bytes(pdf_bytes: bytes, out_pdf: Path, draw) -> None:
+    reader = PdfReader(BytesIO(pdf_bytes))
     page = reader.pages[0]
     width = float(page.mediabox.width)
     height = float(page.mediabox.height)
@@ -256,29 +342,14 @@ def merge_overlay(template: Path, out_pdf: Path, draw) -> None:
         writer.write(handle)
 
 
-def draw_text_in_rect(c: canvas.Canvas, rect: tuple[float, float, float, float], text: str, font_size: float = 9) -> None:
-    x0, y0, x1, y1 = rect
-    text = (text or "").strip()
-    if not text:
-        return
-    max_width = max(x1 - x0 - 4, 10)
-    size = font_size
-    c.setFillColor(black)
-    while size > 6 and c.stringWidth(text, "Helvetica", size) > max_width:
-        size -= 0.5
-    c.setFont("Helvetica", size)
-    c.drawString(x0 + 2, y0 + 4, text[:120])
-
-
-def draw_check(c: canvas.Canvas, rect: tuple[float, float, float, float]) -> None:
-    x0, y0, x1, y1 = rect
-    c.setFont("Helvetica-Bold", max(8, min(12, y1 - y0)))
-    c.setFillColor(black)
-    c.drawCentredString((x0 + x1) / 2, y0 + 1, "X")
-
-
 def fill_te9(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
-    widgets = parse_te9_widgets(template)
+    """Fill the official TE9 AcroForm and draw strike-throughs for delete-as-appropriate clauses."""
+    reader = PdfReader(str(template))
+    writer = PdfWriter()
+    writer.append(reader)
+    writer.set_need_appearances_writer(True)
+    page = writer.pages[0]
+
     title = payload.get("applicationTitle", "Mr")
     declarations = payload.get("_pdfDeclarations")
     if not isinstance(declarations, list):
@@ -288,7 +359,7 @@ def fill_te9(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
     postcode = payload.get("applicationPostcode") or ""
     outward, inward = split_postcode(postcode)
 
-    text_values = {
+    text_values: dict[str, str] = {
         "Penalty charge number": payload.get("applicationPenaltyChargeNumber") or "",
         "Vehicle Registration No": payload.get("applicationVehicleRegistration") or "",
         "Applicant": payload.get("applicationApplicant") or "",
@@ -302,80 +373,141 @@ def fill_te9(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
         or "",
         "Print full name": payload.get("applicationFullName") or "",
         "Date statement of truth signed": payload.get("applicationDateReceived") or "",
-        "I believe - overtype field": "I believe",
     }
-
-    checks: list[str] = []
-    title_field = {
-        "Mr": "Title - Mr",
-        "Mrs": "Title - Mrs",
-        "Miss": "Title - Miss",
-        "Ms": "Title - Ms",
-        "Other": "Title - Other",
-    }.get(title)
-    if title_field:
-        checks.append(title_field)
-
-    declaration_fields = {
-        "didNotReceivePcn": "did not receive the penalty charge notice - yes",
-        "madeRepresentationsNoRejection": "representations but no rejection notice - yes",
-        "appealedToAdjudicator": "no response to the appeal - yes",
-        "paidInFull": "penalty charge has been paid in full - yes",
-    }
-    for code in declarations:
-        field = declaration_fields.get(code)
-        if field:
-            checks.append(field)
-
     if "paidInFull" in declarations:
         text_values["date paid in full"] = payload.get("applicationDatePaid") or ""
         text_values["To whom was it paid"] = payload.get("applicationPaidTo") or ""
-        if "cash" in how_paid:
-            checks.append("Paid in cash")
-        if "cheque" in how_paid:
-            checks.append("Paid by cheque")
-        if "debit" in how_paid:
-            checks.append("Paid by debit card")
-        if "credit" in how_paid:
-            checks.append("Paid by credit card")
 
-    checks.append("Signed by witness")
+    writer.update_page_form_field_values(
+        page,
+        {k: v for k, v in text_values.items() if v},
+        auto_regenerate=False,
+    )
 
-    def draw(c: canvas.Canvas, _width: float, _height: float) -> None:
-        for name, value in text_values.items():
-            rect = widgets.get(name)
-            if rect:
-                draw_text_in_rect(c, rect, value, font_size=10 if "Address" not in name else 8)
-        for name in checks:
-            rect = widgets.get(name)
-            if rect:
-                draw_check(c, rect)
+    title_field = TE9_TITLE_EXPORT.get(title)
+    if title_field:
+        set_checkbox(writer, page, title_field[0], title_field[1])
 
-    merge_overlay(template, out_pdf, draw)
+    for code in declarations:
+        field = TE9_DECLARATION_FIELDS.get(code)
+        if field:
+            set_checkbox(writer, page, field, "/Yes")
+
+    if "paidInFull" in declarations:
+        for key, (field_name, on_value) in TE9_HOW_PAID_EXPORT.items():
+            if key in how_paid:
+                set_checkbox(writer, page, field_name, on_value)
+
+    # Overlay strike lines and a signature squiggle; keep AcroForm fields intact.
+    width = float(page.mediabox.width)
+    height = float(page.mediabox.height)
+    packet = BytesIO()
+    c = canvas.Canvas(packet, pagesize=(width, height))
+    # Always leave "(I believe)"; strike "(The witness believes)".
+    # Below Signed: always strike "(person signing on behalf of the witness)".
+    strike_rect(c, TE9_STRIKE_WITNESS_BELIEVES)
+    strike_rect(c, TE9_STRIKE_ON_BEHALF)
+    draw_signature_squiggle(c, TE9_SIGNATURE_BOX)
+    c.save()
+    packet.seek(0)
+    page.merge_page(PdfReader(packet).pages[0])
+
+    with out_pdf.open("wb") as handle:
+        writer.write(handle)
+
+
+def merge_overlay(template: Path, out_pdf: Path, draw) -> None:
+    merge_overlay_bytes(template.read_bytes(), out_pdf, draw)
+
+
+def draw_check_mark(c: canvas.Canvas, x: float, y: float, size: float = 9) -> None:
+    c.setFont("Helvetica-Bold", size)
+    c.setFillColor(black)
+    c.drawString(x, y, "X")
 
 
 def stamp_pe3(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
-    """Overlay key values on the flat PE3 form (approximate A4 positions)."""
+    """Overlay values on the PE3 Word-export PDF using measured label positions.
 
-    def draw(c: canvas.Canvas, _width: float, height: float) -> None:
-        c.setFont("Helvetica", 9)
+    Coordinates are derived from pdftotext -bbox on the official PE3 layout
+    (A4, origin bottom-left for drawing). The Declared at: section and below
+    are left blank (no population or strike-outs).
+    """
+
+    declaration = payload.get("applicationDeclaration")
+    notice_option = payload.get("_pdfNoticeOption") or "noticeToOwner"
+    reasons_text = (payload.get("_pdfReasonsText") or "").strip()
+    full_name = (payload.get("applicationFullName") or "").upper()
+    address = (payload.get("applicationAddress") or "").upper()
+    postcode = (payload.get("applicationPostcode") or "").upper()
+    respondent_block = ", ".join(p for p in (full_name, address, postcode) if p)
+
+    # Header value column sits to the right of the label column.
+    value_x = 385.0
+    header_fields = [
+        (770.5, payload.get("applicationPenaltyChargeNumber") or ""),
+        (756.0, payload.get("applicationVehicleRegistration") or ""),
+        (741.5, payload.get("applicationApplicant") or ""),
+        (727.0, payload.get("applicationLocationOfContravention") or ""),
+        (713.0, payload.get("applicationDateOfContravention") or ""),
+    ]
+
+    checkbox_y = {
+        "didNotReceiveNotice": 508.0,
+        "madeRepresentationsNoRejection": 457.0,
+        "appealedNoResponse": 419.0,
+    }
+
+    # Strike targets for the three notice lines (x0, pdf_y, x1)
+    notice_strikes = {
+        "noticeToOwner": (85.0, 495.5, 294.0),
+        "enforcementNotice": (85.0, 482.5, 317.0),
+        "penaltyChargeNotice": (85.0, 470.0, 532.0),
+    }
+
+    # Signed: box (left of Dated:), roughly measured from the Word-export layout.
+    pe3_signature_box = (90.0, 242.0, 340.0, 262.0)
+
+    def draw(c: canvas.Canvas, _width: float, _height: float) -> None:
         c.setFillColor(black)
-        fields = [
-            (220, height - 145, payload.get("applicationPenaltyChargeNumber") or ""),
-            (220, height - 165, payload.get("applicationVehicleRegistration") or ""),
-            (220, height - 185, payload.get("applicationApplicant") or ""),
-            (220, height - 205, payload.get("applicationLocationOfContravention") or ""),
-            (220, height - 225, payload.get("applicationDateOfContravention") or ""),
-            (80, height - 320, payload.get("applicationFullName") or ""),
-            (80, height - 340, payload.get("applicationAddress") or ""),
-            (80, height - 360, payload.get("applicationPostcode") or ""),
-            (80, height - 400, f"Date received: {payload.get('applicationDateReceived') or ''}"),
-            (80, height - 415, f"Declaration: {payload.get('applicationDeclaration') or 'blank'}"),
-            (80, height - 430, f"Reasons given: {payload.get('applicationReasonsGiven') or ''}"),
-        ]
-        for x, y, text in fields:
+        c.setFont("Helvetica", 9)
+        for y, text in header_fields:
             if text:
-                c.drawString(x, y, str(text)[:90])
+                c.drawString(value_x, y, str(text)[:42])
+
+        # Respondent name/address block under the "I, (full name..." instruction.
+        if respondent_block:
+            c.setFont("Helvetica", 9)
+            c.drawString(50.0, 555.0, respondent_block[:95])
+
+        if declaration in checkbox_y:
+            draw_check_mark(c, 46.0, checkbox_y[declaration], size=10)
+
+        # Strike the two notice options that do not apply when that declaration is used.
+        if declaration == "didNotReceiveNotice":
+            for key, (x0, y, x1) in notice_strikes.items():
+                if key != notice_option:
+                    draw_strike(c, x0, y, x1)
+
+        # Always populate My reasons with two short sentences.
+        if reasons_text:
+            c.setFont("Helvetica", 8)
+            lines = [line.strip() for line in reasons_text.splitlines() if line.strip()]
+            if len(lines) == 1:
+                words = lines[0].split()
+                mid = max(1, len(words) // 2)
+                lines = [" ".join(words[:mid]), " ".join(words[mid:])]
+            c.drawString(50.0, 355.0, lines[0][:110])
+            if len(lines) > 1 and lines[1]:
+                c.drawString(50.0, 343.0, lines[1][:110])
+
+        dated = payload.get("applicationDateReceived") or ""
+        if dated:
+            c.setFont("Helvetica", 9)
+            # Sit in the Dated cell, clear of the "Dated:" label.
+            c.drawString(400.0, 250.0, dated)
+
+        draw_signature_squiggle(c, pe3_signature_box)
 
     merge_overlay(template, out_pdf, draw)
 
