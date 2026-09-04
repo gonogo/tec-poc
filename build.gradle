@@ -190,6 +190,16 @@ dependencies {
 tasks.withType(CftlibExec).configureEach {
   group = 'ccd tasks'
   authMode = AuthMode.Local
+  // Case File View loads binaries via CDAM → local dm-store (:4506). CFTLib does not start
+  // dm-store under AuthMode.Local, so bring up the stub before the stack runs.
+  doFirst {
+    def starter = file("${rootDir}/bin/start-local-dm-store.sh")
+    if (starter.exists()) {
+      exec {
+        commandLine starter.absolutePath
+      }
+    }
+  }
   environment 'POSTGRES_VERSION', '16'
   environment 'RSE_LIB_ADDITIONAL_DATABASES', 'tec'
   environment 'DB_HOST', 'localhost'

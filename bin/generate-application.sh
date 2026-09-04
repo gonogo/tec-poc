@@ -31,7 +31,7 @@ Generate a TE9 or PE3 application for a TEC case:
   - submit the recordApplication event
   - fill the PDF template and attach it under Case File View → Applications
 
-<type>  in-time | out-of-time  (also inTime, outOfTime, IN_TIME, OUT_OF_TIME)
+<type>  in time | out of time  (also in-time, out-of-time, inTime, outOfTime)
 <form>  TE9 | PE3
 
 Optional environment variables:
@@ -52,7 +52,7 @@ fi
 
 normalise_type() {
   local value
-  value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -d '_-')"
+  value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -d '_-[:space:]')"
   case "${value}" in
     intime)
       printf '%s\n' "inTime"
@@ -61,7 +61,7 @@ normalise_type() {
       printf '%s\n' "outOfTime"
       ;;
     *)
-      echo "Unknown type '${1}'. Use in-time or out-of-time." >&2
+      echo "Unknown type '${1}'. Use 'in time' or 'out of time'." >&2
       exit 1
       ;;
   esac
@@ -85,9 +85,15 @@ TYPE_CODE="$(normalise_type "${TYPE_RAW}")"
 FORM_CODE="$(normalise_form "${FORM_RAW}")"
 
 if [[ "${TYPE_CODE}" == "inTime" ]]; then
-  TYPE_LABEL="In-time"
+  TYPE_LABEL="In time"
 else
-  TYPE_LABEL="Out-of-time"
+  TYPE_LABEL="Out of time"
+fi
+
+if [[ "${FORM_CODE}" == "TE9" ]]; then
+  SECTION_LABEL="Witness statement - ${TYPE_LABEL}"
+else
+  SECTION_LABEL="Statutory declaration - ${TYPE_LABEL}"
 fi
 
 TEMPLATE_PATH="${TEMPLATES_DIR}/${FORM_CODE}.pdf"
@@ -150,7 +156,7 @@ trap cleanup EXIT
 
 CASE_JSON_PATH="${WORKDIR}/case.json"
 PAYLOAD_PATH="${WORKDIR}/payload.json"
-PDF_BASENAME="${TYPE_LABEL} ${FORM_CODE}.pdf"
+PDF_BASENAME="${SECTION_LABEL}.pdf"
 PDF_PATH="${WORKDIR}/${PDF_BASENAME}"
 
 printf '%s\n' "${case_response}" >"${CASE_JSON_PATH}"

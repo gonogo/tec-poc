@@ -124,8 +124,7 @@ trap cleanup EXIT
 
 CASE_JSON_PATH="${WORKDIR}/case.json"
 PAYLOAD_PATH="${WORKDIR}/payload.json"
-PDF_BASENAME="Time extension ${FORM_CODE}.pdf"
-PDF_PATH="${WORKDIR}/${PDF_BASENAME}"
+PDF_PATH="${WORKDIR}/time-extension.pdf"
 
 printf '%s\n' "${case_response}" >"${CASE_JSON_PATH}"
 
@@ -148,6 +147,24 @@ if [[ ! -f "${PAYLOAD_PATH}" || ! -f "${PDF_PATH}" ]]; then
   echo "Python helper did not produce payload/PDF outputs" >&2
   exit 1
 fi
+
+if [[ "${FORM_CODE}" == "TE7" ]]; then
+  PERMISSION="$(jq --raw-output '.timeExtensionPermissionType // empty' "${PAYLOAD_PATH}")"
+  case "${PERMISSION}" in
+    forMoreTime)
+      SECTION_LABEL="Application for extension of time"
+      ;;
+    *)
+      SECTION_LABEL="Application to file out of time"
+      ;;
+  esac
+else
+  SECTION_LABEL="Application to file out of time"
+fi
+
+ATTACH_PDF_PATH="${WORKDIR}/${SECTION_LABEL}.pdf"
+mv "${PDF_PATH}" "${ATTACH_PDF_PATH}"
+PDF_PATH="${ATTACH_PDF_PATH}"
 
 echo "Submitting ${EVENT_ID} for case ${CASE_REFERENCE}..." >&2
 

@@ -30,8 +30,11 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-nohup python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 &
+nohup setsid python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 < /dev/null &
 echo $! >"${PID_FILE}"
+# Give the OS a moment to reparent under init/launchd so IDE shell cleanup
+# does not tear the stub down with the parent session.
+sleep 0.1
 
 for _ in {1..20}; do
   if curl --silent --fail --connect-timeout 1 "http://localhost:${PORT}/health" >/dev/null 2>&1; then

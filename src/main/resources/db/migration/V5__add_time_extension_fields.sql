@@ -13,6 +13,7 @@ alter table tec_case
     add column time_extension_postcode varchar(20),
     add column time_extension_permission_type varchar(40),
     add column time_extension_reasons_given varchar(10),
+    add column time_extension_statement_belief varchar(40),
     add column time_extension_signed_and_dated varchar(10),
     add column time_extension_signed_by varchar(40),
     add column time_extension_date_signed date,

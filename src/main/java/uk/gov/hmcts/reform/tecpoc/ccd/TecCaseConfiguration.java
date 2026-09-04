@@ -84,8 +84,26 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getClosureReason)
             .field(TecCase::getRegistrationDocument)
             .field(TecCase::getRegistrationDate)
-            .label("applicationsSectionInTime", "applicationType=\"inTime\"", "## In-time application")
-            .label("applicationsSectionOutOfTime", "applicationType=\"outOfTime\"", "## Out-of-time application")
+            .label(
+                "applicationsSectionTe9InTime",
+                "applicationForm=\"TE9\" AND applicationType=\"inTime\"",
+                "## Witness statement - In time"
+            )
+            .label(
+                "applicationsSectionTe9OutOfTime",
+                "applicationForm=\"TE9\" AND applicationType=\"outOfTime\"",
+                "## Witness statement - Out of time"
+            )
+            .label(
+                "applicationsSectionPe3InTime",
+                "applicationForm=\"PE3\" AND applicationType=\"inTime\"",
+                "## Statutory declaration - In time"
+            )
+            .label(
+                "applicationsSectionPe3OutOfTime",
+                "applicationForm=\"PE3\" AND applicationType=\"outOfTime\"",
+                "## Statutory declaration - Out of time"
+            )
             .field(TecCase::getFormValidationResultDisplay)
             .field(TecCase::getApplicationDateReceived)
             .field(TecCase::getApplicationType)
@@ -106,7 +124,21 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getApplicationDatePaid, "applicationDeclaration=\"paidInFull\"")
             .field(TecCase::getApplicationHowPaid, "applicationDeclaration=\"paidInFull\"")
             .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"")
-            .label("timeExtensionSection", null, "## Time extension request")
+            .label(
+                "timeExtensionSectionTe7OutOfTime",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\"",
+                "## Application to file out of time"
+            )
+            .label(
+                "timeExtensionSectionTe7Extension",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\"",
+                "## Application for extension of time"
+            )
+            .label(
+                "timeExtensionSectionPe2",
+                "timeExtensionForm=\"PE2\"",
+                "## Application to file out of time"
+            )
             .field(TecCase::getTimeExtensionFormValidationResultDisplay)
             .field(TecCase::getTimeExtensionForm)
             .field(TecCase::getTimeExtensionPenaltyChargeNumber)

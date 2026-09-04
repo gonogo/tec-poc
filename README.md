@@ -126,8 +126,8 @@ Open the case in Manage Case as `tec-demo@test.com` to see the **Tasks** tab.
 ### Attach a document to Case File View (local)
 
 Case File View folders are empty until documents are attached. CFTLib's Case Document AM API
-proxies uploads to dm-store on port `4506`, which is not started by `bootWithCCD`. Start the local
-stub first and **keep it running** while attaching *and* while opening documents in Manage Case
+proxies uploads to dm-store on port `4506`. `bootWithCCD` starts the local dm-store stub
+automatically; if Case File View opens blank, ensure the stub is still running
 (the document viewer loads binaries through CDAM → dm-store):
 
 ```bash
@@ -145,7 +145,7 @@ document URL pattern are loaded), create a case and attach a file:
 If the filename has spaces, quote it:
 
 ```bash
-./bin/attach-case-file-document.sh <case-reference> "Applications" "Out-of-time TE9 - Claimant 1.pdf"
+./bin/attach-case-file-document.sh <case-reference> "Applications" "Witness statement - Out of time.pdf"
 ```
 
 `<folder>` may be a category id or label: `hearingDocuments`, `ordersAndNoticesOfHearings`,
@@ -159,12 +159,14 @@ With `bootWithCCD` running, generate application data for an existing case, subm
 `recordApplication` event, fill the TE9/PE3 PDF template, and attach it under **Applications**:
 
 ```bash
-./bin/generate-application.sh <case-reference> out-of-time TE9
-./bin/generate-application.sh <case-reference> in-time PE3
+./bin/generate-application.sh <case-reference> "out of time" TE9
+./bin/generate-application.sh <case-reference> "in time" PE3
 ```
 
-Hyphens in the case reference are ignored. Type may be `in-time` / `out-of-time` (or
-`inTime` / `outOfTime`). Form must be `TE9` or `PE3`.
+Hyphens in the case reference are ignored. Type may be `in time` / `out of time` (or
+`in-time` / `out-of-time`, `inTime` / `outOfTime`). Form must be `TE9` or `PE3`.
+Attached PDFs are named like `Witness statement - Out of time.pdf` or
+`Statutory declaration - In time.pdf`.
 
 The script copies PCN, VRN, name and address from the case where possible and randomly
 fills the remaining application fields. Set `SEED=<n>` for reproducible random values.
@@ -183,7 +185,9 @@ With `bootWithCCD` running, generate time-extension data for an existing case, s
 
 Hyphens in the case reference are ignored. Form must be `TE7` or `PE2`. Set `SEED=<n>` for
 reproducible random values. The script reuses the same Python venv as
-`generate-application.sh`.
+`generate-application.sh`. Attached PDFs are named from the section heading (for TE7, based on
+permission sought: `Application to file out of time.pdf` or
+`Application for extension of time.pdf`).
 
 Documents are stored by the local dm-store stub under `bin/.local-dm-store-data/`. If that stub
 was restarted before persistence was added, older folder entries can still appear while the viewer

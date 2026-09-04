@@ -93,13 +93,15 @@ group files by category.
 TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
 
 `recordTimeExtension` is system-only and hidden from ExUI. Integrations submit OCR-extracted TE7 or
-PE2 fields via this event; Case details shows them under the **Time extension request** section.
+PE2 fields via this event; Case details shows them under a heading driven by the form
+(**Application to file out of time** / **Application for extension of time** for TE7 by permission
+sought; **Application to file out of time** for PE2).
 
 `editApplication` is clerk-facing and appears in Manage Case Next steps. It presents all application
 fields on a single page so caseworkers can correct OCR data.
 
-Local CDAM expects dm-store on `:4506`. Start `./bin/start-local-dm-store.sh` before attaching files;
-CFTLib does not start dm-store under `AuthMode.Local`.
+Local CDAM expects dm-store on `:4506`. `bootWithCCD` starts `./bin/start-local-dm-store.sh`
+automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 
 ### Case presentation and search
 
@@ -107,11 +109,14 @@ CFTLib does not start dm-store under `AuthMode.Local`.
 
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
-  document and date); an **Applications** section for form validation result plus OCR-extracted TE9/PE3 data
-  (date received, in-time/out-of-time type, form, PCN/VRN, applicant and address fields, declaration, and
-  conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details); and a
-  **Time extension request** section for TE7/PE2 data (form validation result, form, PCN/VRN, respondent
-  details, permission sought, reasons given, signed and dated, signed by, and related fields).
+  document and date); an application section headed by form and timeliness
+  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for form validation
+  result plus OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN, applicant and address fields,
+  declaration, and conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details); and a
+  time-extension section headed by TE7 permission sought (**Application to file out of time** or
+  **Application for extension of time**) or **Application to file out of time** for PE2, covering form
+  validation result, form, PCN/VRN, respondent details, permission sought, reasons given, signed and dated,
+  signed by, and related fields).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

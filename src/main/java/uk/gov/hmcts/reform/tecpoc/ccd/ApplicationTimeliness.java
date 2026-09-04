@@ -6,10 +6,10 @@ import uk.gov.hmcts.ccd.sdk.api.HasLabel;
 public enum ApplicationTimeliness implements HasLabel {
 
     @JsonProperty("inTime")
-    IN_TIME("In-time"),
+    IN_TIME("In time"),
 
     @JsonProperty("outOfTime")
-    OUT_OF_TIME("Out-of-time");
+    OUT_OF_TIME("Out of time");
 
     private final String label;
 
