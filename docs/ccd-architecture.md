@@ -81,6 +81,7 @@ The event handlers update TEC-owned data as follows:
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
 | `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
+| `editApplication` | Optional TE9/PE3 application fields (clerk) | Upserts application columns on `public.tec_case` | unchanged |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
 `bin/attach-case-file-document.sh`, which posts the file to Case Document AM (`:4455`) then submits
@@ -89,6 +90,9 @@ group files by category.
 
 `recordApplication` is likewise system-only and hidden from ExUI. Integrations submit OCR-extracted
 TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
+
+`editApplication` is clerk-facing and appears in Manage Case Next steps. It presents all application
+fields on a single page so caseworkers can correct OCR data.
 
 Local CDAM expects dm-store on `:4506`. Start `./bin/start-local-dm-store.sh` before attaching files;
 CFTLib does not start dm-store under `AuthMode.Local`.

@@ -176,6 +176,7 @@ was restarted before persistence was added, older folder entries can still appea
 stays blank — re-attach the file once so the binary is available again.
 
 Manage Case loads the viewer via its `/documentsv2` proxy to Case Document AM (`:4455`).
-`bootWithCCD` sets that through `RSE_LIB_XUI_ENV_SERVICES_DOCUMENTS_API(_V2)` in `build.gradle`.
-If the viewer is empty and XUI logs show proxying to `:5062` instead of `:4455`, restart
-`bootWithCCD` so Manage Case picks up those URLs.
+`bootWithCCD` sets that through `XUI_DOCUMENTS_API(_V2)` in `build.gradle` (compose interpolates
+these into the XUI container). If the viewer is empty and XUI logs show proxying to `:5062`
+instead of `:4455`, recreate Manage Case with those env vars set, or restart `bootWithCCD`
+after pulling the Gradle fix so Manage Case picks up the CDAM URLs.

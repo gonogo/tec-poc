@@ -179,10 +179,36 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
         builder.decentralisedEvent("verifyFormValidation", this::verifyFormValidation)
             .forStates(CaseState.PENDING_CASE_ISSUED, CaseState.CASE_ISSUED)
-            .name("Verify form validation")
+            .name("Validate application form")
             .grant(Permission.CRU, UserRole.CLERK)
             .fields()
             .mandatory(TecCase::getFormValidationResult);
+
+        builder.decentralisedEvent("editApplication", this::editApplication)
+            .forStates(CaseState.values())
+            .name("Edit application")
+            .description("Update TE9/PE3 application details")
+            .grant(Permission.CRU, UserRole.CLERK)
+            .fields()
+            .optional(TecCase::getApplicationDateReceived)
+            .optional(TecCase::getApplicationType)
+            .optional(TecCase::getApplicationTe7Submitted)
+            .optional(TecCase::getApplicationForm)
+            .optional(TecCase::getApplicationPenaltyChargeNumber)
+            .optional(TecCase::getApplicationVehicleRegistration)
+            .optional(TecCase::getApplicationApplicant)
+            .optional(TecCase::getApplicationLocationOfContravention)
+            .optional(TecCase::getApplicationDateOfContravention)
+            .optional(TecCase::getApplicationTitle)
+            .optional(TecCase::getApplicationFullName)
+            .optional(TecCase::getApplicationCompanyName)
+            .optional(TecCase::getApplicationAddress)
+            .optional(TecCase::getApplicationPostcode)
+            .optional(TecCase::getApplicationDeclaration)
+            .optional(TecCase::getApplicationReasonsGiven)
+            .optional(TecCase::getApplicationDatePaid)
+            .optional(TecCase::getApplicationHowPaid)
+            .optional(TecCase::getApplicationPaidTo);
 
         builder.decentralisedEvent("attachCaseFileDocument", this::attachCaseFileDocument)
             .forStates(CaseState.values())
@@ -271,6 +297,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
     }
 
     private SubmitResponse<CaseState> recordApplication(EventPayload<TecCase, CaseState> event) {
+        repository.recordApplication(event.caseReference(), event.caseData());
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> editApplication(EventPayload<TecCase, CaseState> event) {
         repository.recordApplication(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
     }

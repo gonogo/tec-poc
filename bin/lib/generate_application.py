@@ -160,8 +160,20 @@ def build_application(case_data: dict[str, Any], timeliness: str, form: str, rng
     title = rng.choice(TITLES)
     company = rng.choice(COMPANIES)
 
-    declarations = TE9_DECLARATIONS if form == "TE9" else PE3_DECLARATIONS
-    declaration = None if rng.random() < 0.1 else rng.choice(declarations)
+    if form == "TE9":
+        roll = rng.random()
+        if roll < 0.1:
+            selected_declarations: list[str] = []
+        elif roll < 0.2:
+            selected_declarations = rng.sample(list(TE9_DECLARATIONS), k=2)
+        else:
+            selected_declarations = [rng.choice(TE9_DECLARATIONS)]
+    else:
+        selected_declarations = (
+            [] if rng.random() < 0.1 else [rng.choice(PE3_DECLARATIONS)]
+        )
+
+    declaration = selected_declarations[0] if selected_declarations else None
 
     payload: dict[str, Any] = {
         "applicationDateReceived": iso(date_received),
@@ -178,6 +190,8 @@ def build_application(case_data: dict[str, Any], timeliness: str, form: str, rng
         "applicationAddress": ", ".join(address_parts) if address_parts else "1 EXAMPLE STREET, LONDON",
         "applicationPostcode": postcode,
         "applicationDeclaration": declaration,
+        # PDF-only: may contain 0–2 TE9 tickboxes; stripped before CCD submit.
+        "_pdfDeclarations": selected_declarations,
     }
 
     if timeliness == "outOfTime":
@@ -186,7 +200,7 @@ def build_application(case_data: dict[str, Any], timeliness: str, form: str, rng
     if form == "PE3":
         payload["applicationReasonsGiven"] = rng.choice(("Yes", "No"))
 
-    if form == "TE9" and declaration == "paidInFull":
+    if form == "TE9" and "paidInFull" in selected_declarations:
         payload["applicationDatePaid"] = iso(date_of_contravention + timedelta(days=rng.randint(1, 20)))
         payload["applicationHowPaid"] = rng.choice(HOW_PAID)
         payload["applicationPaidTo"] = rng.choice(PAID_TO)
@@ -266,7 +280,10 @@ def draw_check(c: canvas.Canvas, rect: tuple[float, float, float, float]) -> Non
 def fill_te9(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
     widgets = parse_te9_widgets(template)
     title = payload.get("applicationTitle", "Mr")
-    declaration = payload.get("applicationDeclaration")
+    declarations = payload.get("_pdfDeclarations")
+    if not isinstance(declarations, list):
+        single = payload.get("applicationDeclaration")
+        declarations = [single] if single else []
     how_paid = (payload.get("applicationHowPaid") or "").lower()
     postcode = payload.get("applicationPostcode") or ""
     outward, inward = split_postcode(postcode)
@@ -305,10 +322,12 @@ def fill_te9(template: Path, out_pdf: Path, payload: dict[str, Any]) -> None:
         "appealedToAdjudicator": "no response to the appeal - yes",
         "paidInFull": "penalty charge has been paid in full - yes",
     }
-    if declaration in declaration_fields:
-        checks.append(declaration_fields[declaration])
+    for code in declarations:
+        field = declaration_fields.get(code)
+        if field:
+            checks.append(field)
 
-    if declaration == "paidInFull":
+    if "paidInFull" in declarations:
         text_values["date paid in full"] = payload.get("applicationDatePaid") or ""
         text_values["To whom was it paid"] = payload.get("applicationPaidTo") or ""
         if "cash" in how_paid:
@@ -375,7 +394,8 @@ def main() -> None:
     else:
         stamp_pe3(args.template, args.out_pdf, payload)
 
-    args.out_payload.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    ccd_payload = {k: v for k, v in payload.items() if not str(k).startswith("_")}
+    args.out_payload.write_text(json.dumps(ccd_payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"payloadPath": str(args.out_payload), "pdfPath": str(args.out_pdf)}))
 
 
