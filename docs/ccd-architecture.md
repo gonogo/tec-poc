@@ -80,11 +80,15 @@ The event handlers update TEC-owned data as follows:
 | `registrationPaymentSucceeded` | `paymentReference` | Sets payment status to `SUCCEEDED` and stores the reference | `CASE_ISSUED` |
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
+| `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
 `bin/attach-case-file-document.sh`, which posts the file to Case Document AM (`:4455`) then submits
 this event. `TecCaseView` rebuilds `allDocuments` from `tec_case_document` so ExUI Case File View can
 group files by category.
+
+`recordApplication` is likewise system-only and hidden from ExUI. Integrations submit OCR-extracted
+TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
 
 Local CDAM expects dm-store on `:4506`. Start `./bin/start-local-dm-store.sh` before attaching files;
 CFTLib does not start dm-store under `AuthMode.Local`.
@@ -95,7 +99,9 @@ CFTLib does not start dm-store under `AuthMode.Local`.
 
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
-  document and date, form validation result).
+  document and date, form validation result); and an **Applications** section for OCR-extracted TE9/PE3 data
+  (date received, in-time/out-of-time type, form, PCN/VRN, applicant and address fields, declaration, and
+  conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

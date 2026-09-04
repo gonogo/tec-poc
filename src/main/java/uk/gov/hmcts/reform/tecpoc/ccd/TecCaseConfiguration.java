@@ -84,7 +84,27 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getClosureReason)
             .field(TecCase::getRegistrationDocument)
             .field(TecCase::getRegistrationDate)
-            .field(TecCase::getFormValidationResultDisplay);
+            .field(TecCase::getFormValidationResultDisplay)
+            .label("applicationsSection", null, "## Applications")
+            .field(TecCase::getApplicationDateReceived)
+            .field(TecCase::getApplicationType)
+            .field(TecCase::getApplicationTe7Submitted, "applicationType=\"outOfTime\"")
+            .field(TecCase::getApplicationForm)
+            .field(TecCase::getApplicationPenaltyChargeNumber)
+            .field(TecCase::getApplicationVehicleRegistration)
+            .field(TecCase::getApplicationApplicant)
+            .field(TecCase::getApplicationLocationOfContravention)
+            .field(TecCase::getApplicationDateOfContravention)
+            .field(TecCase::getApplicationTitle)
+            .field(TecCase::getApplicationFullName)
+            .field(TecCase::getApplicationCompanyName)
+            .field(TecCase::getApplicationAddress)
+            .field(TecCase::getApplicationPostcode)
+            .field(TecCase::getApplicationDeclaration)
+            .field(TecCase::getApplicationReasonsGiven, "applicationForm=\"PE3\"")
+            .field(TecCase::getApplicationDatePaid, "applicationDeclaration=\"paidInFull\"")
+            .field(TecCase::getApplicationHowPaid, "applicationDeclaration=\"paidInFull\"")
+            .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"");
 
         builder.tab("caseFileView", "Case File View")
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
@@ -171,6 +191,32 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .fields()
             .mandatory(TecCase::getCaseFileDocument);
+
+        builder.decentralisedEvent("recordApplication", this::recordApplication)
+            .forStates(CaseState.values())
+            .name("Record application")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .optional(TecCase::getApplicationDateReceived)
+            .optional(TecCase::getApplicationType)
+            .optional(TecCase::getApplicationTe7Submitted)
+            .optional(TecCase::getApplicationForm)
+            .optional(TecCase::getApplicationPenaltyChargeNumber)
+            .optional(TecCase::getApplicationVehicleRegistration)
+            .optional(TecCase::getApplicationApplicant)
+            .optional(TecCase::getApplicationLocationOfContravention)
+            .optional(TecCase::getApplicationDateOfContravention)
+            .optional(TecCase::getApplicationTitle)
+            .optional(TecCase::getApplicationFullName)
+            .optional(TecCase::getApplicationCompanyName)
+            .optional(TecCase::getApplicationAddress)
+            .optional(TecCase::getApplicationPostcode)
+            .optional(TecCase::getApplicationDeclaration)
+            .optional(TecCase::getApplicationReasonsGiven)
+            .optional(TecCase::getApplicationDatePaid)
+            .optional(TecCase::getApplicationHowPaid)
+            .optional(TecCase::getApplicationPaidTo);
     }
 
     private SubmitResponse<CaseState> createTecCase(EventPayload<TecCase, CaseState> event) {
@@ -221,6 +267,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             document.getBinaryUrl(),
             document.getFilename()
         );
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> recordApplication(EventPayload<TecCase, CaseState> event) {
+        repository.recordApplication(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
     }
 

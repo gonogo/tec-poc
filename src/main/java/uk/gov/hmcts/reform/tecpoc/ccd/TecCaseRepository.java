@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,7 +45,15 @@ public class TecCaseRepository {
                    vehicle_registration_number, nature_of_offence,
                    date_charge_certificate_served, amount_due, payment_status,
                    payment_reference, closure_reason, registration_document, registration_date,
-                   form_validation_result
+                   form_validation_result,
+                   application_date_received, application_type, application_te7_submitted,
+                   application_form, application_penalty_charge_number,
+                   application_vehicle_registration, application_applicant,
+                   application_location_of_contravention, application_date_of_contravention,
+                   application_title, application_full_name, application_company_name,
+                   application_address, application_postcode, application_declaration,
+                   application_reasons_given, application_date_paid, application_how_paid,
+                   application_paid_to
               from tec_case
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
@@ -73,8 +83,79 @@ public class TecCaseRepository {
                 if (formValidationResult != null) {
                     result.setFormValidationResult(FormValidationResult.valueOf(formValidationResult));
                 }
+                mapApplicationFields(resultSet, result);
                 return result;
             });
+    }
+
+    public void recordApplication(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set application_date_received = :applicationDateReceived,
+                   application_type = :applicationType,
+                   application_te7_submitted = :applicationTe7Submitted,
+                   application_form = :applicationForm,
+                   application_penalty_charge_number = :applicationPenaltyChargeNumber,
+                   application_vehicle_registration = :applicationVehicleRegistration,
+                   application_applicant = :applicationApplicant,
+                   application_location_of_contravention = :applicationLocationOfContravention,
+                   application_date_of_contravention = :applicationDateOfContravention,
+                   application_title = :applicationTitle,
+                   application_full_name = :applicationFullName,
+                   application_company_name = :applicationCompanyName,
+                   application_address = :applicationAddress,
+                   application_postcode = :applicationPostcode,
+                   application_declaration = :applicationDeclaration,
+                   application_reasons_given = :applicationReasonsGiven,
+                   application_date_paid = :applicationDatePaid,
+                   application_how_paid = :applicationHowPaid,
+                   application_paid_to = :applicationPaidTo
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("applicationDateReceived", tecCase.getApplicationDateReceived())
+            .addValue(
+                "applicationType",
+                tecCase.getApplicationType() == null ? null : tecCase.getApplicationType().name()
+            )
+            .addValue(
+                "applicationTe7Submitted",
+                tecCase.getApplicationTe7Submitted() == null
+                    ? null
+                    : tecCase.getApplicationTe7Submitted().name()
+            )
+            .addValue(
+                "applicationForm",
+                tecCase.getApplicationForm() == null ? null : tecCase.getApplicationForm().name()
+            )
+            .addValue("applicationPenaltyChargeNumber", tecCase.getApplicationPenaltyChargeNumber())
+            .addValue("applicationVehicleRegistration", tecCase.getApplicationVehicleRegistration())
+            .addValue("applicationApplicant", tecCase.getApplicationApplicant())
+            .addValue(
+                "applicationLocationOfContravention",
+                tecCase.getApplicationLocationOfContravention()
+            )
+            .addValue("applicationDateOfContravention", tecCase.getApplicationDateOfContravention())
+            .addValue("applicationTitle", tecCase.getApplicationTitle())
+            .addValue("applicationFullName", tecCase.getApplicationFullName())
+            .addValue("applicationCompanyName", tecCase.getApplicationCompanyName())
+            .addValue("applicationAddress", tecCase.getApplicationAddress())
+            .addValue("applicationPostcode", tecCase.getApplicationPostcode())
+            .addValue(
+                "applicationDeclaration",
+                tecCase.getApplicationDeclaration() == null
+                    ? null
+                    : tecCase.getApplicationDeclaration().name()
+            )
+            .addValue(
+                "applicationReasonsGiven",
+                tecCase.getApplicationReasonsGiven() == null
+                    ? null
+                    : tecCase.getApplicationReasonsGiven().name()
+            )
+            .addValue("applicationDatePaid", tecCase.getApplicationDatePaid())
+            .addValue("applicationHowPaid", tecCase.getApplicationHowPaid())
+            .addValue("applicationPaidTo", tecCase.getApplicationPaidTo()));
     }
 
     public void recordPayment(long caseReference, String status, String reference, String closureReason) {
@@ -172,5 +253,57 @@ public class TecCaseRepository {
             .addValue("natureOfOffence", tecCase.getNatureOfOffence())
             .addValue("dateChargeCertificateServed", tecCase.getDateChargeCertificateServed())
             .addValue("amountDue", tecCase.getAmountDue());
+    }
+
+    private static void mapApplicationFields(ResultSet resultSet, TecCase result) throws SQLException {
+        Date applicationDateReceived = resultSet.getDate("application_date_received");
+        if (applicationDateReceived != null) {
+            result.setApplicationDateReceived(applicationDateReceived.toLocalDate());
+        }
+        String applicationType = resultSet.getString("application_type");
+        if (applicationType != null) {
+            result.setApplicationType(ApplicationTimeliness.valueOf(applicationType));
+        }
+        String applicationTe7Submitted = resultSet.getString("application_te7_submitted");
+        if (applicationTe7Submitted != null) {
+            result.setApplicationTe7Submitted(YesNo.valueOf(applicationTe7Submitted));
+        }
+        String applicationForm = resultSet.getString("application_form");
+        if (applicationForm != null) {
+            result.setApplicationForm(ApplicationForm.valueOf(applicationForm));
+        }
+        result.setApplicationPenaltyChargeNumber(
+            resultSet.getString("application_penalty_charge_number")
+        );
+        result.setApplicationVehicleRegistration(
+            resultSet.getString("application_vehicle_registration")
+        );
+        result.setApplicationApplicant(resultSet.getString("application_applicant"));
+        result.setApplicationLocationOfContravention(
+            resultSet.getString("application_location_of_contravention")
+        );
+        Date applicationDateOfContravention = resultSet.getDate("application_date_of_contravention");
+        if (applicationDateOfContravention != null) {
+            result.setApplicationDateOfContravention(applicationDateOfContravention.toLocalDate());
+        }
+        result.setApplicationTitle(resultSet.getString("application_title"));
+        result.setApplicationFullName(resultSet.getString("application_full_name"));
+        result.setApplicationCompanyName(resultSet.getString("application_company_name"));
+        result.setApplicationAddress(resultSet.getString("application_address"));
+        result.setApplicationPostcode(resultSet.getString("application_postcode"));
+        String applicationDeclaration = resultSet.getString("application_declaration");
+        if (applicationDeclaration != null) {
+            result.setApplicationDeclaration(ApplicationDeclaration.valueOf(applicationDeclaration));
+        }
+        String applicationReasonsGiven = resultSet.getString("application_reasons_given");
+        if (applicationReasonsGiven != null) {
+            result.setApplicationReasonsGiven(YesNo.valueOf(applicationReasonsGiven));
+        }
+        Date applicationDatePaid = resultSet.getDate("application_date_paid");
+        if (applicationDatePaid != null) {
+            result.setApplicationDatePaid(applicationDatePaid.toLocalDate());
+        }
+        result.setApplicationHowPaid(resultSet.getString("application_how_paid"));
+        result.setApplicationPaidTo(resultSet.getString("application_paid_to"));
     }
 }

@@ -26,3 +26,4 @@ applicationinsights-agent-*.jar
 bin/.local-dm-store-stub.pid
 bin/.local-dm-store-stub.log
 bin/.local-dm-store-data/
+bin/.venv-generate-application/

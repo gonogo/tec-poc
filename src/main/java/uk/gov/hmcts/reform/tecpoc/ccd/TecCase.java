@@ -87,6 +87,83 @@ public class TecCase {
     @CCD(label = "Form validation result")
     private String formValidationResultDisplay;
 
+    @CCD(label = "Date received")
+    private LocalDate applicationDateReceived;
+
+    @CCD(
+        label = "Type",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "ApplicationTimeliness"
+    )
+    private ApplicationTimeliness applicationType;
+
+    @CCD(
+        label = "TE7 submitted?",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "YesNo"
+    )
+    private YesNo applicationTe7Submitted;
+
+    @CCD(
+        label = "Form",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "ApplicationForm"
+    )
+    private ApplicationForm applicationForm;
+
+    @CCD(label = "Penalty Charge Number")
+    private String applicationPenaltyChargeNumber;
+
+    @CCD(label = "Vehicle reg")
+    private String applicationVehicleRegistration;
+
+    @CCD(label = "Applicant")
+    private String applicationApplicant;
+
+    @CCD(label = "Location of contravention")
+    private String applicationLocationOfContravention;
+
+    @CCD(label = "Date of contravention")
+    private LocalDate applicationDateOfContravention;
+
+    @CCD(label = "Title")
+    private String applicationTitle;
+
+    @CCD(label = "Full name")
+    private String applicationFullName;
+
+    @CCD(label = "Company name")
+    private String applicationCompanyName;
+
+    @CCD(label = "Address")
+    private String applicationAddress;
+
+    @CCD(label = "Postcode")
+    private String applicationPostcode;
+
+    @CCD(
+        label = "Declaration",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "ApplicationDeclaration"
+    )
+    private ApplicationDeclaration applicationDeclaration;
+
+    @CCD(
+        label = "Reasons given",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "YesNo"
+    )
+    private YesNo applicationReasonsGiven;
+
+    @CCD(label = "Date it was paid")
+    private LocalDate applicationDatePaid;
+
+    @CCD(label = "How it was paid")
+    private String applicationHowPaid;
+
+    @CCD(label = "To whom it was paid")
+    private String applicationPaidTo;
+
     /**
      * Case File View source documents. Populated by {@link TecCaseView}; not shown on Case details.
      */

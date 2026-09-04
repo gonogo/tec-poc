@@ -153,6 +153,24 @@ If the filename has spaces, quote it:
 
 Refresh the case in Manage Case to see the file under the chosen Case File View folder.
 
+### Generate a sample TE9/PE3 application (local)
+
+With `bootWithCCD` running, generate application data for an existing case, submit the
+`recordApplication` event, fill the TE9/PE3 PDF template, and attach it under **Applications**:
+
+```bash
+./bin/generate-application.sh <case-reference> out-of-time TE9
+./bin/generate-application.sh <case-reference> in-time PE3
+```
+
+Hyphens in the case reference are ignored. Type may be `in-time` / `out-of-time` (or
+`inTime` / `outOfTime`). Form must be `TE9` or `PE3`.
+
+The script copies PCN, VRN, name and address from the case where possible and randomly
+fills the remaining application fields. Set `SEED=<n>` for reproducible random values.
+On first run the script creates `bin/.venv-generate-application` and installs `pypdf` /
+`reportlab` there for PDF filling.
+
 Documents are stored by the local dm-store stub under `bin/.local-dm-store-data/`. If that stub
 was restarted before persistence was added, older folder entries can still appear while the viewer
 stays blank — re-attach the file once so the binary is available again.
