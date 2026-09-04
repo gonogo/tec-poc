@@ -164,6 +164,94 @@ public class TecCase {
     @CCD(label = "To whom it was paid")
     private String applicationPaidTo;
 
+    @CCD(
+        label = "Form validation result",
+        typeOverride = FieldType.FixedRadioList,
+        typeParameterOverride = "FormValidationResult"
+    )
+    private FormValidationResult timeExtensionFormValidationResult;
+
+    /**
+     * Case-view display for time-extension form validation. Always populated so ExUI shows the row
+     * even when {@link #timeExtensionFormValidationResult} is unset.
+     */
+    @CCD(label = "Form validation result")
+    private String timeExtensionFormValidationResultDisplay;
+
+    @CCD(
+        label = "Form",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "TimeExtensionForm"
+    )
+    private TimeExtensionForm timeExtensionForm;
+
+    @CCD(label = "Penalty Charge Number")
+    private String timeExtensionPenaltyChargeNumber;
+
+    @CCD(label = "Vehicle reg")
+    private String timeExtensionVehicleRegistration;
+
+    @CCD(label = "Applicant")
+    private String timeExtensionApplicant;
+
+    @CCD(label = "Location of contravention")
+    private String timeExtensionLocationOfContravention;
+
+    @CCD(label = "Date of contravention")
+    private LocalDate timeExtensionDateOfContravention;
+
+    @CCD(label = "Title")
+    private String timeExtensionTitle;
+
+    @CCD(label = "Other title")
+    private String timeExtensionOtherTitle;
+
+    @CCD(label = "Full name")
+    private String timeExtensionFullName;
+
+    @CCD(label = "Company name")
+    private String timeExtensionCompanyName;
+
+    @CCD(label = "Address")
+    private String timeExtensionAddress;
+
+    @CCD(label = "Postcode")
+    private String timeExtensionPostcode;
+
+    @CCD(
+        label = "Permission sought",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "TimeExtensionPermissionType"
+    )
+    private TimeExtensionPermissionType timeExtensionPermissionType;
+
+    @CCD(
+        label = "Reasons given",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "YesNo"
+    )
+    private YesNo timeExtensionReasonsGiven;
+
+    @CCD(
+        label = "Signed and dated",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "YesNo"
+    )
+    private YesNo timeExtensionSignedAndDated;
+
+    @CCD(
+        label = "Signed by",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "TimeExtensionSignedBy"
+    )
+    private TimeExtensionSignedBy timeExtensionSignedBy;
+
+    @CCD(label = "Date signed")
+    private LocalDate timeExtensionDateSigned;
+
+    @CCD(label = "Print full name")
+    private String timeExtensionPrintFullName;
+
     /**
      * Case File View source documents. Populated by {@link TecCaseView}; not shown on Case details.
      */

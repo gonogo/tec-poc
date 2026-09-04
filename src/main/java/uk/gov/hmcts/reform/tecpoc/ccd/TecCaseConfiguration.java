@@ -84,7 +84,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getClosureReason)
             .field(TecCase::getRegistrationDocument)
             .field(TecCase::getRegistrationDate)
-            .label("applicationsSection", null, "## Applications")
+            .label("applicationsSectionInTime", "applicationType=\"inTime\"", "## In-time application")
+            .label("applicationsSectionOutOfTime", "applicationType=\"outOfTime\"", "## Out-of-time application")
             .field(TecCase::getFormValidationResultDisplay)
             .field(TecCase::getApplicationDateReceived)
             .field(TecCase::getApplicationType)
@@ -104,7 +105,27 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getApplicationReasonsGiven, "applicationForm=\"PE3\"")
             .field(TecCase::getApplicationDatePaid, "applicationDeclaration=\"paidInFull\"")
             .field(TecCase::getApplicationHowPaid, "applicationDeclaration=\"paidInFull\"")
-            .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"");
+            .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"")
+            .label("timeExtensionSection", null, "## Time extension request")
+            .field(TecCase::getTimeExtensionFormValidationResultDisplay)
+            .field(TecCase::getTimeExtensionForm)
+            .field(TecCase::getTimeExtensionPenaltyChargeNumber)
+            .field(TecCase::getTimeExtensionVehicleRegistration)
+            .field(TecCase::getTimeExtensionApplicant, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionLocationOfContravention, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionDateOfContravention, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionTitle, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionOtherTitle, "timeExtensionForm=\"TE7\" AND timeExtensionTitle=\"Other\"")
+            .field(TecCase::getTimeExtensionFullName)
+            .field(TecCase::getTimeExtensionCompanyName, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionAddress)
+            .field(TecCase::getTimeExtensionPostcode)
+            .field(TecCase::getTimeExtensionPermissionType, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionReasonsGiven)
+            .field(TecCase::getTimeExtensionSignedAndDated)
+            .field(TecCase::getTimeExtensionSignedBy, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionDateSigned)
+            .field(TecCase::getTimeExtensionPrintFullName, "timeExtensionForm=\"TE7\"");
 
         builder.tab("caseFileView", "Case File View")
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
@@ -243,6 +264,32 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .optional(TecCase::getApplicationDatePaid)
             .optional(TecCase::getApplicationHowPaid)
             .optional(TecCase::getApplicationPaidTo);
+
+        builder.decentralisedEvent("recordTimeExtension", this::recordTimeExtension)
+            .forStates(CaseState.values())
+            .name("Record time extension")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .optional(TecCase::getTimeExtensionFormValidationResult)
+            .optional(TecCase::getTimeExtensionForm)
+            .optional(TecCase::getTimeExtensionPenaltyChargeNumber)
+            .optional(TecCase::getTimeExtensionVehicleRegistration)
+            .optional(TecCase::getTimeExtensionApplicant)
+            .optional(TecCase::getTimeExtensionLocationOfContravention)
+            .optional(TecCase::getTimeExtensionDateOfContravention)
+            .optional(TecCase::getTimeExtensionTitle)
+            .optional(TecCase::getTimeExtensionOtherTitle)
+            .optional(TecCase::getTimeExtensionFullName)
+            .optional(TecCase::getTimeExtensionCompanyName)
+            .optional(TecCase::getTimeExtensionAddress)
+            .optional(TecCase::getTimeExtensionPostcode)
+            .optional(TecCase::getTimeExtensionPermissionType)
+            .optional(TecCase::getTimeExtensionReasonsGiven)
+            .optional(TecCase::getTimeExtensionSignedAndDated)
+            .optional(TecCase::getTimeExtensionSignedBy)
+            .optional(TecCase::getTimeExtensionDateSigned)
+            .optional(TecCase::getTimeExtensionPrintFullName);
     }
 
     private SubmitResponse<CaseState> createTecCase(EventPayload<TecCase, CaseState> event) {
@@ -303,6 +350,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
     private SubmitResponse<CaseState> editApplication(EventPayload<TecCase, CaseState> event) {
         repository.recordApplication(event.caseReference(), event.caseData());
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> recordTimeExtension(EventPayload<TecCase, CaseState> event) {
+        repository.recordTimeExtension(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
     }
 

@@ -82,6 +82,7 @@ The event handlers update TEC-owned data as follows:
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
 | `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
 | `editApplication` | Optional TE9/PE3 application fields (clerk) | Upserts application columns on `public.tec_case` | unchanged |
+| `recordTimeExtension` | Optional TE7/PE2 time-extension fields | Upserts time-extension columns on `public.tec_case` | unchanged |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
 `bin/attach-case-file-document.sh`, which posts the file to Case Document AM (`:4455`) then submits
@@ -90,6 +91,9 @@ group files by category.
 
 `recordApplication` is likewise system-only and hidden from ExUI. Integrations submit OCR-extracted
 TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
+
+`recordTimeExtension` is system-only and hidden from ExUI. Integrations submit OCR-extracted TE7 or
+PE2 fields via this event; Case details shows them under the **Time extension request** section.
 
 `editApplication` is clerk-facing and appears in Manage Case Next steps. It presents all application
 fields on a single page so caseworkers can correct OCR data.
@@ -103,9 +107,11 @@ CFTLib does not start dm-store under `AuthMode.Local`.
 
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
-  document and date); and an **Applications** section for form validation result plus OCR-extracted TE9/PE3 data
+  document and date); an **Applications** section for form validation result plus OCR-extracted TE9/PE3 data
   (date received, in-time/out-of-time type, form, PCN/VRN, applicant and address fields, declaration, and
-  conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details).
+  conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details); and a
+  **Time extension request** section for TE7/PE2 data (form validation result, form, PCN/VRN, respondent
+  details, permission sought, reasons given, signed and dated, signed by, and related fields).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

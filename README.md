@@ -171,6 +171,20 @@ fills the remaining application fields. Set `SEED=<n>` for reproducible random v
 On first run the script creates `bin/.venv-generate-application` and installs `pypdf` /
 `reportlab` there for PDF filling.
 
+### Generate a sample TE7/PE2 time-extension request (local)
+
+With `bootWithCCD` running, generate time-extension data for an existing case, submit the
+`recordTimeExtension` event, fill the TE7/PE2 PDF template, and attach it under **Applications**:
+
+```bash
+./bin/generate-time-extension.sh <case-reference> TE7
+./bin/generate-time-extension.sh <case-reference> PE2
+```
+
+Hyphens in the case reference are ignored. Form must be `TE7` or `PE2`. Set `SEED=<n>` for
+reproducible random values. The script reuses the same Python venv as
+`generate-application.sh`.
+
 Documents are stored by the local dm-store stub under `bin/.local-dm-store-data/`. If that stub
 was restarted before persistence was added, older folder entries can still appear while the viewer
 stays blank — re-attach the file once so the binary is available again.

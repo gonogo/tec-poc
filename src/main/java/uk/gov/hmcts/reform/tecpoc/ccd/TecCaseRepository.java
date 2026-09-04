@@ -53,7 +53,17 @@ public class TecCaseRepository {
                    application_title, application_full_name, application_company_name,
                    application_address, application_postcode, application_declaration,
                    application_reasons_given, application_date_paid, application_how_paid,
-                   application_paid_to
+                   application_paid_to,
+                   time_extension_form, time_extension_penalty_charge_number,
+                   time_extension_vehicle_registration, time_extension_applicant,
+                   time_extension_location_of_contravention, time_extension_date_of_contravention,
+                   time_extension_title, time_extension_other_title, time_extension_full_name,
+                   time_extension_company_name, time_extension_address, time_extension_postcode,
+                   time_extension_permission_type, time_extension_reasons_given,
+                   time_extension_signed_and_dated,
+                   time_extension_signed_by, time_extension_date_signed,
+                   time_extension_print_full_name,
+                   time_extension_form_validation_result
               from tec_case
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
@@ -84,6 +94,7 @@ public class TecCaseRepository {
                     result.setFormValidationResult(FormValidationResult.valueOf(formValidationResult));
                 }
                 mapApplicationFields(resultSet, result);
+                mapTimeExtensionFields(resultSet, result);
                 return result;
             });
     }
@@ -156,6 +167,83 @@ public class TecCaseRepository {
             .addValue("applicationDatePaid", tecCase.getApplicationDatePaid())
             .addValue("applicationHowPaid", tecCase.getApplicationHowPaid())
             .addValue("applicationPaidTo", tecCase.getApplicationPaidTo()));
+    }
+
+    public void recordTimeExtension(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set time_extension_form_validation_result = :timeExtensionFormValidationResult,
+                   time_extension_form = :timeExtensionForm,
+                   time_extension_penalty_charge_number = :timeExtensionPenaltyChargeNumber,
+                   time_extension_vehicle_registration = :timeExtensionVehicleRegistration,
+                   time_extension_applicant = :timeExtensionApplicant,
+                   time_extension_location_of_contravention = :timeExtensionLocationOfContravention,
+                   time_extension_date_of_contravention = :timeExtensionDateOfContravention,
+                   time_extension_title = :timeExtensionTitle,
+                   time_extension_other_title = :timeExtensionOtherTitle,
+                   time_extension_full_name = :timeExtensionFullName,
+                   time_extension_company_name = :timeExtensionCompanyName,
+                   time_extension_address = :timeExtensionAddress,
+                   time_extension_postcode = :timeExtensionPostcode,
+                   time_extension_permission_type = :timeExtensionPermissionType,
+                   time_extension_reasons_given = :timeExtensionReasonsGiven,
+                   time_extension_signed_and_dated = :timeExtensionSignedAndDated,
+                   time_extension_signed_by = :timeExtensionSignedBy,
+                   time_extension_date_signed = :timeExtensionDateSigned,
+                   time_extension_print_full_name = :timeExtensionPrintFullName
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue(
+                "timeExtensionFormValidationResult",
+                tecCase.getTimeExtensionFormValidationResult() == null
+                    ? null
+                    : tecCase.getTimeExtensionFormValidationResult().name()
+            )
+            .addValue(
+                "timeExtensionForm",
+                tecCase.getTimeExtensionForm() == null ? null : tecCase.getTimeExtensionForm().name()
+            )
+            .addValue("timeExtensionPenaltyChargeNumber", tecCase.getTimeExtensionPenaltyChargeNumber())
+            .addValue("timeExtensionVehicleRegistration", tecCase.getTimeExtensionVehicleRegistration())
+            .addValue("timeExtensionApplicant", tecCase.getTimeExtensionApplicant())
+            .addValue(
+                "timeExtensionLocationOfContravention",
+                tecCase.getTimeExtensionLocationOfContravention()
+            )
+            .addValue("timeExtensionDateOfContravention", tecCase.getTimeExtensionDateOfContravention())
+            .addValue("timeExtensionTitle", tecCase.getTimeExtensionTitle())
+            .addValue("timeExtensionOtherTitle", tecCase.getTimeExtensionOtherTitle())
+            .addValue("timeExtensionFullName", tecCase.getTimeExtensionFullName())
+            .addValue("timeExtensionCompanyName", tecCase.getTimeExtensionCompanyName())
+            .addValue("timeExtensionAddress", tecCase.getTimeExtensionAddress())
+            .addValue("timeExtensionPostcode", tecCase.getTimeExtensionPostcode())
+            .addValue(
+                "timeExtensionPermissionType",
+                tecCase.getTimeExtensionPermissionType() == null
+                    ? null
+                    : tecCase.getTimeExtensionPermissionType().name()
+            )
+            .addValue(
+                "timeExtensionReasonsGiven",
+                tecCase.getTimeExtensionReasonsGiven() == null
+                    ? null
+                    : tecCase.getTimeExtensionReasonsGiven().name()
+            )
+            .addValue(
+                "timeExtensionSignedAndDated",
+                tecCase.getTimeExtensionSignedAndDated() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedAndDated().name()
+            )
+            .addValue(
+                "timeExtensionSignedBy",
+                tecCase.getTimeExtensionSignedBy() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedBy().name()
+            )
+            .addValue("timeExtensionDateSigned", tecCase.getTimeExtensionDateSigned())
+            .addValue("timeExtensionPrintFullName", tecCase.getTimeExtensionPrintFullName()));
     }
 
     public void recordPayment(long caseReference, String status, String reference, String closureReason) {
@@ -305,5 +393,59 @@ public class TecCaseRepository {
         }
         result.setApplicationHowPaid(resultSet.getString("application_how_paid"));
         result.setApplicationPaidTo(resultSet.getString("application_paid_to"));
+    }
+
+    private static void mapTimeExtensionFields(ResultSet resultSet, TecCase result) throws SQLException {
+        String timeExtensionFormValidation = resultSet.getString("time_extension_form_validation_result");
+        if (timeExtensionFormValidation != null) {
+            result.setTimeExtensionFormValidationResult(
+                FormValidationResult.valueOf(timeExtensionFormValidation)
+            );
+        }
+        String timeExtensionForm = resultSet.getString("time_extension_form");
+        if (timeExtensionForm != null) {
+            result.setTimeExtensionForm(TimeExtensionForm.valueOf(timeExtensionForm));
+        }
+        result.setTimeExtensionPenaltyChargeNumber(
+            resultSet.getString("time_extension_penalty_charge_number")
+        );
+        result.setTimeExtensionVehicleRegistration(
+            resultSet.getString("time_extension_vehicle_registration")
+        );
+        result.setTimeExtensionApplicant(resultSet.getString("time_extension_applicant"));
+        result.setTimeExtensionLocationOfContravention(
+            resultSet.getString("time_extension_location_of_contravention")
+        );
+        Date timeExtensionDateOfContravention = resultSet.getDate("time_extension_date_of_contravention");
+        if (timeExtensionDateOfContravention != null) {
+            result.setTimeExtensionDateOfContravention(timeExtensionDateOfContravention.toLocalDate());
+        }
+        result.setTimeExtensionTitle(resultSet.getString("time_extension_title"));
+        result.setTimeExtensionOtherTitle(resultSet.getString("time_extension_other_title"));
+        result.setTimeExtensionFullName(resultSet.getString("time_extension_full_name"));
+        result.setTimeExtensionCompanyName(resultSet.getString("time_extension_company_name"));
+        result.setTimeExtensionAddress(resultSet.getString("time_extension_address"));
+        result.setTimeExtensionPostcode(resultSet.getString("time_extension_postcode"));
+        String permissionType = resultSet.getString("time_extension_permission_type");
+        if (permissionType != null) {
+            result.setTimeExtensionPermissionType(TimeExtensionPermissionType.valueOf(permissionType));
+        }
+        String reasonsGiven = resultSet.getString("time_extension_reasons_given");
+        if (reasonsGiven != null) {
+            result.setTimeExtensionReasonsGiven(YesNo.valueOf(reasonsGiven));
+        }
+        String signedAndDated = resultSet.getString("time_extension_signed_and_dated");
+        if (signedAndDated != null) {
+            result.setTimeExtensionSignedAndDated(YesNo.valueOf(signedAndDated));
+        }
+        String signedBy = resultSet.getString("time_extension_signed_by");
+        if (signedBy != null) {
+            result.setTimeExtensionSignedBy(TimeExtensionSignedBy.valueOf(signedBy));
+        }
+        Date dateSigned = resultSet.getDate("time_extension_date_signed");
+        if (dateSigned != null) {
+            result.setTimeExtensionDateSigned(dateSigned.toLocalDate());
+        }
+        result.setTimeExtensionPrintFullName(resultSet.getString("time_extension_print_full_name"));
     }
 }
