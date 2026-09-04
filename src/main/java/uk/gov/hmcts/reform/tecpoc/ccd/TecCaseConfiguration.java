@@ -84,7 +84,104 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getClosureReason)
             .field(TecCase::getRegistrationDocument)
             .field(TecCase::getRegistrationDate)
-            .field(TecCase::getFormValidationResultDisplay);
+            .label(
+                "applicationsSectionTe9InTime",
+                "applicationForm=\"TE9\" AND applicationType=\"inTime\"",
+                "## Witness statement - In time"
+            )
+            .label(
+                "applicationsSectionTe9OutOfTime",
+                "applicationForm=\"TE9\" AND applicationType=\"outOfTime\"",
+                "## Witness statement - Out of time"
+            )
+            .label(
+                "applicationsSectionPe3InTime",
+                "applicationForm=\"PE3\" AND applicationType=\"inTime\"",
+                "## Statutory declaration - In time"
+            )
+            .label(
+                "applicationsSectionPe3OutOfTime",
+                "applicationForm=\"PE3\" AND applicationType=\"outOfTime\"",
+                "## Statutory declaration - Out of time"
+            )
+            // Time-extension headings when there is no TE9/PE3 application, so form validation
+            // can sit at the top of that section.
+            .label(
+                "timeExtensionSectionTe7OutOfTimeSolo",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\""
+                    + " AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application to file out of time"
+            )
+            .label(
+                "timeExtensionSectionTe7ExtensionSolo",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\""
+                    + " AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application for extension of time"
+            )
+            .label(
+                "timeExtensionSectionPe2Solo",
+                "timeExtensionForm=\"PE2\" AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application to file out of time"
+            )
+            .field(
+                TecCase::getFormValidationResultDisplay,
+                "applicationForm=\"TE9\" OR applicationForm=\"PE3\" OR timeExtensionForm=\"TE7\""
+                    + " OR timeExtensionForm=\"PE2\""
+            )
+            .field(TecCase::getApplicationDateReceived)
+            .field(TecCase::getApplicationType)
+            .field(TecCase::getApplicationTe7Submitted, "applicationType=\"outOfTime\"")
+            .field(TecCase::getApplicationForm)
+            .field(TecCase::getApplicationPenaltyChargeNumber)
+            .field(TecCase::getApplicationVehicleRegistration)
+            .field(TecCase::getApplicationApplicant)
+            .field(TecCase::getApplicationLocationOfContravention)
+            .field(TecCase::getApplicationDateOfContravention)
+            .field(TecCase::getApplicationTitle)
+            .field(TecCase::getApplicationFullName)
+            .field(TecCase::getApplicationCompanyName)
+            .field(TecCase::getApplicationAddress)
+            .field(TecCase::getApplicationPostcode)
+            .field(TecCase::getApplicationDeclaration)
+            .field(TecCase::getApplicationReasonsGiven, "applicationForm=\"PE3\"")
+            .field(TecCase::getApplicationDatePaid, "applicationDeclaration=\"paidInFull\"")
+            .field(TecCase::getApplicationHowPaid, "applicationDeclaration=\"paidInFull\"")
+            .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"")
+            .label(
+                "timeExtensionSectionTe7OutOfTime",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\""
+                    + " AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
+                "## Application to file out of time"
+            )
+            .label(
+                "timeExtensionSectionTe7Extension",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\""
+                    + " AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
+                "## Application for extension of time"
+            )
+            .label(
+                "timeExtensionSectionPe2",
+                "timeExtensionForm=\"PE2\" AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
+                "## Application to file out of time"
+            )
+            .field(TecCase::getTimeExtensionForm)
+            .field(TecCase::getTimeExtensionPenaltyChargeNumber)
+            .field(TecCase::getTimeExtensionVehicleRegistration)
+            .field(TecCase::getTimeExtensionApplicant, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionLocationOfContravention, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionDateOfContravention, "timeExtensionForm=\"PE2\"")
+            .field(TecCase::getTimeExtensionTitle, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionOtherTitle, "timeExtensionForm=\"TE7\" AND timeExtensionTitle=\"Other\"")
+            .field(TecCase::getTimeExtensionFullName)
+            .field(TecCase::getTimeExtensionCompanyName, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionAddress)
+            .field(TecCase::getTimeExtensionPostcode)
+            .field(TecCase::getTimeExtensionPermissionType, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionReasonsGiven)
+            .field(TecCase::getTimeExtensionSignedAndDated)
+            .field(TecCase::getTimeExtensionSignedBy, "timeExtensionForm=\"TE7\"")
+            .field(TecCase::getTimeExtensionDateSigned)
+            .field(TecCase::getTimeExtensionPrintFullName, "timeExtensionForm=\"TE7\"");
 
         builder.tab("caseFileView", "Case File View")
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
@@ -159,10 +256,36 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
         builder.decentralisedEvent("verifyFormValidation", this::verifyFormValidation)
             .forStates(CaseState.PENDING_CASE_ISSUED, CaseState.CASE_ISSUED)
-            .name("Verify form validation")
+            .name("Validate application form")
             .grant(Permission.CRU, UserRole.CLERK)
             .fields()
             .mandatory(TecCase::getFormValidationResult);
+
+        builder.decentralisedEvent("editApplication", this::editApplication)
+            .forStates(CaseState.values())
+            .name("Edit application")
+            .description("Update TE9/PE3 application details")
+            .grant(Permission.CRU, UserRole.CLERK)
+            .fields()
+            .optional(TecCase::getApplicationDateReceived)
+            .optional(TecCase::getApplicationType)
+            .optional(TecCase::getApplicationTe7Submitted)
+            .optional(TecCase::getApplicationForm)
+            .optional(TecCase::getApplicationPenaltyChargeNumber)
+            .optional(TecCase::getApplicationVehicleRegistration)
+            .optional(TecCase::getApplicationApplicant)
+            .optional(TecCase::getApplicationLocationOfContravention)
+            .optional(TecCase::getApplicationDateOfContravention)
+            .optional(TecCase::getApplicationTitle)
+            .optional(TecCase::getApplicationFullName)
+            .optional(TecCase::getApplicationCompanyName)
+            .optional(TecCase::getApplicationAddress)
+            .optional(TecCase::getApplicationPostcode)
+            .optional(TecCase::getApplicationDeclaration)
+            .optional(TecCase::getApplicationReasonsGiven)
+            .optional(TecCase::getApplicationDatePaid)
+            .optional(TecCase::getApplicationHowPaid)
+            .optional(TecCase::getApplicationPaidTo);
 
         builder.decentralisedEvent("attachCaseFileDocument", this::attachCaseFileDocument)
             .forStates(CaseState.values())
@@ -171,6 +294,58 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .fields()
             .mandatory(TecCase::getCaseFileDocument);
+
+        builder.decentralisedEvent("recordApplication", this::recordApplication)
+            .forStates(CaseState.values())
+            .name("Record application")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .optional(TecCase::getApplicationDateReceived)
+            .optional(TecCase::getApplicationType)
+            .optional(TecCase::getApplicationTe7Submitted)
+            .optional(TecCase::getApplicationForm)
+            .optional(TecCase::getApplicationPenaltyChargeNumber)
+            .optional(TecCase::getApplicationVehicleRegistration)
+            .optional(TecCase::getApplicationApplicant)
+            .optional(TecCase::getApplicationLocationOfContravention)
+            .optional(TecCase::getApplicationDateOfContravention)
+            .optional(TecCase::getApplicationTitle)
+            .optional(TecCase::getApplicationFullName)
+            .optional(TecCase::getApplicationCompanyName)
+            .optional(TecCase::getApplicationAddress)
+            .optional(TecCase::getApplicationPostcode)
+            .optional(TecCase::getApplicationDeclaration)
+            .optional(TecCase::getApplicationReasonsGiven)
+            .optional(TecCase::getApplicationDatePaid)
+            .optional(TecCase::getApplicationHowPaid)
+            .optional(TecCase::getApplicationPaidTo);
+
+        builder.decentralisedEvent("recordTimeExtension", this::recordTimeExtension)
+            .forStates(CaseState.values())
+            .name("Record time extension")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .optional(TecCase::getFormValidationResult)
+            .optional(TecCase::getTimeExtensionForm)
+            .optional(TecCase::getTimeExtensionPenaltyChargeNumber)
+            .optional(TecCase::getTimeExtensionVehicleRegistration)
+            .optional(TecCase::getTimeExtensionApplicant)
+            .optional(TecCase::getTimeExtensionLocationOfContravention)
+            .optional(TecCase::getTimeExtensionDateOfContravention)
+            .optional(TecCase::getTimeExtensionTitle)
+            .optional(TecCase::getTimeExtensionOtherTitle)
+            .optional(TecCase::getTimeExtensionFullName)
+            .optional(TecCase::getTimeExtensionCompanyName)
+            .optional(TecCase::getTimeExtensionAddress)
+            .optional(TecCase::getTimeExtensionPostcode)
+            .optional(TecCase::getTimeExtensionPermissionType)
+            .optional(TecCase::getTimeExtensionReasonsGiven)
+            .optional(TecCase::getTimeExtensionSignedAndDated)
+            .optional(TecCase::getTimeExtensionSignedBy)
+            .optional(TecCase::getTimeExtensionDateSigned)
+            .optional(TecCase::getTimeExtensionPrintFullName);
     }
 
     private SubmitResponse<CaseState> createTecCase(EventPayload<TecCase, CaseState> event) {
@@ -221,6 +396,21 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             document.getBinaryUrl(),
             document.getFilename()
         );
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> recordApplication(EventPayload<TecCase, CaseState> event) {
+        repository.recordApplication(event.caseReference(), event.caseData());
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> editApplication(EventPayload<TecCase, CaseState> event) {
+        repository.recordApplication(event.caseReference(), event.caseData());
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> recordTimeExtension(EventPayload<TecCase, CaseState> event) {
+        repository.recordTimeExtension(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
     }
 

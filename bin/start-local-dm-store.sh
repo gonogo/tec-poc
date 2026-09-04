@@ -30,8 +30,11 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-nohup python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 &
+# Detach from the parent shell so IDE/session cleanup does not kill the stub.
+# macOS has no setsid(1); nohup + background is enough when stdin is closed.
+nohup python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 < /dev/null &
 echo $! >"${PID_FILE}"
+sleep 0.1
 
 for _ in {1..20}; do
   if curl --silent --fail --connect-timeout 1 "http://localhost:${PORT}/health" >/dev/null 2>&1; then

@@ -190,6 +190,16 @@ dependencies {
 tasks.withType(CftlibExec).configureEach {
   group = 'ccd tasks'
   authMode = AuthMode.Local
+  // Case File View loads binaries via CDAM → local dm-store (:4506). CFTLib does not start
+  // dm-store under AuthMode.Local, so bring up the stub before the stack runs.
+  doFirst {
+    def starter = file("${rootDir}/bin/start-local-dm-store.sh")
+    if (starter.exists()) {
+      exec {
+        commandLine starter.absolutePath
+      }
+    }
+  }
   environment 'POSTGRES_VERSION', '16'
   environment 'RSE_LIB_ADDITIONAL_DATABASES', 'tec'
   environment 'DB_HOST', 'localhost'
@@ -208,7 +218,12 @@ tasks.withType(CftlibExec).configureEach {
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
-  // Point Manage Case document APIs at local CDAM (not the IDAM simulator).
+  // Compose interpolates these into xui-manage-cases environment (overrides xui.env).
+  // Unset values fall back to AAT URLs which CFTLib rewrites to the IDAM simulator (:5062),
+  // breaking Case File View document loading.
+  environment 'XUI_DOCUMENTS_API', 'http://host.docker.internal:4455'
+  environment 'XUI_DOCUMENTS_API_V2', 'http://host.docker.internal:4455'
+  // Also write into xui.env for tools that recreate the container from that file alone.
   environment 'RSE_LIB_XUI_ENV_SERVICES_DOCUMENTS_API', 'http://host.docker.internal:4455'
   environment 'RSE_LIB_XUI_ENV_SERVICES_DOCUMENTS_API_V2', 'http://host.docker.internal:4455'
   environment 'SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING', 'true'

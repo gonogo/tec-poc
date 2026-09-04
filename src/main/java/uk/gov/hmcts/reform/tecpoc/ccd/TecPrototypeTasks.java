@@ -46,12 +46,12 @@ final class TecPrototypeTasks {
             if (!formValidated) {
                 // Assigned to the demo user: shows Manage links + Next steps start-task link.
                 tasks.add(new PrototypeTask(
-                    "Verify form validation",
+                    "Validate application form",
                     "High",
                     LocalDate.now().plusDays(2),
                     DEMO_USER,
                     List.of("Reassign", "Unassign", "Go to task"),
-                    List.of(new NextStep("Verify form validation", "verifyFormValidation"))
+                    List.of(new NextStep("Validate application form", "verifyFormValidation"))
                 ));
             }
 
@@ -85,7 +85,8 @@ final class TecPrototypeTasks {
                 DEMO_USER,
                 List.of("Reassign", "Unassign", "Go to task"),
                 List.of(
-                    new NextStep("Verify form validation", "verifyFormValidation"),
+                    new NextStep("Validate application form", "verifyFormValidation"),
+                    new NextStep("Edit application", "editApplication"),
                     new NextStep("Review case details", null)
                 )
             ));
@@ -98,6 +99,17 @@ final class TecPrototypeTasks {
                 null,
                 List.of("Assign to me", "Go to task"),
                 List.of()
+            ));
+        }
+
+        if (tecCase.getApplicationForm() != null) {
+            tasks.add(new PrototypeTask(
+                "Edit application",
+                "Medium",
+                LocalDate.now().plusDays(5),
+                DEMO_USER,
+                List.of("Reassign", "Unassign", "Go to task"),
+                List.of(new NextStep("Edit application", "editApplication"))
             ));
         }
 

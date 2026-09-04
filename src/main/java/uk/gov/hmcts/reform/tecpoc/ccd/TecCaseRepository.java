@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,7 +45,24 @@ public class TecCaseRepository {
                    vehicle_registration_number, nature_of_offence,
                    date_charge_certificate_served, amount_due, payment_status,
                    payment_reference, closure_reason, registration_document, registration_date,
-                   form_validation_result
+                   form_validation_result,
+                   application_date_received, application_type, application_te7_submitted,
+                   application_form, application_penalty_charge_number,
+                   application_vehicle_registration, application_applicant,
+                   application_location_of_contravention, application_date_of_contravention,
+                   application_title, application_full_name, application_company_name,
+                   application_address, application_postcode, application_declaration,
+                   application_reasons_given, application_date_paid, application_how_paid,
+                   application_paid_to,
+                   time_extension_form, time_extension_penalty_charge_number,
+                   time_extension_vehicle_registration, time_extension_applicant,
+                   time_extension_location_of_contravention, time_extension_date_of_contravention,
+                   time_extension_title, time_extension_other_title, time_extension_full_name,
+                   time_extension_company_name, time_extension_address, time_extension_postcode,
+                   time_extension_permission_type, time_extension_reasons_given,
+                   time_extension_signed_and_dated,
+                   time_extension_signed_by, time_extension_date_signed,
+                   time_extension_print_full_name
               from tec_case
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
@@ -73,8 +92,157 @@ public class TecCaseRepository {
                 if (formValidationResult != null) {
                     result.setFormValidationResult(FormValidationResult.valueOf(formValidationResult));
                 }
+                mapApplicationFields(resultSet, result);
+                mapTimeExtensionFields(resultSet, result);
                 return result;
             });
+    }
+
+    public void recordApplication(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set application_date_received = :applicationDateReceived,
+                   application_type = :applicationType,
+                   application_te7_submitted = :applicationTe7Submitted,
+                   application_form = :applicationForm,
+                   application_penalty_charge_number = :applicationPenaltyChargeNumber,
+                   application_vehicle_registration = :applicationVehicleRegistration,
+                   application_applicant = :applicationApplicant,
+                   application_location_of_contravention = :applicationLocationOfContravention,
+                   application_date_of_contravention = :applicationDateOfContravention,
+                   application_title = :applicationTitle,
+                   application_full_name = :applicationFullName,
+                   application_company_name = :applicationCompanyName,
+                   application_address = :applicationAddress,
+                   application_postcode = :applicationPostcode,
+                   application_declaration = :applicationDeclaration,
+                   application_reasons_given = :applicationReasonsGiven,
+                   application_date_paid = :applicationDatePaid,
+                   application_how_paid = :applicationHowPaid,
+                   application_paid_to = :applicationPaidTo
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("applicationDateReceived", tecCase.getApplicationDateReceived())
+            .addValue(
+                "applicationType",
+                tecCase.getApplicationType() == null ? null : tecCase.getApplicationType().name()
+            )
+            .addValue(
+                "applicationTe7Submitted",
+                tecCase.getApplicationTe7Submitted() == null
+                    ? null
+                    : tecCase.getApplicationTe7Submitted().name()
+            )
+            .addValue(
+                "applicationForm",
+                tecCase.getApplicationForm() == null ? null : tecCase.getApplicationForm().name()
+            )
+            .addValue("applicationPenaltyChargeNumber", tecCase.getApplicationPenaltyChargeNumber())
+            .addValue("applicationVehicleRegistration", tecCase.getApplicationVehicleRegistration())
+            .addValue("applicationApplicant", tecCase.getApplicationApplicant())
+            .addValue(
+                "applicationLocationOfContravention",
+                tecCase.getApplicationLocationOfContravention()
+            )
+            .addValue("applicationDateOfContravention", tecCase.getApplicationDateOfContravention())
+            .addValue("applicationTitle", tecCase.getApplicationTitle())
+            .addValue("applicationFullName", tecCase.getApplicationFullName())
+            .addValue("applicationCompanyName", tecCase.getApplicationCompanyName())
+            .addValue("applicationAddress", tecCase.getApplicationAddress())
+            .addValue("applicationPostcode", tecCase.getApplicationPostcode())
+            .addValue(
+                "applicationDeclaration",
+                tecCase.getApplicationDeclaration() == null
+                    ? null
+                    : tecCase.getApplicationDeclaration().name()
+            )
+            .addValue(
+                "applicationReasonsGiven",
+                tecCase.getApplicationReasonsGiven() == null
+                    ? null
+                    : tecCase.getApplicationReasonsGiven().name()
+            )
+            .addValue("applicationDatePaid", tecCase.getApplicationDatePaid())
+            .addValue("applicationHowPaid", tecCase.getApplicationHowPaid())
+            .addValue("applicationPaidTo", tecCase.getApplicationPaidTo()));
+    }
+
+    public void recordTimeExtension(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set form_validation_result = coalesce(:formValidationResult, form_validation_result),
+                   time_extension_form = :timeExtensionForm,
+                   time_extension_penalty_charge_number = :timeExtensionPenaltyChargeNumber,
+                   time_extension_vehicle_registration = :timeExtensionVehicleRegistration,
+                   time_extension_applicant = :timeExtensionApplicant,
+                   time_extension_location_of_contravention = :timeExtensionLocationOfContravention,
+                   time_extension_date_of_contravention = :timeExtensionDateOfContravention,
+                   time_extension_title = :timeExtensionTitle,
+                   time_extension_other_title = :timeExtensionOtherTitle,
+                   time_extension_full_name = :timeExtensionFullName,
+                   time_extension_company_name = :timeExtensionCompanyName,
+                   time_extension_address = :timeExtensionAddress,
+                   time_extension_postcode = :timeExtensionPostcode,
+                   time_extension_permission_type = :timeExtensionPermissionType,
+                   time_extension_reasons_given = :timeExtensionReasonsGiven,
+                   time_extension_signed_and_dated = :timeExtensionSignedAndDated,
+                   time_extension_signed_by = :timeExtensionSignedBy,
+                   time_extension_date_signed = :timeExtensionDateSigned,
+                   time_extension_print_full_name = :timeExtensionPrintFullName
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue(
+                "formValidationResult",
+                tecCase.getFormValidationResult() == null
+                    ? null
+                    : tecCase.getFormValidationResult().name()
+            )
+            .addValue(
+                "timeExtensionForm",
+                tecCase.getTimeExtensionForm() == null ? null : tecCase.getTimeExtensionForm().name()
+            )
+            .addValue("timeExtensionPenaltyChargeNumber", tecCase.getTimeExtensionPenaltyChargeNumber())
+            .addValue("timeExtensionVehicleRegistration", tecCase.getTimeExtensionVehicleRegistration())
+            .addValue("timeExtensionApplicant", tecCase.getTimeExtensionApplicant())
+            .addValue(
+                "timeExtensionLocationOfContravention",
+                tecCase.getTimeExtensionLocationOfContravention()
+            )
+            .addValue("timeExtensionDateOfContravention", tecCase.getTimeExtensionDateOfContravention())
+            .addValue("timeExtensionTitle", tecCase.getTimeExtensionTitle())
+            .addValue("timeExtensionOtherTitle", tecCase.getTimeExtensionOtherTitle())
+            .addValue("timeExtensionFullName", tecCase.getTimeExtensionFullName())
+            .addValue("timeExtensionCompanyName", tecCase.getTimeExtensionCompanyName())
+            .addValue("timeExtensionAddress", tecCase.getTimeExtensionAddress())
+            .addValue("timeExtensionPostcode", tecCase.getTimeExtensionPostcode())
+            .addValue(
+                "timeExtensionPermissionType",
+                tecCase.getTimeExtensionPermissionType() == null
+                    ? null
+                    : tecCase.getTimeExtensionPermissionType().name()
+            )
+            .addValue(
+                "timeExtensionReasonsGiven",
+                tecCase.getTimeExtensionReasonsGiven() == null
+                    ? null
+                    : tecCase.getTimeExtensionReasonsGiven().name()
+            )
+            .addValue(
+                "timeExtensionSignedAndDated",
+                tecCase.getTimeExtensionSignedAndDated() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedAndDated().name()
+            )
+            .addValue(
+                "timeExtensionSignedBy",
+                tecCase.getTimeExtensionSignedBy() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedBy().name()
+            )
+            .addValue("timeExtensionDateSigned", tecCase.getTimeExtensionDateSigned())
+            .addValue("timeExtensionPrintFullName", tecCase.getTimeExtensionPrintFullName()));
     }
 
     public void recordPayment(long caseReference, String status, String reference, String closureReason) {
@@ -172,5 +340,105 @@ public class TecCaseRepository {
             .addValue("natureOfOffence", tecCase.getNatureOfOffence())
             .addValue("dateChargeCertificateServed", tecCase.getDateChargeCertificateServed())
             .addValue("amountDue", tecCase.getAmountDue());
+    }
+
+    private static void mapApplicationFields(ResultSet resultSet, TecCase result) throws SQLException {
+        Date applicationDateReceived = resultSet.getDate("application_date_received");
+        if (applicationDateReceived != null) {
+            result.setApplicationDateReceived(applicationDateReceived.toLocalDate());
+        }
+        String applicationType = resultSet.getString("application_type");
+        if (applicationType != null) {
+            result.setApplicationType(ApplicationTimeliness.valueOf(applicationType));
+        }
+        String applicationTe7Submitted = resultSet.getString("application_te7_submitted");
+        if (applicationTe7Submitted != null) {
+            result.setApplicationTe7Submitted(YesNo.valueOf(applicationTe7Submitted));
+        }
+        String applicationForm = resultSet.getString("application_form");
+        if (applicationForm != null) {
+            result.setApplicationForm(ApplicationForm.valueOf(applicationForm));
+        }
+        result.setApplicationPenaltyChargeNumber(
+            resultSet.getString("application_penalty_charge_number")
+        );
+        result.setApplicationVehicleRegistration(
+            resultSet.getString("application_vehicle_registration")
+        );
+        result.setApplicationApplicant(resultSet.getString("application_applicant"));
+        result.setApplicationLocationOfContravention(
+            resultSet.getString("application_location_of_contravention")
+        );
+        Date applicationDateOfContravention = resultSet.getDate("application_date_of_contravention");
+        if (applicationDateOfContravention != null) {
+            result.setApplicationDateOfContravention(applicationDateOfContravention.toLocalDate());
+        }
+        result.setApplicationTitle(resultSet.getString("application_title"));
+        result.setApplicationFullName(resultSet.getString("application_full_name"));
+        result.setApplicationCompanyName(resultSet.getString("application_company_name"));
+        result.setApplicationAddress(resultSet.getString("application_address"));
+        result.setApplicationPostcode(resultSet.getString("application_postcode"));
+        String applicationDeclaration = resultSet.getString("application_declaration");
+        if (applicationDeclaration != null) {
+            result.setApplicationDeclaration(ApplicationDeclaration.valueOf(applicationDeclaration));
+        }
+        String applicationReasonsGiven = resultSet.getString("application_reasons_given");
+        if (applicationReasonsGiven != null) {
+            result.setApplicationReasonsGiven(YesNo.valueOf(applicationReasonsGiven));
+        }
+        Date applicationDatePaid = resultSet.getDate("application_date_paid");
+        if (applicationDatePaid != null) {
+            result.setApplicationDatePaid(applicationDatePaid.toLocalDate());
+        }
+        result.setApplicationHowPaid(resultSet.getString("application_how_paid"));
+        result.setApplicationPaidTo(resultSet.getString("application_paid_to"));
+    }
+
+    private static void mapTimeExtensionFields(ResultSet resultSet, TecCase result) throws SQLException {
+        String timeExtensionForm = resultSet.getString("time_extension_form");
+        if (timeExtensionForm != null) {
+            result.setTimeExtensionForm(TimeExtensionForm.valueOf(timeExtensionForm));
+        }
+        result.setTimeExtensionPenaltyChargeNumber(
+            resultSet.getString("time_extension_penalty_charge_number")
+        );
+        result.setTimeExtensionVehicleRegistration(
+            resultSet.getString("time_extension_vehicle_registration")
+        );
+        result.setTimeExtensionApplicant(resultSet.getString("time_extension_applicant"));
+        result.setTimeExtensionLocationOfContravention(
+            resultSet.getString("time_extension_location_of_contravention")
+        );
+        Date timeExtensionDateOfContravention = resultSet.getDate("time_extension_date_of_contravention");
+        if (timeExtensionDateOfContravention != null) {
+            result.setTimeExtensionDateOfContravention(timeExtensionDateOfContravention.toLocalDate());
+        }
+        result.setTimeExtensionTitle(resultSet.getString("time_extension_title"));
+        result.setTimeExtensionOtherTitle(resultSet.getString("time_extension_other_title"));
+        result.setTimeExtensionFullName(resultSet.getString("time_extension_full_name"));
+        result.setTimeExtensionCompanyName(resultSet.getString("time_extension_company_name"));
+        result.setTimeExtensionAddress(resultSet.getString("time_extension_address"));
+        result.setTimeExtensionPostcode(resultSet.getString("time_extension_postcode"));
+        String permissionType = resultSet.getString("time_extension_permission_type");
+        if (permissionType != null) {
+            result.setTimeExtensionPermissionType(TimeExtensionPermissionType.valueOf(permissionType));
+        }
+        String reasonsGiven = resultSet.getString("time_extension_reasons_given");
+        if (reasonsGiven != null) {
+            result.setTimeExtensionReasonsGiven(YesNo.valueOf(reasonsGiven));
+        }
+        String signedAndDated = resultSet.getString("time_extension_signed_and_dated");
+        if (signedAndDated != null) {
+            result.setTimeExtensionSignedAndDated(YesNo.valueOf(signedAndDated));
+        }
+        String signedBy = resultSet.getString("time_extension_signed_by");
+        if (signedBy != null) {
+            result.setTimeExtensionSignedBy(TimeExtensionSignedBy.valueOf(signedBy));
+        }
+        Date dateSigned = resultSet.getDate("time_extension_date_signed");
+        if (dateSigned != null) {
+            result.setTimeExtensionDateSigned(dateSigned.toLocalDate());
+        }
+        result.setTimeExtensionPrintFullName(resultSet.getString("time_extension_print_full_name"));
     }
 }

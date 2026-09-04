@@ -80,14 +80,28 @@ The event handlers update TEC-owned data as follows:
 | `registrationPaymentSucceeded` | `paymentReference` | Sets payment status to `SUCCEEDED` and stores the reference | `CASE_ISSUED` |
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
+| `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
+| `editApplication` | Optional TE9/PE3 application fields (clerk) | Upserts application columns on `public.tec_case` | unchanged |
+| `recordTimeExtension` | Optional TE7/PE2 time-extension fields | Upserts time-extension columns on `public.tec_case` | unchanged |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
 `bin/attach-case-file-document.sh`, which posts the file to Case Document AM (`:4455`) then submits
 this event. `TecCaseView` rebuilds `allDocuments` from `tec_case_document` so ExUI Case File View can
 group files by category.
 
-Local CDAM expects dm-store on `:4506`. Start `./bin/start-local-dm-store.sh` before attaching files;
-CFTLib does not start dm-store under `AuthMode.Local`.
+`recordApplication` is likewise system-only and hidden from ExUI. Integrations submit OCR-extracted
+TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
+
+`recordTimeExtension` is system-only and hidden from ExUI. Integrations submit OCR-extracted TE7 or
+PE2 fields via this event; Case details shows them under a heading driven by the form
+(**Application to file out of time** / **Application for extension of time** for TE7 by permission
+sought; **Application to file out of time** for PE2).
+
+`editApplication` is clerk-facing and appears in Manage Case Next steps. It presents all application
+fields on a single page so caseworkers can correct OCR data.
+
+Local CDAM expects dm-store on `:4506`. `bootWithCCD` starts `./bin/start-local-dm-store.sh`
+automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 
 ### Case presentation and search
 
@@ -95,7 +109,15 @@ CFTLib does not start dm-store under `AuthMode.Local`.
 
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
-  document and date, form validation result).
+  document and date); an application section headed by form and timeliness
+  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for a single
+  shared form validation result plus OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN,
+  applicant and address fields, declaration, and conditional fields such as TE7 submitted, PE3 reasons
+  given, and TE9 payment details); and a time-extension section headed by TE7 permission sought
+  (**Application to file out of time** or **Application for extension of time**) or
+  **Application to file out of time** for PE2, covering form, PCN/VRN, respondent details, permission
+  sought, reasons given, signed and dated, signed by, and related fields (form validation is the same
+  shared case field shown at the top of the active section).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

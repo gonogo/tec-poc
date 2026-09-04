@@ -14,13 +14,14 @@ class TecPrototypeTasksTest {
 
         assertThat(markdown)
             .contains("<h2 class=\"govuk-heading-m\">Active tasks</h2>")
-            .contains("<strong>Verify form validation</strong>")
+            .contains("<strong>Validate application form</strong>")
             .contains("Next steps")
             .contains("/cases/case-details/1788364399834478/trigger/verifyFormValidation")
             .contains("Assign to me")
             .contains("Reassign")
             .contains("Unassigned")
             .contains("Complete registration checks")
+            .contains("/cases/case-details/1788364399834478/trigger/editApplication")
             .contains("Chase outstanding payment confirmation");
     }
 
@@ -32,8 +33,24 @@ class TecPrototypeTasksTest {
         String markdown = TecPrototypeTasks.markdownFor(1L, CaseState.CASE_ISSUED, tecCase);
 
         assertThat(markdown)
-            .doesNotContain("<strong>Verify form validation</strong>")
+            .doesNotContain("<strong>Validate application form</strong>")
             .contains("<strong>Review issued case</strong>");
+    }
+
+    @Test
+    void shouldShowEditApplicationTaskWhenApplicationRecorded() {
+        TecCase tecCase = new TecCase();
+        tecCase.setApplicationForm(ApplicationForm.TE9);
+
+        String markdown = TecPrototypeTasks.markdownFor(
+            1L,
+            CaseState.AWAITING_RESPONDENT_RESPONSE,
+            tecCase
+        );
+
+        assertThat(markdown)
+            .contains("<strong>Edit application</strong>")
+            .contains("/cases/case-details/1/trigger/editApplication");
     }
 
     @Test
