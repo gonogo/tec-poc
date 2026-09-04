@@ -104,7 +104,30 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
                 "applicationForm=\"PE3\" AND applicationType=\"outOfTime\"",
                 "## Statutory declaration - Out of time"
             )
-            .field(TecCase::getFormValidationResultDisplay)
+            // Time-extension headings when there is no TE9/PE3 application, so form validation
+            // can sit at the top of that section.
+            .label(
+                "timeExtensionSectionTe7OutOfTimeSolo",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\""
+                    + " AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application to file out of time"
+            )
+            .label(
+                "timeExtensionSectionTe7ExtensionSolo",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\""
+                    + " AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application for extension of time"
+            )
+            .label(
+                "timeExtensionSectionPe2Solo",
+                "timeExtensionForm=\"PE2\" AND applicationForm!=\"TE9\" AND applicationForm!=\"PE3\"",
+                "## Application to file out of time"
+            )
+            .field(
+                TecCase::getFormValidationResultDisplay,
+                "applicationForm=\"TE9\" OR applicationForm=\"PE3\" OR timeExtensionForm=\"TE7\""
+                    + " OR timeExtensionForm=\"PE2\""
+            )
             .field(TecCase::getApplicationDateReceived)
             .field(TecCase::getApplicationType)
             .field(TecCase::getApplicationTe7Submitted, "applicationType=\"outOfTime\"")
@@ -126,20 +149,21 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getApplicationPaidTo, "applicationDeclaration=\"paidInFull\"")
             .label(
                 "timeExtensionSectionTe7OutOfTime",
-                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\"",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"outsideTheGivenTime\""
+                    + " AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
                 "## Application to file out of time"
             )
             .label(
                 "timeExtensionSectionTe7Extension",
-                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\"",
+                "timeExtensionForm=\"TE7\" AND timeExtensionPermissionType=\"forMoreTime\""
+                    + " AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
                 "## Application for extension of time"
             )
             .label(
                 "timeExtensionSectionPe2",
-                "timeExtensionForm=\"PE2\"",
+                "timeExtensionForm=\"PE2\" AND (applicationForm=\"TE9\" OR applicationForm=\"PE3\")",
                 "## Application to file out of time"
             )
-            .field(TecCase::getTimeExtensionFormValidationResultDisplay)
             .field(TecCase::getTimeExtensionForm)
             .field(TecCase::getTimeExtensionPenaltyChargeNumber)
             .field(TecCase::getTimeExtensionVehicleRegistration)
@@ -303,7 +327,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .fields()
-            .optional(TecCase::getTimeExtensionFormValidationResult)
+            .optional(TecCase::getFormValidationResult)
             .optional(TecCase::getTimeExtensionForm)
             .optional(TecCase::getTimeExtensionPenaltyChargeNumber)
             .optional(TecCase::getTimeExtensionVehicleRegistration)

@@ -165,20 +165,6 @@ public class TecCase {
     private String applicationPaidTo;
 
     @CCD(
-        label = "Form validation result",
-        typeOverride = FieldType.FixedRadioList,
-        typeParameterOverride = "FormValidationResult"
-    )
-    private FormValidationResult timeExtensionFormValidationResult;
-
-    /**
-     * Case-view display for time-extension form validation. Always populated so ExUI shows the row
-     * even when {@link #timeExtensionFormValidationResult} is unset.
-     */
-    @CCD(label = "Form validation result")
-    private String timeExtensionFormValidationResultDisplay;
-
-    @CCD(
         label = "Form",
         typeOverride = FieldType.FixedList,
         typeParameterOverride = "TimeExtensionForm"

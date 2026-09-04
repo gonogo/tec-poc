@@ -30,10 +30,10 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-nohup setsid python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 < /dev/null &
+# Detach from the parent shell so IDE/session cleanup does not kill the stub.
+# macOS has no setsid(1); nohup + background is enough when stdin is closed.
+nohup python3 "${STUB_SCRIPT}" >"${LOG_FILE}" 2>&1 < /dev/null &
 echo $! >"${PID_FILE}"
-# Give the OS a moment to reparent under init/launchd so IDE shell cleanup
-# does not tear the stub down with the parent session.
 sleep 0.1
 
 for _ in {1..20}; do

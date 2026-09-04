@@ -62,8 +62,7 @@ public class TecCaseRepository {
                    time_extension_permission_type, time_extension_reasons_given,
                    time_extension_signed_and_dated,
                    time_extension_signed_by, time_extension_date_signed,
-                   time_extension_print_full_name,
-                   time_extension_form_validation_result
+                   time_extension_print_full_name
               from tec_case
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
@@ -172,7 +171,7 @@ public class TecCaseRepository {
     public void recordTimeExtension(long caseReference, TecCase tecCase) {
         database.update("""
             update tec_case
-               set time_extension_form_validation_result = :timeExtensionFormValidationResult,
+               set form_validation_result = coalesce(:formValidationResult, form_validation_result),
                    time_extension_form = :timeExtensionForm,
                    time_extension_penalty_charge_number = :timeExtensionPenaltyChargeNumber,
                    time_extension_vehicle_registration = :timeExtensionVehicleRegistration,
@@ -195,10 +194,10 @@ public class TecCaseRepository {
             """, new MapSqlParameterSource()
             .addValue("caseReference", caseReference)
             .addValue(
-                "timeExtensionFormValidationResult",
-                tecCase.getTimeExtensionFormValidationResult() == null
+                "formValidationResult",
+                tecCase.getFormValidationResult() == null
                     ? null
-                    : tecCase.getTimeExtensionFormValidationResult().name()
+                    : tecCase.getFormValidationResult().name()
             )
             .addValue(
                 "timeExtensionForm",
@@ -396,12 +395,6 @@ public class TecCaseRepository {
     }
 
     private static void mapTimeExtensionFields(ResultSet resultSet, TecCase result) throws SQLException {
-        String timeExtensionFormValidation = resultSet.getString("time_extension_form_validation_result");
-        if (timeExtensionFormValidation != null) {
-            result.setTimeExtensionFormValidationResult(
-                FormValidationResult.valueOf(timeExtensionFormValidation)
-            );
-        }
         String timeExtensionForm = resultSet.getString("time_extension_form");
         if (timeExtensionForm != null) {
             result.setTimeExtensionForm(TimeExtensionForm.valueOf(timeExtensionForm));

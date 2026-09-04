@@ -27,12 +27,6 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         tecCase.setFormValidationResultDisplay(
             validationResult == null ? FORM_VALIDATION_NOT_RECORDED : validationResult.getLabel()
         );
-        FormValidationResult timeExtensionValidation = tecCase.getTimeExtensionFormValidationResult();
-        tecCase.setTimeExtensionFormValidationResultDisplay(
-            timeExtensionValidation == null
-                ? FORM_VALIDATION_NOT_RECORDED
-                : timeExtensionValidation.getLabel()
-        );
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
     }

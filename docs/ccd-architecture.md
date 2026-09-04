@@ -110,13 +110,14 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
   document and date); an application section headed by form and timeliness
-  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for form validation
-  result plus OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN, applicant and address fields,
-  declaration, and conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details); and a
-  time-extension section headed by TE7 permission sought (**Application to file out of time** or
-  **Application for extension of time**) or **Application to file out of time** for PE2, covering form
-  validation result, form, PCN/VRN, respondent details, permission sought, reasons given, signed and dated,
-  signed by, and related fields).
+  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for a single
+  shared form validation result plus OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN,
+  applicant and address fields, declaration, and conditional fields such as TE7 submitted, PE3 reasons
+  given, and TE9 payment details); and a time-extension section headed by TE7 permission sought
+  (**Application to file out of time** or **Application for extension of time**) or
+  **Application to file out of time** for PE2, covering form, PCN/VRN, respondent details, permission
+  sought, reasons given, signed and dated, signed by, and related fields (form validation is the same
+  shared case field shown at the top of the active section).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

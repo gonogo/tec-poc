@@ -314,7 +314,7 @@ def build_time_extension(case_data: dict[str, Any], form: str, rng: random.Rando
     signed_and_dated = "Yes" if include_signature and include_date else "No"
 
     payload: dict[str, Any] = {
-        "timeExtensionFormValidationResult": rng.choice(("formValid", "formInvalid")),
+        "formValidationResult": rng.choice(("formValid", "formInvalid")),
         "timeExtensionForm": form,
         "timeExtensionPenaltyChargeNumber": case_data.get("penaltyChargeNumber"),
         "timeExtensionVehicleRegistration": case_data.get("vehicleRegistrationNumber"),
