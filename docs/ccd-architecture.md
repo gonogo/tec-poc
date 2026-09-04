@@ -103,7 +103,7 @@ CFTLib does not start dm-store under `AuthMode.Local`.
 
 - **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
-  document and date, form validation result); and an **Applications** section for OCR-extracted TE9/PE3 data
+  document and date); and an **Applications** section for form validation result plus OCR-extracted TE9/PE3 data
   (date received, in-time/out-of-time type, form, PCN/VRN, applicant and address fields, declaration, and
   conditional fields such as TE7 submitted, PE3 reasons given, and TE9 payment details).
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
