@@ -76,7 +76,7 @@ The event handlers update TEC-owned data as follows:
 
 | Event | Required event data | Business write | Resulting state |
 | --- | --- | --- | --- |
-| `createTecCase` | Registration-request fields; respondent lines 4–6 are optional | Inserts `public.tec_case`; `payment_status` defaults to `PENDING` | `PENDING_CASE_ISSUED` |
+| `createTecCase` | Registration-request fields including local authority; respondent lines 4–6 are optional | Inserts `public.tec_case`; `payment_status` defaults to `PENDING` | `PENDING_CASE_ISSUED` |
 | `registrationPaymentSucceeded` | `paymentReference` | Sets payment status to `SUCCEEDED` and stores the reference | `CASE_ISSUED` |
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
@@ -107,7 +107,7 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 
 `TecCaseConfiguration` generates three application tabs in addition to CCD's case-history tab:
 
-- **Case details**: a **Registration** section containing identifiers, respondent lines, vehicle/offence details,
+- **Case details**: a **Registration** section containing identifiers, local authority, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
   document and date); an application section headed by form and timeliness
   (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for a single
@@ -125,8 +125,9 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
   `tec_case_document` with matching `category_id` values.
 - **Tasks**: prototype task list for local UX exploration.
 
-Penalty charge number is the only configured search and work-basket input. Results include the case reference,
-penalty charge number, respondent lines 1–3 and vehicle registration number.
+Search and work-basket inputs are penalty charge number and local authority (CCD `FixedList` of the 2023
+England councils — ExUI has no generic autosuggest for this control). Results include the case reference,
+penalty charge number, local authority, respondent lines 1–3 and vehicle registration number.
 
 The tab configuration is static CCD metadata. `TecCaseView` supplies the current values at runtime by loading the row
 whose `case_reference` matches the CCD reference. ExUI and API clients call CCD; they do not call `TecCaseView`

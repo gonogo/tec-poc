@@ -87,6 +87,7 @@ curl --request POST http://localhost:4013/pcn-cases \
     "fileIdentifier": "RTE12345",
     "batchIdentifier": "RTE123456",
     "penaltyChargeNumber": "TE1234567A8",
+    "localAuthority": "westminster",
     "respondentDetails1": "ALEX EXAMPLE",
     "respondentDetails2": "1 EXAMPLE STREET",
     "respondentDetails3": "LONDON",
@@ -99,6 +100,8 @@ curl --request POST http://localhost:4013/pcn-cases \
 ```
 
 `amountDue` is expressed in pence; for example, `12345` represents £123.45.
+`localAuthority` is a FixedList code from the 2023 England councils list (for example `westminster`,
+`manchesterCityCouncil`).
 
 The response contains the CCD-generated reference and initial state:
 

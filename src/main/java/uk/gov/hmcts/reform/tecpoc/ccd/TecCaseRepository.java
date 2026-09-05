@@ -23,12 +23,14 @@ public class TecCaseRepository {
         database.update("""
             insert into tec_case (
                 case_reference, file_identifier, batch_identifier, penalty_charge_number,
+                local_authority,
                 respondent_details_1, respondent_details_2, respondent_details_3,
                 respondent_details_4, respondent_details_5, respondent_details_6,
                 vehicle_registration_number, nature_of_offence,
                 date_charge_certificate_served, amount_due
             ) values (
                 :caseReference, :fileIdentifier, :batchIdentifier, :penaltyChargeNumber,
+                :localAuthority,
                 :respondentDetails1, :respondentDetails2, :respondentDetails3,
                 :respondentDetails4, :respondentDetails5, :respondentDetails6,
                 :vehicleRegistrationNumber, :natureOfOffence,
@@ -40,6 +42,7 @@ public class TecCaseRepository {
     public TecCase find(long caseReference) {
         return database.queryForObject("""
             select file_identifier, batch_identifier, penalty_charge_number,
+                   local_authority,
                    respondent_details_1, respondent_details_2, respondent_details_3,
                    respondent_details_4, respondent_details_5, respondent_details_6,
                    vehicle_registration_number, nature_of_offence,
@@ -70,6 +73,7 @@ public class TecCaseRepository {
                 result.setFileIdentifier(resultSet.getString("file_identifier"));
                 result.setBatchIdentifier(resultSet.getString("batch_identifier"));
                 result.setPenaltyChargeNumber(resultSet.getString("penalty_charge_number"));
+                result.setLocalAuthority(LocalAuthority.valueOf(resultSet.getString("local_authority")));
                 result.setRespondentDetails1(resultSet.getString("respondent_details_1"));
                 result.setRespondentDetails2(resultSet.getString("respondent_details_2"));
                 result.setRespondentDetails3(resultSet.getString("respondent_details_3"));
@@ -330,6 +334,10 @@ public class TecCaseRepository {
             .addValue("fileIdentifier", tecCase.getFileIdentifier())
             .addValue("batchIdentifier", tecCase.getBatchIdentifier())
             .addValue("penaltyChargeNumber", tecCase.getPenaltyChargeNumber())
+            .addValue(
+                "localAuthority",
+                tecCase.getLocalAuthority() == null ? null : tecCase.getLocalAuthority().name()
+            )
             .addValue("respondentDetails1", tecCase.getRespondentDetails1())
             .addValue("respondentDetails2", tecCase.getRespondentDetails2())
             .addValue("respondentDetails3", tecCase.getRespondentDetails3())

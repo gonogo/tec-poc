@@ -27,6 +27,13 @@ public class TecCase {
     @CCD(label = "Penalty charge number")
     private String penaltyChargeNumber;
 
+    @CCD(
+        label = "Local authority",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "LocalAuthority"
+    )
+    private LocalAuthority localAuthority;
+
     @CCD(label = "Respondent details 1")
     private String respondentDetails1;
 

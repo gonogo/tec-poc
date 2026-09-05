@@ -42,6 +42,11 @@ AUTHORITY_CODES=(TE AB WM LE BR CK)
 PCN_CHECK_CHARACTERS=(0 1 2 3 4 5 6 7 8 9 A)
 NATURE_OF_OFFENCE_CODES=(01 02 03 04 05 06 07 08 09 10 11 12)
 
+LOCAL_AUTHORITIES=()
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && LOCAL_AUTHORITIES+=("${line}")
+done < "${SCRIPT_DIR}/lib/local_authorities.txt"
+
 random_from() {
   local items=("$@")
   echo "${items[RANDOM % ${#items[@]}]}"
@@ -100,6 +105,7 @@ build_case_payload() {
     --arg fileIdentifier "${file_identifier}" \
     --arg batchIdentifier "${batch_identifier}" \
     --arg penaltyChargeNumber "${penalty_charge_number}" \
+    --arg localAuthority "$(random_from "${LOCAL_AUTHORITIES[@]}")" \
     --arg respondentDetails1 "${respondent_name}" \
     --arg respondentDetails2 "$(random_from "${STREETS[@]}")" \
     --arg respondentDetails3 "$(random_from "${CITIES[@]}")" \
@@ -112,6 +118,7 @@ build_case_payload() {
       fileIdentifier: $fileIdentifier,
       batchIdentifier: $batchIdentifier,
       penaltyChargeNumber: $penaltyChargeNumber,
+      localAuthority: $localAuthority,
       respondentDetails1: $respondentDetails1,
       respondentDetails2: $respondentDetails2,
       respondentDetails3: $respondentDetails3,

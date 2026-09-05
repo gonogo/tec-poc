@@ -30,11 +30,13 @@ case_data="$(jq --null-input --compact-output \
   --arg fileIdentifier "${file_identifier}" \
   --arg batchIdentifier "${batch_identifier}" \
   --arg penaltyChargeNumber "${penalty_charge_number}" \
+  --arg localAuthority "${LOCAL_AUTHORITY:-westminster}" \
   --argjson amountDue "${amount_due}" \
   '{
     fileIdentifier: $fileIdentifier,
     batchIdentifier: $batchIdentifier,
     penaltyChargeNumber: $penaltyChargeNumber,
+    localAuthority: $localAuthority,
     respondentDetails1: "ALEX EXAMPLE",
     respondentDetails2: "1 EXAMPLE STREET",
     respondentDetails3: "LONDON",

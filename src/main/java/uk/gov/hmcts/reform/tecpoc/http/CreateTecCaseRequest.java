@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import uk.gov.hmcts.reform.tecpoc.ccd.LocalAuthority;
 import uk.gov.hmcts.reform.tecpoc.ccd.TecCase;
 
 public record CreateTecCaseRequest(
@@ -20,6 +21,7 @@ public record CreateTecCaseRequest(
     @NotBlank
     @Pattern(regexp = "^[A-Z]{2,3}[0-9]{7}[0-9A][0-9]$")
     String penaltyChargeNumber,
+    @NotNull LocalAuthority localAuthority,
     @NotBlank @Size(max = 30) @Pattern(regexp = "^\\P{Ll}*$") String respondentDetails1,
     @NotBlank @Size(max = 30) @Pattern(regexp = "^\\P{Ll}*$") String respondentDetails2,
     @NotBlank @Size(max = 30) @Pattern(regexp = "^\\P{Ll}*$") String respondentDetails3,
@@ -40,6 +42,7 @@ public record CreateTecCaseRequest(
         tecCase.setFileIdentifier(fileIdentifier);
         tecCase.setBatchIdentifier(batchIdentifier);
         tecCase.setPenaltyChargeNumber(penaltyChargeNumber);
+        tecCase.setLocalAuthority(localAuthority);
         tecCase.setRespondentDetails1(respondentDetails1);
         tecCase.setRespondentDetails2(respondentDetails2);
         tecCase.setRespondentDetails3(respondentDetails3);

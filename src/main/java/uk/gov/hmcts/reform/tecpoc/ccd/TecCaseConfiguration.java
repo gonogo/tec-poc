@@ -69,6 +69,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getFileIdentifier)
             .field(TecCase::getBatchIdentifier)
             .field(TecCase::getPenaltyChargeNumber)
+            .field(TecCase::getLocalAuthority)
             .field(TecCase::getRespondentDetails1)
             .field(TecCase::getRespondentDetails2)
             .field(TecCase::getRespondentDetails3)
@@ -188,22 +189,26 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getAllDocuments, NEVER_SHOW);
 
         builder.searchInputFields()
-            .field(TecCase::getPenaltyChargeNumber, "Penalty charge number");
+            .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
+            .field(TecCase::getLocalAuthority, "Local authority");
 
         builder.searchResultFields()
             .caseReferenceField()
             .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
+            .field(TecCase::getLocalAuthority, "Local authority")
             .field(TecCase::getRespondentDetails1, "Respondent details 1")
             .field(TecCase::getRespondentDetails2, "Respondent details 2")
             .field(TecCase::getRespondentDetails3, "Respondent details 3")
             .field(TecCase::getVehicleRegistrationNumber, "Vehicle registration number");
 
         builder.workBasketInputFields()
-            .field(TecCase::getPenaltyChargeNumber, "Penalty charge number");
+            .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
+            .field(TecCase::getLocalAuthority, "Local authority");
 
         builder.workBasketResultFields()
             .caseReferenceField()
             .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
+            .field(TecCase::getLocalAuthority, "Local authority")
             .field(TecCase::getRespondentDetails1, "Respondent details 1")
             .field(TecCase::getRespondentDetails2, "Respondent details 2")
             .field(TecCase::getRespondentDetails3, "Respondent details 3")
@@ -221,6 +226,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .mandatory(TecCase::getFileIdentifier)
             .mandatory(TecCase::getBatchIdentifier)
             .mandatory(TecCase::getPenaltyChargeNumber)
+            .mandatory(TecCase::getLocalAuthority)
             .mandatory(TecCase::getRespondentDetails1)
             .mandatory(TecCase::getRespondentDetails2)
             .mandatory(TecCase::getRespondentDetails3)
