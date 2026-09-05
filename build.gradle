@@ -193,10 +193,17 @@ tasks.withType(CftlibExec).configureEach {
   // Case File View loads binaries via CDAM → local dm-store (:4506). CFTLib does not start
   // dm-store under AuthMode.Local, so bring up the stub before the stack runs.
   doFirst {
-    def starter = file("${rootDir}/bin/start-local-dm-store.sh")
-    if (starter.exists()) {
+    def dmStoreStarter = file("${rootDir}/bin/start-local-dm-store.sh")
+    if (dmStoreStarter.exists()) {
       exec {
-        commandLine starter.absolutePath
+        commandLine dmStoreStarter.absolutePath
+      }
+    }
+    // Public Manage Cases stays on :3000 via a nav-injection proxy; real XUI listens on XUI_PORT.
+    def navProxyStarter = file("${rootDir}/bin/start-xui-manage-batches-proxy.sh")
+    if (navProxyStarter.exists()) {
+      exec {
+        commandLine navProxyStarter.absolutePath
       }
     }
   }
@@ -218,6 +225,8 @@ tasks.withType(CftlibExec).configureEach {
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
+  // Real XUI binds here; bin/start-xui-manage-batches-proxy.sh publishes :3000 and injects Manage batches.
+  environment 'XUI_PORT', '3002'
   // Compose interpolates these into xui-manage-cases environment (overrides xui.env).
   // Unset values fall back to AAT URLs which CFTLib rewrites to the IDAM simulator (:5062),
   // breaking Case File View document loading.

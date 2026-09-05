@@ -150,7 +150,8 @@ When a case is in `CASE_ISSUED`, the tab shows a mix of unassigned, assigned-to-
 so Manage and Next steps layouts can be compared.
 
 Case-scoped Tasks HTML is not the place for a global link to a batch subsystem. That belongs in ExUI primary
-navigation via `HEADER_CONFIG` — see [exui-navigation.md](./exui-navigation.md).
+navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage-batches-plan.md) and
+[exui-navigation.md](./exui-navigation.md).
 
 #### Local setup
 
@@ -284,7 +285,7 @@ CFTLib itself is not deployed.
 | Current CCD-facing field values | `TecCaseView` projection |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` in `TecCaseView` |
-| ExUI primary nav (e.g. Manage batches) | Platform `HEADER_CONFIG` — draft in `docs/exui-navigation.md` |
+| ExUI primary nav (e.g. Manage batches) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 
 ## Repository map

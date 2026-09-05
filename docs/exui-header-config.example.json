@@ -1,10 +1,6 @@
 {
-  "^caseworker-tec": [
-    {
-      "text": "Case list",
-      "href": "/cases",
-      "active": false
-    },
+  "_comment": "Shape for ExUI menuConfigs / local nav proxy. Case list omitted — clerks reach /cases via Manage cases title. Local proxy uses /tec-manage-batches; production would use an absolute batch service URL.",
+  "caseworker-tec": [
     {
       "text": "Create case",
       "href": "/cases/case-filter",
@@ -12,7 +8,7 @@
     },
     {
       "text": "Manage batches",
-      "href": "https://REPLACE_WITH_TEC_BATCHES_URL",
+      "href": "/tec-manage-batches",
       "active": false
     },
     {

@@ -34,7 +34,7 @@ running every CCD Java service as a separate container.
 The local services are:
 
 - TEC API and decentralised callback runtime: http://localhost:4013
-- Manage Case (XUI): http://localhost:3000
+- Manage Case (XUI): http://localhost:3000 (nav-injection proxy; real container on :3002)
 - CCD Data Store: http://localhost:4452
 - IDAM simulator: http://localhost:5062
 - S2S simulator: http://localhost:8489
@@ -45,13 +45,19 @@ desired.
 
 ### Use Manage Case
 
-CFTLib starts the Manage Case web application in Docker.
+CFTLib starts the Manage Case web application in Docker on port **3002**. A local proxy on
+**http://localhost:3000** injects a TEC **Manage batches** primary-nav item (see
+[docs/exui-navigation.md](docs/exui-navigation.md)).
+
 Open http://localhost:3000 and sign in with the configured local clerk account:
 
 ```text
 Username: tec-demo@test.com
 Password: password
 ```
+
+After sign-in you should see **Manage batches** in the primary navigation (local simulation of the
+ExUI `menuConfigs` change).
 
 ## Create a PCN case
 

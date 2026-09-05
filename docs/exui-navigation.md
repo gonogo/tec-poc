@@ -1,68 +1,74 @@
 # ExUI primary navigation — Manage batches
 
 TEC needs a global Manage Cases nav link to a batch subsystem (not case-scoped). That lives in
-ExUI (`rpx-xui-webapp`) via `HEADER_CONFIG`, not in this repo’s CCD definition.
+ExUI (`rpx-xui-webapp`) `menuConfigs`, not in this repo’s CCD definition.
+
+For the architect proposal (problem, ownership, risks), see
+[exui-manage-batches-plan.md](./exui-manage-batches-plan.md).
 
 ## How ExUI builds the primary nav
 
-1. Node config exposes `headerConfig` from the `HEADER_CONFIG` environment variable.
-2. `HeaderConfigService` picks one menu list by matching the user’s IdAM roles against regex keys.
-3. The first matching non-default key wins; otherwise the `.+` fallback is used.
-4. Each item is a `NavigationItem`: at least `text`, `href`, and `active`.
+1. Browser loads `headerConfig` from `/external/config/ui/`.
+2. Server builds that from `setupMenuConfig(environment)` →
+   [base-config.ts](https://github.com/hmcts/rpx-xui-webapp/blob/master/api/configuration/menuConfigs/base-config.ts)
+   (+ AAT diffs). The UI payload does **not** come from a live `HEADER_CONFIG` env var.
+3. `HeaderConfigService` picks one menu list by matching the user’s IdAM roles against regex keys.
+4. The first matching non-default key wins; otherwise the `.+` fallback is used.
+5. Each item is a `NavigationItem`: at least `text`, `href`, and `active`. Items may also use
+   `roles` and LaunchDarkly `flags`.
 
-Default items (when no custom config applies) are Case list, Create case, and Find case
-(`AppConstants.DEFAULT_MENU_ITEMS`). Work Allocation and other platform features extend the
-deployed `HEADER_CONFIG` further in real environments.
+## Local simulation (this repo)
 
-## Draft: TEC menu with Manage batches
+Stock XUI cannot be configured via env for primary nav. This POC simulates the ExUI
+`menuConfigs` change with a reverse proxy:
+
+| Piece | Role |
+| --- | --- |
+| `XUI_PORT=3002` in `build.gradle` | Real Manage Cases container |
+| `bin/start-xui-manage-batches-proxy.sh` | Started by `bootWithCCD`; listens on **:3000** |
+| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add a `caseworker-tec` menu including **Manage batches** |
+| `/tec-manage-batches` | Placeholder page served by the proxy (stand-in for the batch subsystem) |
+
+### Verify
+
+1. Prefer a clean stack so XUI is recreated on port 3002:
+   `./bin/stop-boot-with-ccd.sh` then `./gradlew bootWithCCD`
+2. If the nav proxy was already running from an older revision, refresh it:
+   `./bin/restart-xui-manage-batches-proxy.sh`
+3. Open **http://localhost:3000** (not `:3002`) and sign in as `tec-demo@test.com` / `password`
+4. After login the browser address bar should stay on port **3000**. If it switches to
+   `:3002`, you are past the proxy and will not see Manage batches — restart the proxy
+   (step 2) and sign in again via `:3000`.
+5. Primary nav should include **Manage batches** between Create case and Find case
+   (no **Case list** item — open cases via **Manage cases** title)
+6. Clicking it opens the local placeholder at `/tec-manage-batches`
+
+Proxy logs: `bin/.xui-manage-batches-proxy.log`
+
+## Draft menu shape
 
 See [`exui-header-config.example.json`](./exui-header-config.example.json).
 
-| Item | `href` |
+| Item | Local `href` |
 | --- | --- |
-| Case list | `/cases` |
 | Create case | `/cases/case-filter` |
-| **Manage batches** | Absolute URL of the batch subsystem (placeholder in the example) |
-| Find case | `/cases/case-search` (right-aligned, existing ExUI pattern) |
+| **Manage batches** | `/tec-manage-batches` (local); absolute URL in a real ExUI release |
+| Find case | `/cases/case-search` (right-aligned) |
+
+**Case list** is omitted from the TEC menu. Clerks still reach `/cases` via the **Manage cases**
+title (home) link, bookmarks, or other in-app routes.
 
 ### Role key
 
-`^caseworker-tec` matches:
+`caseworker-tec` matches clerk (`caseworker-tec`) and, as an unanchored regex substring,
+`caseworker-tec-system`. Tighten to `^caseworker-tec$` in a real ExUI PR if only clerks should
+see the link.
 
-- `caseworker-tec` (clerk)
-- `caseworker-tec-system` (system — also matches because the pattern is unanchored at the end)
+## Production change
 
-Tighten to `^caseworker-tec$` if only clerks should see Manage batches.
-
-### Merging into the live platform config
-
-Do **not** replace the whole `HEADER_CONFIG` with only the TEC fragment. In AAT/prod, merge:
-
-1. Keep every existing role key (judicial, solicitor, WA, etc.) unchanged.
-2. Add (or extend) the `^caseworker-tec` key with the menu above.
-3. Keep the existing `.+` (and other) menus so non-TEC users are unaffected.
-4. Replace `https://REPLACE_WITH_TEC_BATCHES_URL` with the real batch service URL per environment.
-
-If TEC users should also see Work Allocation items (for example My work), copy those entries from
-the deployed menu for the matching role into the TEC list — ExUI selects **one** full list per
-user, it does not merge keys.
-
-### Same-origin alternative
-
-If SSO/cookies or CSP make a cross-origin link awkward, put the batch UI behind a path on the
-Manage Cases host (for example `/manage-batches`) and set:
-
-```json
-"href": "/manage-batches"
-```
-
-That still requires the same `HEADER_CONFIG` change plus ingress/proxy work.
-
-## What this repo cannot do
-
-`bootWithCCD` / `build.gradle` only pass limited XUI env (jurisdictions, documents APIs, etc.).
-Primary nav is owned by Manage Cases configuration (helm/flux `HEADER_CONFIG`). Applying this
-draft needs an ExUI / platform config change.
+Add the same menu key in ExUI `api/configuration/menuConfigs/base-config.ts` and release via the
+ExUI pipeline. Do not rely on `RSE_LIB_XUI_ENV_HEADER_CONFIG` — the UI ignores it for
+`headerConfig`.
 
 ## Related TEC roles
 

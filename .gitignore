@@ -26,5 +26,7 @@ applicationinsights-agent-*.jar
 bin/.local-dm-store-stub.pid
 bin/.local-dm-store-stub.log
 bin/.local-dm-store-data/
+bin/.xui-manage-batches-proxy.pid
+bin/.xui-manage-batches-proxy.log
 bin/.venv-generate-application/
 __pycache__/

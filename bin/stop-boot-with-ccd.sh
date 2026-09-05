@@ -6,7 +6,8 @@ readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 
 # Ports used by ./gradlew bootWithCCD (Java services and Docker infrastructure).
 readonly CFTLIB_PORTS=(
-  3000   # Manage Case (XUI)
+  3000   # Manage Case via Manage batches nav proxy (bin/start-xui-manage-batches-proxy.sh)
+  3002   # Real XUI Manage Cases container (XUI_PORT)
   4013   # TEC API and decentralised callbacks
   4452   # CCD Data Store
   4453   # CCD Definition Store / User Profile
@@ -17,6 +18,10 @@ readonly CFTLIB_PORTS=(
   8087   # WA Task Management API
   8489   # S2S simulator
 )
+
+readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly NAV_PROXY_PID_FILE="${SCRIPT_DIR}/.xui-manage-batches-proxy.pid"
+readonly DM_STORE_PID_FILE="${SCRIPT_DIR}/.local-dm-store-stub.pid"
 
 STOP_ALL_DOCKER=false
 
@@ -29,8 +34,9 @@ Stop leftover bootWithCCD / CFTLib processes and Docker containers so a fresh
 
 By default this script:
   1. Stops any running bootWithCCD / CFTLib Java processes
-  2. Stops Docker containers whose names contain "cftlib"
-  3. Checks that required local ports are free
+  2. Stops the local dm-store stub and Manage batches nav proxy if running
+  3. Stops Docker containers whose names contain "cftlib"
+  4. Checks that required local ports are free
 
 Options:
   --all-docker    Stop all running Docker containers, not just CFTLib ones
@@ -128,23 +134,36 @@ stop_boot_with_ccd_processes() {
   fi
 
   stop_local_dm_store_stub
+  stop_xui_manage_batches_proxy
 }
 
-stop_local_dm_store_stub() {
-  local pid_file
+stop_pid_file() {
+  local label="$1"
+  local pid_file="$2"
   local pid
 
-  pid_file="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/.local-dm-store-stub.pid"
   if [[ ! -f "${pid_file}" ]]; then
     return 0
   fi
 
   pid="$(<"${pid_file}")"
   if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
-    echo "Stopping local dm-store stub (pid ${pid})..."
+    echo "Stopping ${label} (pid ${pid})..."
     kill "${pid}" 2>/dev/null || true
+    sleep 0.2
+    if kill -0 "${pid}" 2>/dev/null; then
+      kill -9 "${pid}" 2>/dev/null || true
+    fi
   fi
   rm -f "${pid_file}"
+}
+
+stop_local_dm_store_stub() {
+  stop_pid_file "local dm-store stub" "${DM_STORE_PID_FILE}"
+}
+
+stop_xui_manage_batches_proxy() {
+  stop_pid_file "XUI Manage batches nav proxy" "${NAV_PROXY_PID_FILE}"
 }
 
 port_pattern() {
