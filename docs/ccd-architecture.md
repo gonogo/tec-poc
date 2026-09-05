@@ -149,6 +149,9 @@ or WA services.
 When a case is in `CASE_ISSUED`, the tab shows a mix of unassigned, assigned-to-you and assigned-to-someone-else cards
 so Manage and Next steps layouts can be compared.
 
+Case-scoped Tasks HTML is not the place for a global link to a batch subsystem. That belongs in ExUI primary
+navigation via `HEADER_CONFIG` — see [exui-navigation.md](./exui-navigation.md).
+
 #### Local setup
 
 1. Start the CFTLib stack: `./gradlew bootWithCCD`
@@ -281,6 +284,7 @@ CFTLib itself is not deployed.
 | Current CCD-facing field values | `TecCaseView` projection |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` in `TecCaseView` |
+| ExUI primary nav (e.g. Manage batches) | Platform `HEADER_CONFIG` — draft in `docs/exui-navigation.md` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 
 ## Repository map

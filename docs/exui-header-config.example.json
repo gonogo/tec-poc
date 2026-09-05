@@ -1,0 +1,26 @@
+{
+  "^caseworker-tec": [
+    {
+      "text": "Case list",
+      "href": "/cases",
+      "active": false
+    },
+    {
+      "text": "Create case",
+      "href": "/cases/case-filter",
+      "active": false
+    },
+    {
+      "text": "Manage batches",
+      "href": "https://REPLACE_WITH_TEC_BATCHES_URL",
+      "active": false
+    },
+    {
+      "text": "Find case",
+      "href": "/cases/case-search",
+      "active": false,
+      "align": "right",
+      "ngClass": "hmcts-search-toggle__button"
+    }
+  ]
+}
