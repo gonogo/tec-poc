@@ -6,7 +6,7 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly PID_FILE="${SCRIPT_DIR}/.xui-manage-batches-proxy.pid"
 readonly PORT="${XUI_NAV_PROXY_PORT:-3000}"
 
-echo "Stopping any Manage batches nav proxy on port ${PORT}..."
+echo "Stopping any Create batch nav proxy on port ${PORT}..."
 
 if [[ -f "${PID_FILE}" ]]; then
   pid="$(<"${PID_FILE}")"

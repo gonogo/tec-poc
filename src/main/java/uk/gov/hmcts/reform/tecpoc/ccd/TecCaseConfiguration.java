@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.api.CCDConfig;
 import uk.gov.hmcts.ccd.sdk.api.DecentralisedConfigBuilder;
@@ -13,13 +13,16 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Component
-@RequiredArgsConstructor
 public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserRole> {
 
     public static final String CASE_TYPE = "TEC";
     private static final String NEVER_SHOW = "[STATE]=\"NEVER_SHOW\"";
 
     private final TecCaseRepository repository;
+
+    public TecCaseConfiguration(@Lazy TecCaseRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public void configureDecentralised(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {

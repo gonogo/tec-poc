@@ -32,6 +32,8 @@ Without CFTLib overrides, `application.yaml` defaults to PostgreSQL on `localhos
 | `datastore.public.*` | CCD Data Store | CCD's central orchestration, access and routing data |
 | `tec.ccd.*` | Decentralised runtime embedded in TEC | Local CCD lifecycle state, revisions, event history and runtime bookkeeping |
 | `tec.public.tec_case` | TEC application | The PCN business fields used by this proof of concept |
+| `tec.public.tec_batch` | TEC application | Batch metadata for case type `TEC_BATCH` |
+| `tec.public.tec_batch_document` | TEC application | Batch Case File View document metadata |
 
 Tables with similar names in `datastore.public` and `tec.ccd` are different physical objects in different databases.
 They serve different owners and transaction boundaries; they are not full replicas of one another.
@@ -42,13 +44,13 @@ CCD client
     v
 CCD Data Store (datastore database)
     |
-    | route case type TEC to http://localhost:4013
+    | route case type TEC or TEC_BATCH to http://localhost:4013
     v
 TEC decentralised runtime (tec.ccd schema)
     |
-    | invoke event handler or TecCaseView
+    | invoke event handler or CaseView (TecCaseView / BatchCaseView)
     v
-TEC business persistence (tec.public.tec_case)
+TEC business persistence (tec.public.tec_case / tec.public.tec_batch)
 ```
 
 ## TEC business table

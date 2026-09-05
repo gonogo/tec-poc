@@ -46,7 +46,7 @@ desired.
 ### Use Manage Case
 
 CFTLib starts the Manage Case web application in Docker on port **3002**. A local proxy on
-**http://localhost:3000** injects a TEC **Manage batches** primary-nav item (see
+**http://localhost:3000** injects a TEC **Create batch** primary-nav item (see
 [docs/exui-navigation.md](docs/exui-navigation.md)).
 
 Open http://localhost:3000 and sign in with the configured local clerk account:
@@ -56,8 +56,9 @@ Username: tec-demo@test.com
 Password: password
 ```
 
-After sign-in you should see **Manage batches** in the primary navigation (local simulation of the
-ExUI `menuConfigs` change).
+After sign-in you should see **Create batch** in the primary navigation (local simulation of the
+ExUI `menuConfigs` change). Open Case list via **Manage cases** and use the case type filter to
+switch between PCN cases (`TEC`) and batches (`TEC_BATCH` / **Batch**).
 
 ## Create a PCN case
 
@@ -117,6 +118,22 @@ The response contains the CCD-generated reference and initial state:
   "state": "PENDING_CASE_ISSUED"
 }
 ```
+
+## Create a batch
+
+Batches are a second CCD case type (`TEC_BATCH`, display name **Batch**). Seed one or more:
+
+```bash
+./bin/create-tec-batch.sh
+./bin/create-tec-batches.sh 6
+```
+
+Optional overrides: `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `LOCAL_AUTHORITY`,
+`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
+Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
+
+In Manage Case, open Case list → set case type to **Batch** → open a row for History, Tasks,
+Case details, and Case File View.
 
 ### Prototype Tasks tab (local)
 

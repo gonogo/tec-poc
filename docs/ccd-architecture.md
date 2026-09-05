@@ -8,7 +8,7 @@ them to an environment.
 
 | Component | Responsibility | Where it runs |
 | --- | --- | --- |
-| TEC Spring Boot application | Exposes the caller-facing API, defines the `TEC` case type, handles delegated CCD events and owns the PCN business data | Port 4013 locally |
+| TEC Spring Boot application | Exposes the caller-facing API, defines the `TEC` and `TEC_BATCH` case types, handles delegated CCD events and owns the PCN/batch business data | Port 4013 locally |
 | `hmcts.ccd.sdk` Gradle plugin | Generates CCD definition JSON from the typed Java configuration | At build/configuration time |
 | CCD decentralised runtime | Supplies `/ccd-persistence/**`, lifecycle persistence, event dispatch and `CaseView` integration | Embedded in TEC because `decentralised = true` |
 | CCD Data Store and Definition Store | Validate the definition, enforce case access/events and route decentralised persistence to TEC | Started locally by CFTLib; platform services in production |
@@ -27,38 +27,52 @@ CFTLib makes the integration runnable locally.
 
 The relevant application classes are:
 
-- `TecCase`: the CCD-facing data model.
-- `CaseState`: the four states generated into the CCD definition.
+- `TecCase`: the CCD-facing PCN data model.
+- `CaseState`: the four states generated into the CCD definition for PCN cases.
 - `UserRole`: the system and clerk access profiles.
-- `TecCaseConfiguration`: the case type, access, tabs, Case File View categories, search/work-basket
+- `TecCaseConfiguration`: the PCN case type, access, tabs, Case File View categories, search/work-basket
   fields, events and Java event handlers.
-- `CaseFileCategory`: document folders shown in the Case File View.
+- `CaseFileCategory`: document folders shown in the Case File View for PCN cases.
 - `TecCaseDocument`: persisted Case File View document metadata.
 - `TecCaseRepository`: persistence of TEC-owned business data in `public.tec_case`.
 - `TecCaseView`: reconstruction of a CCD-facing `TecCase` from the business table.
 - `TecCaseController` and `TecCaseCreationService`: the caller-facing create API and its CCD Data Store client.
+- `BatchCase` / `BatchCaseState` / `BatchCaseConfiguration` / `BatchCaseView` / `BatchCaseRepository`:
+  second case type `TEC_BATCH` for batches (list/details via ExUI Case list).
+- `BatchCaseController` and `BatchCaseCreationService`: `POST /batches` seed/create API.
 
 The application therefore has two API surfaces:
 
 ```text
-Caller-facing API:       POST /pcn-cases
+Caller-facing API:       POST /pcn-cases , POST /batches
 CCD-facing SDK runtime:  /ccd-persistence/**
 ```
 
 The application owns the first. The embedded decentralised runtime supplies the second.
 
-### Case type and access
+### Case types and access
 
-The case type and jurisdiction IDs are both `TEC`. The current roles are:
+Jurisdiction id is `TEC`. Case types:
+
+| Case type id | Display name | Purpose |
+| --- | --- | --- |
+| `TEC` | TEC case | PCN cases |
+| `TEC_BATCH` | Batch | Uploaded batches |
+
+Both types reuse the same roles:
 
 | Java role | IDAM role | Case-type access | State access |
 | --- | --- | --- | --- |
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
 | `CLERK` | `caseworker-tec` | RU | Read and update in every state |
 
-The events themselves grant mutation access only to the system role. The clerk receives read access to the creation
-event but cannot trigger any configured event. Every event uses the condition `[STATE]="NEVER_SHOW"`, so none is
-offered as an action in ExUI.
+ExUI Case list / Find case expose a **case type** filter. Fresh sessions preferably land on `TEC`
+(import order + alphabetical id); ExUI may remember the last selection in `localStorage` — see
+[exui-navigation.md](./exui-navigation.md).
+
+Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
+and `editApplication`. Batch upload journeys are not modelled as batch Next steps; Create batch is a
+nav stub.
 
 ### States and events
 
@@ -149,9 +163,21 @@ or WA services.
 When a case is in `CASE_ISSUED`, the tab shows a mix of unassigned, assigned-to-you and assigned-to-someone-else cards
 so Manage and Next steps layouts can be compared.
 
-Case-scoped Tasks HTML is not the place for a global link to a batch subsystem. That belongs in ExUI primary
+Case-scoped Tasks HTML is not the place for Create batch. That belongs in ExUI primary
 navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage-batches-plan.md) and
-[exui-navigation.md](./exui-navigation.md).
+[exui-navigation.md](./exui-navigation.md). Existing batches are opened from Case list with case type
+**Batch** (`TEC_BATCH`).
+
+### Batch case type (`TEC_BATCH`)
+
+| Piece | Location / behaviour |
+| --- | --- |
+| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Case details, Case File View |
+| States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
+| Persistence | `public.tec_batch` + `public.tec_batch_document` |
+| File folders | Inputs, Outputs (`BatchFileCategory`) |
+| Create API | `POST /batches` (`bin/create-tec-batch.sh`) |
+| Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
 
 #### Local setup
 
@@ -173,16 +199,17 @@ ccd {
 }
 ```
 
-`./gradlew generateCCDConfig` generates the current definition under `build/ccd-definition/TEC`. The JSON contains
-CCD metadata; it does not contain the Java handlers. Existing files under `build/ccd-definition` are build output and
-may include remnants from an older model unless the directory is cleaned first.
+`./gradlew generateCCDConfig` generates definitions under `build/ccd-definition/TEC` and
+`build/ccd-definition/TEC_BATCH`. The JSON contains CCD metadata; it does not contain the Java handlers.
+Existing files under `build/ccd-definition` are build output and may include remnants from an older
+model unless the directory is cleaned first.
 
 At runtime, the decentralised SDK:
 
 - exposes the persistence and read callbacks used by CCD Data Store;
 - dispatches submitted events to the handler registered with `decentralisedEvent(...)`;
 - manages local CCD lifecycle data, revisions and event history in the `ccd` schema; and
-- calls `TecCaseView` to obtain the current CCD-facing data.
+- calls the matching `CaseView` (`TecCaseView` or `BatchCaseView`) for the case type.
 
 Runtime Elasticsearch indexing is explicitly disabled.
 
@@ -285,7 +312,7 @@ CFTLib itself is not deployed.
 | Current CCD-facing field values | `TecCaseView` projection |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` in `TecCaseView` |
-| ExUI primary nav (e.g. Manage batches) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md` |
+| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 
 ## Repository map

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Reverse-proxy Manage Cases and inject a TEC 'Manage batches' primary-nav item.
+"""Reverse-proxy Manage Cases and inject a TEC 'Create batch' primary-nav item.
 
 CFTLib's XUI builds headerConfig from baked-in menuConfigs. This proxy sits on the
 public Manage Cases port, forwards to the real XUI container on an internal port,
 and rewrites GET /external/config/ui/ (and the legacy /external/configuration-ui/
-path) so TEC clerks see Manage batches without a custom XUI image.
+path) so TEC clerks see Create batch without a custom XUI image.
 
-Also serves a local placeholder at /tec-manage-batches for the link target.
+Also serves a local placeholder at /tec-create-batch for the link target (flow TBD).
 """
 
 from __future__ import annotations
@@ -16,7 +16,6 @@ import os
 import select
 import socket
 import sys
-import threading
 from http.client import HTTPConnection, HTTPSConnection
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
@@ -24,8 +23,11 @@ from urllib.parse import urlsplit
 LISTEN_HOST = os.environ.get("XUI_NAV_PROXY_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("XUI_NAV_PROXY_PORT", "3000"))
 UPSTREAM = os.environ.get("XUI_NAV_PROXY_UPSTREAM", "http://127.0.0.1:3002")
-BATCHES_PATH = os.environ.get("XUI_NAV_PROXY_BATCHES_PATH", "/tec-manage-batches")
+CREATE_BATCH_PATH = os.environ.get("XUI_NAV_PROXY_CREATE_BATCH_PATH") or os.environ.get(
+    "XUI_NAV_PROXY_BATCHES_PATH", "/tec-create-batch"
+)
 TEC_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_ROLE_KEY", "caseworker-tec")
+CREATE_BATCH_LABEL = "Create batch"
 
 _HOP_BY_HOP = {
     "connection",
@@ -49,11 +51,11 @@ _CONFIG_PATHS = {
 }
 
 
-def _tec_menu(batches_href: str) -> list[dict]:
+def _tec_menu(create_batch_href: str) -> list[dict]:
     # Case list omitted on purpose: clerks still reach /cases via the Manage cases title.
     return [
         {"text": "Create case", "href": "/cases/case-filter", "active": False},
-        {"text": "Manage batches", "href": batches_href, "active": False},
+        {"text": CREATE_BATCH_LABEL, "href": create_batch_href, "active": False},
         {
             "text": "Find case",
             "href": "/cases/case-search",
@@ -64,22 +66,22 @@ def _tec_menu(batches_href: str) -> list[dict]:
     ]
 
 
-def _manage_batches_item(batches_href: str) -> dict:
+def _create_batch_item(create_batch_href: str) -> dict:
     # roles gate keeps this off non-TEC menus when injected into the ".+" fallback.
     return {
-        "text": "Manage batches",
-        "href": batches_href,
+        "text": CREATE_BATCH_LABEL,
+        "href": create_batch_href,
         "active": False,
         "roles": ["caseworker-tec", "caseworker-tec-system"],
     }
 
 
-def _batches_page_html(batches_path: str) -> bytes:
+def _create_batch_page_html(create_batch_path: str) -> bytes:
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Manage batches (local prototype)</title>
+  <title>Create batch (local prototype)</title>
   <style>
     body {{ font-family: "GDS Transport", arial, sans-serif; margin: 2rem; max-width: 40rem; }}
     a {{ color: #1d70b8; }}
@@ -87,26 +89,26 @@ def _batches_page_html(batches_path: str) -> bytes:
 </head>
 <body>
   <p><a href="/cases">Back to Manage Cases</a></p>
-  <h1>Manage batches</h1>
+  <h1>Create batch</h1>
   <p>
-    This is a local placeholder for the TEC batch subsystem.
-    In a real deployment, ExUI <code>menuConfigs</code> would point
-    <strong>Manage batches</strong> at the batch service URL.
+    This is a local stub for the Create batch journey (flow to be designed).
+    Batches themselves are a CCD case type (<code>TEC_BATCH</code>) browsed from
+    Case list by selecting case type <strong>Batch</strong>.
   </p>
-  <p>Nav simulation path: <code>{batches_path}</code></p>
+  <p>Nav simulation path: <code>{create_batch_path}</code></p>
 </body>
 </html>
 """
     return html.encode("utf-8")
 
 
-def _inject_header_config(payload: dict, batches_href: str, role_key: str) -> dict:
+def _inject_header_config(payload: dict, create_batch_href: str, role_key: str) -> dict:
     header = payload.get("headerConfig")
     if not isinstance(header, dict):
         header = {}
 
-    tec_menu = _tec_menu(batches_href)
-    batches_item = _manage_batches_item(batches_href)
+    tec_menu = _tec_menu(create_batch_href)
+    create_batch_item = _create_batch_item(create_batch_href)
 
     # Prefer a dedicated TEC key (matched first among non-".+" keys when placed early).
     rebuilt: dict = {role_key: tec_menu}
@@ -115,7 +117,7 @@ def _inject_header_config(payload: dict, batches_href: str, role_key: str) -> di
             continue
         if key == ".+" and isinstance(items, list):
             already = any(
-                isinstance(item, dict) and item.get("text") == "Manage batches" for item in items
+                isinstance(item, dict) and item.get("text") == CREATE_BATCH_LABEL for item in items
             )
             if not already:
                 # Insert before right-aligned Find case / Search entries when possible.
@@ -128,7 +130,7 @@ def _inject_header_config(payload: dict, batches_href: str, role_key: str) -> di
                     len(items),
                 )
                 items = list(items)
-                items.insert(insert_at, batches_item)
+                items.insert(insert_at, create_batch_item)
             rebuilt[key] = items
         else:
             rebuilt[key] = items
@@ -174,8 +176,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def _handle(self) -> None:
         path = urlsplit(self.path).path
-        if path.rstrip("/") == BATCHES_PATH.rstrip("/") and self.command in ("GET", "HEAD"):
-            body = _batches_page_html(BATCHES_PATH)
+        if path.rstrip("/") == CREATE_BATCH_PATH.rstrip("/") and self.command in ("GET", "HEAD"):
+            body = _create_batch_page_html(CREATE_BATCH_PATH)
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
@@ -241,7 +243,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 try:
                     payload = json.loads(raw.decode("utf-8"))
                     if isinstance(payload, dict):
-                        payload = _inject_header_config(payload, BATCHES_PATH, TEC_ROLE_KEY)
+                        payload = _inject_header_config(payload, CREATE_BATCH_PATH, TEC_ROLE_KEY)
                         raw = json.dumps(payload).encode("utf-8")
                 except (UnicodeDecodeError, json.JSONDecodeError):
                     pass
@@ -318,8 +320,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
 def main() -> int:
     server = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), ProxyHandler)
     print(
-        f"XUI Manage batches nav proxy listening on http://{LISTEN_HOST}:{LISTEN_PORT} "
-        f"-> {UPSTREAM} (TEC menu key {TEC_ROLE_KEY!r}, batches {BATCHES_PATH})",
+        f"XUI Create batch nav proxy listening on http://{LISTEN_HOST}:{LISTEN_PORT} "
+        f"-> {UPSTREAM} (TEC menu key {TEC_ROLE_KEY!r}, create batch {CREATE_BATCH_PATH})",
         flush=True,
     )
     try:

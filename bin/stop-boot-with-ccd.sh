@@ -6,7 +6,7 @@ readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 
 # Ports used by ./gradlew bootWithCCD (Java services and Docker infrastructure).
 readonly CFTLIB_PORTS=(
-  3000   # Manage Case via Manage batches nav proxy (bin/start-xui-manage-batches-proxy.sh)
+  3000   # Manage Case via Create batch nav proxy (bin/start-xui-manage-batches-proxy.sh)
   3002   # Real XUI Manage Cases container (XUI_PORT)
   4013   # TEC API and decentralised callbacks
   4452   # CCD Data Store
@@ -34,7 +34,7 @@ Stop leftover bootWithCCD / CFTLib processes and Docker containers so a fresh
 
 By default this script:
   1. Stops any running bootWithCCD / CFTLib Java processes
-  2. Stops the local dm-store stub and Manage batches nav proxy if running
+  2. Stops the local dm-store stub and Create batch nav proxy if running
   3. Stops Docker containers whose names contain "cftlib"
   4. Checks that required local ports are free
 
@@ -163,7 +163,7 @@ stop_local_dm_store_stub() {
 }
 
 stop_xui_manage_batches_proxy() {
-  stop_pid_file "XUI Manage batches nav proxy" "${NAV_PROXY_PID_FILE}"
+  stop_pid_file "XUI Create batch nav proxy" "${NAV_PROXY_PID_FILE}"
 }
 
 port_pattern() {

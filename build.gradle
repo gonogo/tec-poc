@@ -218,6 +218,7 @@ tasks.withType(CftlibExec).configureEach {
   environment 'IDAM_S2S_AUTH_URL', 'http://localhost:8489'
   environment 'CCD_DATA_STORE_URL', 'http://localhost:4452'
   environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC', 'http://localhost:4013'
+  environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC_BATCH', 'http://localhost:4013'
   environment 'DATA_STORE_S2S_AUTHORISED_SERVICES', 'ccd_data,ccd_gw,tec_api,ccd_case_document_am_api'
   // Allow Case Document AM and local dm-store stub URLs on Document fields
   environment 'CCD_DOCUMENT_URL_PATTERN',
@@ -225,7 +226,7 @@ tasks.withType(CftlibExec).configureEach {
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
-  // Real XUI binds here; bin/start-xui-manage-batches-proxy.sh publishes :3000 and injects Manage batches.
+  // Real XUI binds here; bin/start-xui-manage-batches-proxy.sh publishes :3000 and injects Create batch.
   environment 'XUI_PORT', '3002'
   // Compose interpolates these into xui-manage-cases environment (overrides xui.env).
   // Unset values fall back to AAT URLs which CFTLib rewrites to the IDAM simulator (:5062),

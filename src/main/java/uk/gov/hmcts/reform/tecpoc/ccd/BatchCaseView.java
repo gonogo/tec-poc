@@ -12,38 +12,38 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
 @Component
 @RequiredArgsConstructor
-public class TecCaseView implements CaseView<TecCase, CaseState> {
+public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
 
-    private final TecCaseRepository repository;
+    private static final String VALIDATION_NOT_RECORDED = "Not validated";
 
-    private static final String FORM_VALIDATION_NOT_RECORDED = "Not validated";
+    private final BatchCaseRepository repository;
 
     @Override
     public Set<String> caseTypeIds() {
-        return Set.of(TecCaseConfiguration.CASE_TYPE);
+        return Set.of(BatchCaseConfiguration.CASE_TYPE);
     }
 
     @Override
-    public TecCase getCase(CaseViewRequest<CaseState> request) {
-        TecCase tecCase = repository.find(request.caseRef());
-        tecCase.setTasksMarkdown(
-            TecPrototypeTasks.markdownFor(request.caseRef(), request.state(), tecCase)
+    public BatchCase getCase(CaseViewRequest<BatchCaseState> request) {
+        BatchCase batchCase = repository.find(request.caseRef());
+        batchCase.setTasksMarkdown(
+            BatchPrototypeTasks.markdownFor(request.caseRef(), request.state(), batchCase)
         );
-        FormValidationResult validationResult = tecCase.getFormValidationResult();
-        tecCase.setFormValidationResultDisplay(
-            validationResult == null ? FORM_VALIDATION_NOT_RECORDED : validationResult.getLabel()
+        BatchValidationResult validationResult = batchCase.getBatchValidationResult();
+        batchCase.setBatchValidationResultDisplay(
+            validationResult == null ? VALIDATION_NOT_RECORDED : validationResult.getLabel()
         );
-        tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
-        return tecCase;
+        batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
+        return batchCase;
     }
 
-    static List<ListValue<Document>> toAllDocuments(List<TecCaseDocument> documents) {
+    static List<ListValue<Document>> toAllDocuments(List<BatchCaseDocument> documents) {
         return documents.stream()
-            .map(TecCaseView::toListValue)
+            .map(BatchCaseView::toListValue)
             .toList();
     }
 
-    private static ListValue<Document> toListValue(TecCaseDocument document) {
+    private static ListValue<Document> toListValue(BatchCaseDocument document) {
         Document ccdDocument = Document.builder()
             .url(document.documentUrl())
             .binaryUrl(document.documentBinaryUrl())
