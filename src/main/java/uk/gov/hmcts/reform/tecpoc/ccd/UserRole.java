@@ -9,7 +9,11 @@ import uk.gov.hmcts.ccd.sdk.api.Permission;
 public enum UserRole implements HasRole {
 
     SYSTEM("caseworker-tec-system", Permission.CRUD),
-    CLERK("caseworker-tec", Set.of(Permission.R, Permission.U));
+    /**
+     * Includes Create so clerks can start the Create batch ({@code uploadBatch}) journey.
+     * PCN create remains system-only via {@code createTecCase} {@code NEVER_SHOW}.
+     */
+    CLERK("caseworker-tec", Permission.CRU);
 
     private final String role;
     private final Set<Permission> caseTypePermissions;

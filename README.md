@@ -57,8 +57,9 @@ Password: password
 ```
 
 After sign-in you should see **Create batch** in the primary navigation (local simulation of the
-ExUI `menuConfigs` change). Open Case list via **Manage cases** and use the case type filter to
-switch between PCN cases (`TEC`) and batches (`TEC_BATCH` / **Batch**).
+ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
+(`/cases/case-create/TEC/TEC_BATCH/uploadBatch`). Open Case list via **Manage cases** and use the
+case type filter to switch between PCN cases (`TEC`) and batches (`TEC_BATCH` / **Batch**).
 
 ## Create a PCN case
 

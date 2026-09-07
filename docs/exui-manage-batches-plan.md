@@ -5,7 +5,8 @@ by changing ExUI `menuConfigs`, with a local proxy path for the TEC prototype an
 platform release for shared environments.
 
 Batches themselves are modelled as CCD case type `TEC_BATCH` and browsed from Case list / Find
-case (case type filter). Create batch is a separate journey stub linked from primary nav.
+case (case type filter). Create batch is the clerk-visible `uploadBatch` CCD event, linked from
+primary nav via an ExUI case-create deep link.
 
 ## Problem
 
@@ -58,7 +59,7 @@ Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Mana
   `caseworker-tec-system` should see it). Local IdAM roles today: `caseworker-tec`,
   `caseworker-tec-system` (`UserRole` in this repo).
 - **Label:** `Create batch`
-- **Target:** create-batch journey URL (stub locally at `/tec-create-batch`).
+- **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Create batch CCD wizard).
 
 ### What to change in ExUI
 
@@ -90,7 +91,7 @@ This repo simulates the menuConfigs change locally with a reverse proxy (not a c
 - `bootWithCCD` sets `XUI_PORT=3002` (real Manage Cases container).
 - `bin/start-xui-manage-batches-proxy.sh` publishes **http://localhost:3000** and rewrites
   `/external/config/ui/` to inject a `caseworker-tec` menu that includes **Create batch**.
-- `/tec-create-batch` is a stub page for the create journey.
+- Create batch nav href is the ExUI deep link for `uploadBatch`; `/tec-create-batch` redirects there.
 
 Details: [exui-navigation.md](./exui-navigation.md).
 
@@ -124,6 +125,6 @@ Details: [exui-navigation.md](./exui-navigation.md).
 ## Follow-ups
 
 - [ ] ExUI PR: add `caseworker-tec` menu key with Create batch + standard items in `base-config.ts`
-- [ ] Design and implement the Create batch journey (currently a stub)
+- [x] Create batch journey: clerk-visible `uploadBatch` CCD multi-page event
 - [x] Local simulation: nav-injection proxy on :3000 (`bin/start-xui-manage-batches-proxy.sh`)
 - [x] CCD `TEC_BATCH` case type for batch list/details

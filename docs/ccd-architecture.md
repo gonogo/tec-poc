@@ -71,8 +71,8 @@ ExUI Case list / Find case expose a **case type** filter. Fresh sessions prefera
 [exui-navigation.md](./exui-navigation.md).
 
 Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
-and `editApplication`. Batch upload journeys are not modelled as batch Next steps; Create batch is a
-nav stub.
+and `editApplication`. Create batch is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
+from ExUI primary nav (not as a case-scoped Next step).
 
 ### States and events
 
@@ -176,7 +176,8 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
-| Create API | `POST /batches` (`bin/create-tec-batch.sh`) |
+| Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
+| Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
 
 #### Local setup

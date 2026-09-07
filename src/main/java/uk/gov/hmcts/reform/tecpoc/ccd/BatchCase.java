@@ -24,7 +24,7 @@ public class BatchCase {
 
     @CCD(
         label = "Operation",
-        typeOverride = FieldType.FixedList,
+        typeOverride = FieldType.FixedRadioList,
         typeParameterOverride = "BatchOperation"
     )
     private BatchOperation operation;
@@ -61,15 +61,34 @@ public class BatchCase {
     private String batchValidationResultDisplay;
 
     /**
+     * PCNs excluded from the batch after placeholder validation (Create batch journey).
+     */
+    @CCD(label = "Excluded PCNs", searchable = false)
+    private Integer excludedPcnCount;
+
+    /**
+     * Statement of truth agreement (Create batch journey). MultiSelectList with one option
+     * renders as a checkbox, matching the PCS pattern. Label is shown on Check your answers
+     * (and beside the checkbox on the Statement of truth page).
+     */
+    @CCD(
+        label = "Statement of truth",
+        typeOverride = FieldType.MultiSelectList,
+        typeParameterOverride = "BatchStatementOfTruthAgreement",
+        searchable = false
+    )
+    private List<BatchStatementOfTruthAgreement> batchStatementOfTruth;
+
+    /**
      * Case File View source documents. Populated by {@link BatchCaseView}; not shown on Case details.
      */
     @CCD(label = "All documents", searchable = false)
     private List<ListValue<Document>> allDocuments;
 
     /**
-     * Event-only field used by {@code attachBatchDocument}.
+     * Event-only field used by {@code attachBatchDocument} and {@code uploadBatch}.
      */
-    @CCD(label = "Batch file document", searchable = false)
+    @CCD(label = "Batch file", searchable = false)
     private Document batchFileDocument;
 
     @CCD(label = "Case file view")

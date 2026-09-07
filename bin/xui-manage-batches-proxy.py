@@ -6,7 +6,8 @@ public Manage Cases port, forwards to the real XUI container on an internal port
 and rewrites GET /external/config/ui/ (and the legacy /external/configuration-ui/
 path) so TEC clerks see Create batch without a custom XUI image.
 
-Also serves a local placeholder at /tec-create-batch for the link target (flow TBD).
+Create batch nav points at the ExUI CCD create-case deep link for uploadBatch.
+Legacy /tec-create-batch redirects there for bookmarks.
 """
 
 from __future__ import annotations
@@ -24,8 +25,10 @@ LISTEN_HOST = os.environ.get("XUI_NAV_PROXY_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("XUI_NAV_PROXY_PORT", "3000"))
 UPSTREAM = os.environ.get("XUI_NAV_PROXY_UPSTREAM", "http://127.0.0.1:3002")
 CREATE_BATCH_PATH = os.environ.get("XUI_NAV_PROXY_CREATE_BATCH_PATH") or os.environ.get(
-    "XUI_NAV_PROXY_BATCHES_PATH", "/tec-create-batch"
+    "XUI_NAV_PROXY_BATCHES_PATH",
+    "/cases/case-create/TEC/TEC_BATCH/uploadBatch",
 )
+LEGACY_CREATE_BATCH_STUB = "/tec-create-batch"
 TEC_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_ROLE_KEY", "caseworker-tec")
 CREATE_BATCH_LABEL = "Create batch"
 
@@ -53,6 +56,8 @@ _CONFIG_PATHS = {
 
 def _tec_menu(create_batch_href: str) -> list[dict]:
     # Case list omitted on purpose: clerks still reach /cases via the Manage cases title.
+    # href MUST be a real ExUI Angular route — routerLink does not hit the proxy, so
+    # /tec-create-batch falls through to /cases.
     return [
         {"text": "Create case", "href": "/cases/case-filter", "active": False},
         {"text": CREATE_BATCH_LABEL, "href": create_batch_href, "active": False},
@@ -76,30 +81,19 @@ def _create_batch_item(create_batch_href: str) -> dict:
     }
 
 
-def _create_batch_page_html(create_batch_path: str) -> bytes:
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Create batch (local prototype)</title>
-  <style>
-    body {{ font-family: "GDS Transport", arial, sans-serif; margin: 2rem; max-width: 40rem; }}
-    a {{ color: #1d70b8; }}
-  </style>
-</head>
-<body>
-  <p><a href="/cases">Back to Manage Cases</a></p>
-  <h1>Create batch</h1>
-  <p>
-    This is a local stub for the Create batch journey (flow to be designed).
-    Batches themselves are a CCD case type (<code>TEC_BATCH</code>) browsed from
-    Case list by selecting case type <strong>Batch</strong>.
-  </p>
-  <p>Nav simulation path: <code>{create_batch_path}</code></p>
-</body>
-</html>
-"""
-    return html.encode("utf-8")
+def _force_create_batch_href(items: list, create_batch_href: str) -> tuple[list, bool]:
+    """Ensure every Create batch nav item points at the CCD deep link."""
+    updated: list = []
+    found = False
+    for item in items:
+        if isinstance(item, dict) and item.get("text") == CREATE_BATCH_LABEL:
+            found = True
+            patched = dict(item)
+            patched["href"] = create_batch_href
+            updated.append(patched)
+        else:
+            updated.append(item)
+    return updated, found
 
 
 def _inject_header_config(payload: dict, create_batch_href: str, role_key: str) -> dict:
@@ -116,10 +110,8 @@ def _inject_header_config(payload: dict, create_batch_href: str, role_key: str) 
         if key == role_key:
             continue
         if key == ".+" and isinstance(items, list):
-            already = any(
-                isinstance(item, dict) and item.get("text") == CREATE_BATCH_LABEL for item in items
-            )
-            if not already:
+            items, found = _force_create_batch_href(list(items), create_batch_href)
+            if not found:
                 # Insert before right-aligned Find case / Search entries when possible.
                 insert_at = next(
                     (
@@ -129,14 +121,35 @@ def _inject_header_config(payload: dict, create_batch_href: str, role_key: str) 
                     ),
                     len(items),
                 )
-                items = list(items)
                 items.insert(insert_at, create_batch_item)
             rebuilt[key] = items
+        elif isinstance(items, list):
+            patched, _found = _force_create_batch_href(list(items), create_batch_href)
+            rebuilt[key] = patched
         else:
             rebuilt[key] = items
 
     payload["headerConfig"] = rebuilt
     return payload
+
+
+def _legacy_create_batch_bounce_html(target: str) -> bytes:
+    # Full-page bounce for bookmarks. ExUI primary nav must not use this path:
+    # it binds href via Angular routerLink, which never requests this URL.
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="refresh" content="0;url={target}" />
+  <title>Create batch</title>
+  <script>window.location.replace({target!r});</script>
+</head>
+<body>
+  <p>Redirecting to <a href="{target}">Create batch</a>…</p>
+</body>
+</html>
+"""
+    return html.encode("utf-8")
 
 
 def _split_upstream(url: str) -> tuple[str, str, int, bool]:
@@ -176,9 +189,13 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def _handle(self) -> None:
         path = urlsplit(self.path).path
-        if path.rstrip("/") == CREATE_BATCH_PATH.rstrip("/") and self.command in ("GET", "HEAD"):
-            body = _create_batch_page_html(CREATE_BATCH_PATH)
-            self.send_response(200)
+        if path.rstrip("/") == LEGACY_CREATE_BATCH_STUB.rstrip("/") and self.command in (
+            "GET",
+            "HEAD",
+        ):
+            body = _legacy_create_batch_bounce_html(CREATE_BATCH_PATH)
+            self.send_response(302)
+            self.send_header("Location", CREATE_BATCH_PATH)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
@@ -252,7 +269,17 @@ class ProxyHandler(BaseHTTPRequestHandler):
             for key, value in upstream.getheaders():
                 if key.lower() in _HOP_BY_HOP:
                     continue
+                # Avoid browsers / SW keeping a stale Create batch href.
+                if path.rstrip("/") in {p.rstrip("/") for p in _CONFIG_PATHS} and key.lower() in {
+                    "cache-control",
+                    "etag",
+                    "last-modified",
+                    "expires",
+                }:
+                    continue
                 self.send_header(key, value)
+            if path.rstrip("/") in {p.rstrip("/") for p in _CONFIG_PATHS}:
+                self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(raw)))
             self.end_headers()
             if self.command != "HEAD":
