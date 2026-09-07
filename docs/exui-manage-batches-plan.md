@@ -59,7 +59,8 @@ Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Mana
   `caseworker-tec-system` should see it). Local IdAM roles today: `caseworker-tec`,
   `caseworker-tec-system` (`UserRole` in this repo).
 - **Label:** `Create batch`
-- **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Create batch CCD wizard).
+- **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Create batch CCD wizard — see
+  [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch)).
 
 ### What to change in ExUI
 
@@ -117,10 +118,12 @@ Details: [exui-navigation.md](./exui-navigation.md).
 
 - TEC clerk signing into Manage Cases sees **Create batch** in the primary nav (not Manage batches).
 - Non-TEC users do not see it.
-- Link opens the create-batch stub / journey (correct env URL).
+- Link opens the `uploadBatch` CCD wizard at `/cases/case-create/TEC/TEC_BATCH/uploadBatch`.
 - Create case / Find case remain; Case list can stay hidden with cases reachable via Manage cases.
 - Local POC can demonstrate the same nav via the nav proxy without AAT/prod deploy.
 - Batches are browsable as case type **Batch** on Case list / Find case.
+
+Journey behaviour (TEC / this POC): see [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch).
 
 ## Follow-ups
 

@@ -35,7 +35,7 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 ### Verify
 
 1. Prefer a clean stack so XUI is recreated on port 3002:
-   `./bin/stop-boot-with-ccd.sh` then `./gradlew bootWithCCD`
+   `./bin/restart-boot-with-ccd.sh`
 2. If the nav proxy was already running from an older revision, refresh it:
    `./bin/restart-xui-manage-batches-proxy.sh`
 3. Open **http://localhost:3000** (not `:3002`) and sign in as `tec-demo@test.com` / `password`
@@ -46,9 +46,17 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
    (no **Case list** item — open cases via **Manage cases** title)
 6. Clicking Create batch opens the `uploadBatch` wizard at
    `/cases/case-create/TEC/TEC_BATCH/uploadBatch`
-7. Open Case list via **Manage cases** and use the case type filter: **TEC case** (PCN) vs **Batch**
+7. Complete the wizard (batch type → interstitial → upload → validation → statement of truth →
+   Check your answers → Submit). Confirmation shows the case number; it does **not** include a
+   Manage cases link in the body.
+8. Open Case list via **Manage cases** and use the case type filter: **TEC case** (PCN) vs **Batch**
+
+If Create batch does nothing / errors on start, confirm definitions were re-imported after granting
+clerks Create (`UserRole.CLERK` is `CRU`) and hard-refresh so `headerConfig` is not stale.
 
 Proxy logs: `bin/.xui-manage-batches-proxy.log`
+
+Wizard pages and confirmation copy: [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch).
 
 ### Case type filter default
 
@@ -88,7 +96,7 @@ ExUI pipeline. Do not rely on `RSE_LIB_XUI_ENV_HEADER_CONFIG` — the UI ignores
 
 ## Related TEC roles
 
-| Java role | IdAM role |
-| --- | --- |
-| `CLERK` | `caseworker-tec` |
-| `SYSTEM` | `caseworker-tec-system` |
+| Java role | IdAM role | Notes |
+| --- | --- | --- |
+| `CLERK` | `caseworker-tec` | Case-type `CRU` so Create batch (`uploadBatch`) can start |
+| `SYSTEM` | `caseworker-tec-system` | Full CRUD; used by API / scripts |

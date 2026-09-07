@@ -40,8 +40,18 @@ The local services are:
 - S2S simulator: http://localhost:8489
 - Shared PostgreSQL: `localhost:6432` (the TEC database is `tec`)
 
-Stop the Java stack with `Ctrl-C`. The docker containers will continue to run, so they must be stopped separately if
-desired.
+Stop the Java stack with `Ctrl-C`. The Docker containers will continue to run; to tear everything down
+(Java processes, local stubs/proxies, and CFTLib containers) and free the required ports:
+
+```bash
+./bin/stop-boot-with-ccd.sh
+```
+
+To stop and start again in one step:
+
+```bash
+./bin/restart-boot-with-ccd.sh
+```
 
 ### Use Manage Case
 
@@ -58,8 +68,13 @@ Password: password
 
 After sign-in you should see **Create batch** in the primary navigation (local simulation of the
 ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
-(`/cases/case-create/TEC/TEC_BATCH/uploadBatch`). Open Case list via **Manage cases** and use the
-case type filter to switch between PCN cases (`TEC`) and batches (`TEC_BATCH` / **Batch**).
+(`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload a file, review
+placeholder validation, confirm the statement of truth, Check your answers, then Submit. The
+confirmation screen shows the new case number (no Manage cases link in the body). Open Case list
+via **Manage cases** and use the case type filter to switch between PCN cases (`TEC`) and batches
+(`TEC_BATCH` / **Batch**).
+
+Journey detail: [docs/ccd-architecture.md](docs/ccd-architecture.md#create-batch-journey-uploadbatch).
 
 ## Create a PCN case
 
@@ -122,7 +137,12 @@ The response contains the CCD-generated reference and initial state:
 
 ## Create a batch
 
-Batches are a second CCD case type (`TEC_BATCH`, display name **Batch**). Seed one or more:
+Batches are a second CCD case type (`TEC_BATCH`, display name **Batch**).
+
+**In Manage Case:** use primary nav **Create batch** to run the clerk `uploadBatch` wizard (see
+above). That creates a real batch case through CCD.
+
+**Via API / scripts** (hidden `createBatch` event — for seeding demos):
 
 ```bash
 ./bin/create-tec-batch.sh

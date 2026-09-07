@@ -64,7 +64,10 @@ Both types reuse the same roles:
 | Java role | IDAM role | Case-type access | State access |
 | --- | --- | --- | --- |
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
-| `CLERK` | `caseworker-tec` | RU | Read and update in every state |
+| `CLERK` | `caseworker-tec` | CRU | Create, read and update in every state |
+
+Clerk **Create** is required so ExUI can start the Create batch (`uploadBatch`) journey. PCN create
+remains system-only via the hidden `createTecCase` event (`NEVER_SHOW`).
 
 ExUI Case list / Find case expose a **case type** filter. Fresh sessions preferably land on `TEC`
 (import order + alphabetical id); ExUI may remember the last selection in `localStorage` — see
@@ -179,6 +182,24 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
+
+#### Create batch journey (`uploadBatch`)
+
+Clerk-facing wizard started from ExUI primary nav. Helpers live in `BatchUploadJourney`. Validation
+copy and some submit metadata are still placeholders.
+
+| Step | Page id | Notes |
+| --- | --- | --- |
+| Select batch type | `selectBatchType` | `FixedRadioList` of `BatchOperation` (label includes a short description) |
+| Before you start | `interstitial` | Placeholder guidance |
+| Upload batch file | `uploadFile` | Mid-event sets placeholder excluded-PCN count |
+| Some data cannot be processed | `validationResults` | Static HTML matching the design mock |
+| Statement of truth | `statementOfTruth` | Contempt warning + checkbox (`MultiSelectList`); field label **Statement of truth** (also shown on Check your answers) |
+| Check your answers | ExUI auto CYA | Enabled via `.showSummary()`; H1 is ExUI’s fixed “Check your answers”; Submit button label **Submit** |
+| Confirmation | submit response | Header/body from `BatchUploadJourney`; case number and overnight-processing copy; **no** Manage cases body link |
+
+Submit persists the batch (`repository.create`), attaches the uploaded document under Inputs when
+present, and lands in `QUEUED_FOR_PROCESSING`.
 
 #### Local setup
 
@@ -305,15 +326,17 @@ CFTLib itself is not deployed.
 
 | Concern | Source of truth |
 | --- | --- |
-| Case type, fields, states, events, tabs, categories and permissions | `TecCaseConfiguration`, `CaseState`, `UserRole`, `CaseFileCategory` and `TecCase` |
-| Definition used by the local CCD stack | Generated `build/ccd-definition/TEC` imported by `TecCftLibConfiguration` |
+| Case type, fields, states, events, tabs, categories and permissions | `TecCaseConfiguration`, `BatchCaseConfiguration`, `CaseState` / `BatchCaseState`, `UserRole`, categories and case models |
+| Definition used by the local CCD stack | Generated `build/ccd-definition/TEC` and `TEC_BATCH` imported by `TecCftLibConfiguration` |
 | PCN business data | `tec.public.tec_case` |
-| Case File View documents | `tec.public.tec_case_document` |
+| Batch business data | `tec.public.tec_batch` / `tec.public.tec_batch_document` |
+| Case File View documents | `tec.public.tec_case_document` (PCN) / batch document table |
 | Decentralised lifecycle metadata and event history | SDK-managed `tec.ccd` schema |
-| Current CCD-facing field values | `TecCaseView` projection |
+| Current CCD-facing field values | `TecCaseView` / `BatchCaseView` projection |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` in `TecCaseView` |
-| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md` |
+| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md`; local proxy in `bin/xui-manage-batches-proxy.py` |
+| Create batch wizard copy / confirmation | `BatchUploadJourney` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 
 ## Repository map
