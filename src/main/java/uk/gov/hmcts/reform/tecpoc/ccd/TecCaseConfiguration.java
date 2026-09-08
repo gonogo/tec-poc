@@ -68,6 +68,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 
+        // CCD shell only — real ExUI Roles and access is prepended when WA is enabled for the jurisdiction.
+        builder.tab("rolesAndAccess", "Roles and access")
+            .label("rolesAndAccessLabel", null, "${rolesAndAccessMarkdown}")
+            .field("rolesAndAccessMarkdown", NEVER_SHOW);
+
         builder.tab("caseDetails", "Case details")
             .label("registrationSection", null, "## Registration")
             .field(TecCase::getFileIdentifier)
@@ -191,6 +196,9 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
         builder.tab("caseFileView", "Case File View")
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(TecCase::getAllDocuments, NEVER_SHOW);
+
+        builder.tab("paymentHistory", "Payment History")
+            .field(TecCase::getCasePaymentHistoryViewer);
 
         builder.searchInputFields()
             .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")

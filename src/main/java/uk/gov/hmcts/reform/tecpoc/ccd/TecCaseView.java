@@ -29,6 +29,10 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         tecCase.setTasksMarkdown(
             TecPrototypeTasks.markdownFor(request.caseRef(), request.state(), tecCase)
         );
+        tecCase.setRolesAndAccessMarkdown(
+            "<p class=\"govuk-body\">Roles and access (CCD shell). "
+                + "The Manage Case Work Allocation tab is not wired for TEC in this PoC.</p>"
+        );
         FormValidationResult validationResult = tecCase.getFormValidationResult();
         tecCase.setFormValidationResultDisplay(
             validationResult == null ? FORM_VALIDATION_NOT_RECORDED : validationResult.getLabel()

@@ -122,8 +122,12 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 
 ### Case presentation and search
 
-`TecCaseConfiguration` generates three application tabs in addition to CCD's case-history tab:
+`TecCaseConfiguration` generates five application tabs in addition to CCD's case-history tab:
 
+- **Tasks**: prototype task list for local UX exploration.
+- **Roles and access**: CCD shell tab so the label always appears in Manage Case. This is not ExUI's
+  Work Allocation / case access management UI (that is prepended only when WA is enabled for the
+  jurisdiction).
 - **Case details**: a **Registration** section containing identifiers, local authority, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
   document and date); an application section headed by form and timeliness
@@ -140,7 +144,8 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in
   `TecCaseConfiguration`. Documents appear when `TecCaseView` exposes `allDocuments` from
   `tec_case_document` with matching `category_id` values.
-- **Tasks**: prototype task list for local UX exploration.
+- **Payment History**: CCD tab hosting the shared `CasePaymentHistoryViewer` field (ccpay case
+  transactions UI). Local content depends on Payments being wired for TEC.
 
 Search and work-basket inputs are penalty charge number and local authority (CCD `FixedList` of the 2023
 England councils — ExUI has no generic autosuggest for this control). Results include the case reference,
@@ -150,12 +155,15 @@ The tab configuration is static CCD metadata. `TecCaseView` supplies the current
 whose `case_reference` matches the CCD reference. ExUI and API clients call CCD; they do not call `TecCaseView`
 directly.
 
-### Prototype Tasks tab
+### Prototype Tasks and Roles and access tabs
 
 The **Tasks** tab is declared in `TecCaseConfiguration` and rendered as HTML that approximates ExUI's Work
 Allocation `exui-case-task` cards (priority, due date, assignee, Manage links and Next steps). It is not connected to
 Work Allocation. `TecCaseView` populates `tasksMarkdown` so the tab can be used for prototyping layout without Camunda
 or WA services.
+
+The **Roles and access** tab is the same kind of CCD shell: always present in the case definition, with placeholder
+HTML from `TecCaseView`. It does not call role-assignment or allocate-access APIs.
 
 | Piece | Location / behaviour |
 | --- | --- |

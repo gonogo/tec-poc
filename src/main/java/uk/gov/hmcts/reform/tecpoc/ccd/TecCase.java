@@ -263,6 +263,19 @@ public class TecCase {
     @CCD(label = "Case file view")
     private ComponentLauncher caseFileView;
 
+    /**
+     * CCD shell for the ExUI Roles and access tab. Not the real Work Allocation / CAA UI.
+     */
+    @CCD(label = "Roles and access", searchable = false)
+    private String rolesAndAccessMarkdown;
+
+    @CCD(
+        label = "Payment History",
+        typeOverride = FieldType.CasePaymentHistoryViewer,
+        searchable = false
+    )
+    private String casePaymentHistoryViewer;
+
     @CCD(label = "Tasks", searchable = false)
     private String tasksMarkdown;
 }
