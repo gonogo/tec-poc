@@ -282,7 +282,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .optional(TecCase::getApplicationType)
             .optional(TecCase::getApplicationTe7Submitted)
             .optional(TecCase::getApplicationForm)
-            .optional(TecCase::getApplicationPenaltyChargeNumber)
+            .readonly(TecCase::getApplicationPenaltyChargeNumber)
             .optional(TecCase::getApplicationVehicleRegistration)
             .optional(TecCase::getApplicationApplicant)
             .optional(TecCase::getApplicationLocationOfContravention)
