@@ -46,6 +46,13 @@ public class BatchCase {
     )
     private LocalAuthority localAuthority;
 
+    /**
+     * Case-view display for CCD state. Populated by {@link BatchCaseView} so ExUI can show
+     * status at the top of Case details (state itself is not case data).
+     */
+    @CCD(label = "Status")
+    private String statusDisplay;
+
     @CCD(
         label = "Batch validation result",
         typeOverride = FieldType.FixedList,
@@ -56,6 +63,7 @@ public class BatchCase {
     /**
      * Case-view display for validation. Always populated so ExUI shows the row even when
      * {@link #batchValidationResult} is unset ({@code @JsonInclude(NON_NULL)} would otherwise omit it).
+     * Unset results display as {@code Not yet validated}.
      */
     @CCD(label = "Batch validation result")
     private String batchValidationResultDisplay;

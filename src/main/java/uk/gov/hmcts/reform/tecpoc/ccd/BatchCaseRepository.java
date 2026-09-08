@@ -30,7 +30,7 @@ public class BatchCaseRepository {
     public BatchCase find(long caseReference) {
         return database.queryForObject("""
             select batch_identifier, pcn_count, operation, received_via, received_at,
-                   local_authority, batch_validation_result
+                   local_authority, batch_validation_result, batch_validation_result_display
               from tec_batch
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
@@ -44,11 +44,25 @@ public class BatchCaseRepository {
                     result.setReceivedAt(receivedAt.toLocalDateTime());
                 }
                 result.setLocalAuthority(LocalAuthority.valueOf(resultSet.getString("local_authority")));
-                result.setBatchValidationResult(
-                    BatchValidationResult.valueOf(resultSet.getString("batch_validation_result"))
+                String validationResult = resultSet.getString("batch_validation_result");
+                if (validationResult != null) {
+                    result.setBatchValidationResult(BatchValidationResult.valueOf(validationResult));
+                }
+                result.setBatchValidationResultDisplay(
+                    resultSet.getString("batch_validation_result_display")
                 );
                 return result;
             });
+    }
+
+    public void updateValidationResultDisplay(long caseReference, String validationResultDisplay) {
+        database.update("""
+            update tec_batch
+               set batch_validation_result_display = :validationResultDisplay
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("validationResultDisplay", validationResultDisplay));
     }
 
     public UUID insertDocument(
@@ -95,9 +109,7 @@ public class BatchCaseRepository {
     }
 
     private MapSqlParameterSource parameters(long caseReference, BatchCase batchCase) {
-        BatchValidationResult validationResult = batchCase.getBatchValidationResult() == null
-            ? BatchValidationResult.BATCH_VALID
-            : batchCase.getBatchValidationResult();
+        BatchValidationResult validationResult = batchCase.getBatchValidationResult();
         return new MapSqlParameterSource()
             .addValue("caseReference", caseReference)
             .addValue("batchIdentifier", batchCase.getBatchIdentifier())
@@ -106,6 +118,9 @@ public class BatchCaseRepository {
             .addValue("receivedVia", batchCase.getReceivedVia().name())
             .addValue("receivedAt", batchCase.getReceivedAt())
             .addValue("localAuthority", batchCase.getLocalAuthority().name())
-            .addValue("batchValidationResult", validationResult.name());
+            .addValue(
+                "batchValidationResult",
+                validationResult == null ? null : validationResult.name()
+            );
     }
 }

@@ -38,7 +38,7 @@ class BatchUploadJourneyTest {
         BatchUploadJourney.applyValidationPlaceholder(data);
 
         assertThat(data.getExcludedPcnCount()).isEqualTo(23);
-        assertThat(data.getBatchValidationResult()).isEqualTo(BatchValidationResult.BATCH_INVALID);
+        assertThat(data.getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -53,8 +53,7 @@ class BatchUploadJourneyTest {
             configuration.populateValidationPlaceholder(details, null);
 
         assertThat(response.getData().getExcludedPcnCount()).isEqualTo(23);
-        assertThat(response.getData().getBatchValidationResult())
-            .isEqualTo(BatchValidationResult.BATCH_INVALID);
+        assertThat(response.getData().getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -84,7 +83,7 @@ class BatchUploadJourneyTest {
         assertThat(data.getLocalAuthority()).isEqualTo(LocalAuthority.WESTMINSTER);
         assertThat(data.getPcnCount()).isEqualTo(200);
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000042");
-        assertThat(data.getBatchValidationResult()).isEqualTo(BatchValidationResult.BATCH_INVALID);
+        assertThat(data.getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -126,6 +125,27 @@ class BatchUploadJourneyTest {
             .doesNotContain("Manage cases");
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000099");
         assertThat(data.getReceivedVia()).isEqualTo(BatchReceivedVia.UPLOAD);
+        assertThat(data.getBatchValidationResult()).isNull();
+    }
+
+    @Test
+    void completeBatchProcessingPersistsValidationDisplayAndCompletes() {
+        BatchCase data = new BatchCase();
+        data.setBatchValidationResultDisplay("180 PCNs valid, 20 PCNs removed, see exception report");
+
+        @SuppressWarnings("unchecked")
+        SubmitResponse<BatchCaseState> response =
+            (SubmitResponse<BatchCaseState>) ReflectionTestUtils.invokeMethod(
+                configuration,
+                "completeBatchProcessing",
+                eventPayload(55L, data)
+            );
+
+        verify(repository).updateValidationResultDisplay(
+            55L,
+            "180 PCNs valid, 20 PCNs removed, see exception report"
+        );
+        assertThat(response.getState()).isEqualTo(BatchCaseState.PROCESSING_COMPLETE);
     }
 
     @Test

@@ -14,7 +14,7 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 @RequiredArgsConstructor
 public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
 
-    private static final String VALIDATION_NOT_RECORDED = "Not validated";
+    private static final String VALIDATION_NOT_RECORDED = "Not yet validated";
 
     private final BatchCaseRepository repository;
 
@@ -26,15 +26,27 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
     @Override
     public BatchCase getCase(CaseViewRequest<BatchCaseState> request) {
         BatchCase batchCase = repository.find(request.caseRef());
+        batchCase.setStatusDisplay(statusLabel(request.state()));
         batchCase.setTasksMarkdown(
             BatchPrototypeTasks.markdownFor(request.caseRef(), request.state(), batchCase)
         );
-        BatchValidationResult validationResult = batchCase.getBatchValidationResult();
-        batchCase.setBatchValidationResultDisplay(
-            validationResult == null ? VALIDATION_NOT_RECORDED : validationResult.getLabel()
-        );
+        String persistedValidationDisplay = batchCase.getBatchValidationResultDisplay();
+        if (persistedValidationDisplay == null || persistedValidationDisplay.isBlank()) {
+            BatchValidationResult validationResult = batchCase.getBatchValidationResult();
+            batchCase.setBatchValidationResultDisplay(
+                validationResult == null ? VALIDATION_NOT_RECORDED : validationResult.getLabel()
+            );
+        }
         batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return batchCase;
+    }
+
+    static String statusLabel(BatchCaseState state) {
+        return switch (state) {
+            case QUEUED_FOR_PROCESSING -> "Queued for processing";
+            case PROCESSING_STARTED -> "Processing started";
+            case PROCESSING_COMPLETE -> "Processing complete";
+        };
     }
 
     static List<ListValue<Document>> toAllDocuments(List<BatchCaseDocument> documents) {

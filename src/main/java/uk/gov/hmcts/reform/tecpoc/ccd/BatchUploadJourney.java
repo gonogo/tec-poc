@@ -18,9 +18,6 @@ final class BatchUploadJourney {
 
     static void applyValidationPlaceholder(BatchCase data) {
         data.setExcludedPcnCount(PLACEHOLDER_EXCLUDED_PCN_COUNT);
-        if (data.getBatchValidationResult() == null) {
-            data.setBatchValidationResult(BatchValidationResult.BATCH_INVALID);
-        }
     }
 
     static void applySubmitDefaults(long caseReference, BatchCase data) {
@@ -42,13 +39,8 @@ final class BatchUploadJourney {
         if (data.getExcludedPcnCount() == null) {
             data.setExcludedPcnCount(PLACEHOLDER_EXCLUDED_PCN_COUNT);
         }
-        if (data.getBatchValidationResult() == null) {
-            data.setBatchValidationResult(
-                data.getExcludedPcnCount() > 0
-                    ? BatchValidationResult.BATCH_INVALID
-                    : BatchValidationResult.BATCH_VALID
-            );
-        }
+        // Validation outcome is recorded later; new batches stay unset → "Not yet validated".
+        data.setBatchValidationResult(null);
     }
 
     static boolean hasAcceptedStatementOfTruth(BatchCase data) {

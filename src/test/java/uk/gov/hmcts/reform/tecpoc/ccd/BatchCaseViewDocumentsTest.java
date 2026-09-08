@@ -12,6 +12,16 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 class BatchCaseViewDocumentsTest {
 
     @Test
+    void shouldMapStatusLabels() {
+        assertThat(BatchCaseView.statusLabel(BatchCaseState.QUEUED_FOR_PROCESSING))
+            .isEqualTo("Queued for processing");
+        assertThat(BatchCaseView.statusLabel(BatchCaseState.PROCESSING_STARTED))
+            .isEqualTo("Processing started");
+        assertThat(BatchCaseView.statusLabel(BatchCaseState.PROCESSING_COMPLETE))
+            .isEqualTo("Processing complete");
+    }
+
+    @Test
     void shouldMapDocumentsForCaseFileView() {
         Instant createdAt = Instant.parse("2026-09-05T12:00:00Z");
         List<ListValue<Document>> allDocuments = BatchCaseView.toAllDocuments(List.of(

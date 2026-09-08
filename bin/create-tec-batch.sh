@@ -81,7 +81,6 @@ batch_data="$(jq --null-input --compact-output \
     receivedVia: $receivedVia,
     receivedAt: $receivedAt,
     localAuthority: $localAuthority,
-    batchValidationResult: "batchValid",
     targetState: $targetState,
     documents: $documents
   }')"

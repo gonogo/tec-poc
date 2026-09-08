@@ -72,6 +72,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field("tasksMarkdown", NEVER_SHOW);
 
         builder.tab("caseDetails", "Case details")
+            .field(BatchCase::getStatusDisplay)
             .field(BatchCase::getBatchValidationResultDisplay)
             .field(BatchCase::getBatchIdentifier)
             .field(BatchCase::getLocalAuthority)
@@ -222,13 +223,12 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .grant(Permission.CRUD, UserRole.SYSTEM);
 
         builder.decentralisedEvent("completeBatchProcessing", this::completeBatchProcessing)
-            .forStateTransition(
-                BatchCaseState.PROCESSING_STARTED,
-                BatchCaseState.PROCESSING_COMPLETE
-            )
+            .forStates(BatchCaseState.PROCESSING_STARTED, BatchCaseState.PROCESSING_COMPLETE)
             .name("Batch processing complete")
             .showCondition(NEVER_SHOW)
-            .grant(Permission.CRUD, UserRole.SYSTEM);
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .optional(BatchCase::getBatchValidationResultDisplay);
 
         builder.decentralisedEvent("attachBatchDocument", this::attachBatchDocument)
             .forStates(BatchCaseState.values())
@@ -255,11 +255,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
     }
 
     private SubmitResponse<BatchCaseState> createBatch(EventPayload<BatchCase, BatchCaseState> event) {
-        BatchCase data = event.caseData();
-        if (data.getBatchValidationResult() == null) {
-            data.setBatchValidationResult(BatchValidationResult.BATCH_VALID);
-        }
-        repository.create(event.caseReference(), data);
+        repository.create(event.caseReference(), event.caseData());
         return response(BatchCaseState.QUEUED_FOR_PROCESSING);
     }
 
@@ -293,6 +289,13 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
     private SubmitResponse<BatchCaseState> completeBatchProcessing(
         EventPayload<BatchCase, BatchCaseState> event
     ) {
+        BatchCase data = event.caseData();
+        if (data != null) {
+            String validationDisplay = data.getBatchValidationResultDisplay();
+            if (validationDisplay != null && !validationDisplay.isBlank()) {
+                repository.updateValidationResultDisplay(event.caseReference(), validationDisplay.trim());
+            }
+        }
         return response(BatchCaseState.PROCESSING_COMPLETE);
     }
 
