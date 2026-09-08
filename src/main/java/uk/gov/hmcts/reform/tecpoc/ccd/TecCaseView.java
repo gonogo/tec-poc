@@ -34,9 +34,11 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
                 + "The Manage Case Work Allocation tab is not wired for TEC in this PoC.</p>"
         );
         FormValidationResult validationResult = tecCase.getFormValidationResult();
-        tecCase.setFormValidationResultDisplay(
-            validationResult == null ? FORM_VALIDATION_NOT_RECORDED : validationResult.getLabel()
-        );
+        String validationDisplay = validationResult == null
+            ? FORM_VALIDATION_NOT_RECORDED
+            : validationResult.getLabel();
+        tecCase.setFormValidationResultDisplay(validationDisplay);
+        tecCase.setTimeExtensionFormValidationResultDisplay(validationDisplay);
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
     }

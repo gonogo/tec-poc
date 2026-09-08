@@ -172,6 +172,102 @@ public class TecCaseRepository {
             .addValue("applicationPaidTo", tecCase.getApplicationPaidTo()));
     }
 
+    /**
+     * Clerk edit of TE9 fields. Does not change form type or penalty charge number.
+     */
+    public void editTe9Application(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set application_date_received = :applicationDateReceived,
+                   application_type = :applicationType,
+                   application_te7_submitted = :applicationTe7Submitted,
+                   application_vehicle_registration = :applicationVehicleRegistration,
+                   application_applicant = :applicationApplicant,
+                   application_location_of_contravention = :applicationLocationOfContravention,
+                   application_date_of_contravention = :applicationDateOfContravention,
+                   application_title = :applicationTitle,
+                   application_full_name = :applicationFullName,
+                   application_company_name = :applicationCompanyName,
+                   application_address = :applicationAddress,
+                   application_postcode = :applicationPostcode,
+                   application_declaration = :applicationDeclaration,
+                   application_date_paid = :applicationDatePaid,
+                   application_how_paid = :applicationHowPaid,
+                   application_paid_to = :applicationPaidTo
+             where case_reference = :caseReference
+            """, applicationEditParams(caseReference, tecCase));
+    }
+
+    /**
+     * Clerk edit of PE3 fields. Does not change form type or penalty charge number.
+     */
+    public void editPe3Application(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set application_date_received = :applicationDateReceived,
+                   application_type = :applicationType,
+                   application_te7_submitted = :applicationTe7Submitted,
+                   application_vehicle_registration = :applicationVehicleRegistration,
+                   application_applicant = :applicationApplicant,
+                   application_location_of_contravention = :applicationLocationOfContravention,
+                   application_date_of_contravention = :applicationDateOfContravention,
+                   application_title = :applicationTitle,
+                   application_full_name = :applicationFullName,
+                   application_company_name = :applicationCompanyName,
+                   application_address = :applicationAddress,
+                   application_postcode = :applicationPostcode,
+                   application_declaration = :applicationDeclaration,
+                   application_reasons_given = :applicationReasonsGiven,
+                   application_date_paid = :applicationDatePaid,
+                   application_how_paid = :applicationHowPaid,
+                   application_paid_to = :applicationPaidTo
+             where case_reference = :caseReference
+            """, applicationEditParams(caseReference, tecCase)
+            .addValue(
+                "applicationReasonsGiven",
+                tecCase.getApplicationReasonsGiven() == null
+                    ? null
+                    : tecCase.getApplicationReasonsGiven().name()
+            ));
+    }
+
+    private static MapSqlParameterSource applicationEditParams(long caseReference, TecCase tecCase) {
+        return new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("applicationDateReceived", tecCase.getApplicationDateReceived())
+            .addValue(
+                "applicationType",
+                tecCase.getApplicationType() == null ? null : tecCase.getApplicationType().name()
+            )
+            .addValue(
+                "applicationTe7Submitted",
+                tecCase.getApplicationTe7Submitted() == null
+                    ? null
+                    : tecCase.getApplicationTe7Submitted().name()
+            )
+            .addValue("applicationVehicleRegistration", tecCase.getApplicationVehicleRegistration())
+            .addValue("applicationApplicant", tecCase.getApplicationApplicant())
+            .addValue(
+                "applicationLocationOfContravention",
+                tecCase.getApplicationLocationOfContravention()
+            )
+            .addValue("applicationDateOfContravention", tecCase.getApplicationDateOfContravention())
+            .addValue("applicationTitle", tecCase.getApplicationTitle())
+            .addValue("applicationFullName", tecCase.getApplicationFullName())
+            .addValue("applicationCompanyName", tecCase.getApplicationCompanyName())
+            .addValue("applicationAddress", tecCase.getApplicationAddress())
+            .addValue("applicationPostcode", tecCase.getApplicationPostcode())
+            .addValue(
+                "applicationDeclaration",
+                tecCase.getApplicationDeclaration() == null
+                    ? null
+                    : tecCase.getApplicationDeclaration().name()
+            )
+            .addValue("applicationDatePaid", tecCase.getApplicationDatePaid())
+            .addValue("applicationHowPaid", tecCase.getApplicationHowPaid())
+            .addValue("applicationPaidTo", tecCase.getApplicationPaidTo());
+    }
+
     public void recordTimeExtension(long caseReference, TecCase tecCase) {
         database.update("""
             update tec_case
@@ -247,6 +343,107 @@ public class TecCaseRepository {
             )
             .addValue("timeExtensionDateSigned", tecCase.getTimeExtensionDateSigned())
             .addValue("timeExtensionPrintFullName", tecCase.getTimeExtensionPrintFullName()));
+    }
+
+    /**
+     * Clerk edit of TE7 fields. Does not change form type or penalty charge number.
+     */
+    public void editTe7Application(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set time_extension_vehicle_registration = :timeExtensionVehicleRegistration,
+                   time_extension_title = :timeExtensionTitle,
+                   time_extension_other_title = :timeExtensionOtherTitle,
+                   time_extension_full_name = :timeExtensionFullName,
+                   time_extension_company_name = :timeExtensionCompanyName,
+                   time_extension_address = :timeExtensionAddress,
+                   time_extension_postcode = :timeExtensionPostcode,
+                   time_extension_permission_type = :timeExtensionPermissionType,
+                   time_extension_reasons_given = :timeExtensionReasonsGiven,
+                   time_extension_signed_and_dated = :timeExtensionSignedAndDated,
+                   time_extension_signed_by = :timeExtensionSignedBy,
+                   time_extension_date_signed = :timeExtensionDateSigned,
+                   time_extension_print_full_name = :timeExtensionPrintFullName
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("timeExtensionVehicleRegistration", tecCase.getTimeExtensionVehicleRegistration())
+            .addValue("timeExtensionTitle", tecCase.getTimeExtensionTitle())
+            .addValue("timeExtensionOtherTitle", tecCase.getTimeExtensionOtherTitle())
+            .addValue("timeExtensionFullName", tecCase.getTimeExtensionFullName())
+            .addValue("timeExtensionCompanyName", tecCase.getTimeExtensionCompanyName())
+            .addValue("timeExtensionAddress", tecCase.getTimeExtensionAddress())
+            .addValue("timeExtensionPostcode", tecCase.getTimeExtensionPostcode())
+            .addValue(
+                "timeExtensionPermissionType",
+                tecCase.getTimeExtensionPermissionType() == null
+                    ? null
+                    : tecCase.getTimeExtensionPermissionType().name()
+            )
+            .addValue(
+                "timeExtensionReasonsGiven",
+                tecCase.getTimeExtensionReasonsGiven() == null
+                    ? null
+                    : tecCase.getTimeExtensionReasonsGiven().name()
+            )
+            .addValue(
+                "timeExtensionSignedAndDated",
+                tecCase.getTimeExtensionSignedAndDated() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedAndDated().name()
+            )
+            .addValue(
+                "timeExtensionSignedBy",
+                tecCase.getTimeExtensionSignedBy() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedBy().name()
+            )
+            .addValue("timeExtensionDateSigned", tecCase.getTimeExtensionDateSigned())
+            .addValue("timeExtensionPrintFullName", tecCase.getTimeExtensionPrintFullName()));
+    }
+
+    /**
+     * Clerk edit of PE2 fields. Does not change form type or penalty charge number.
+     */
+    public void editPe2Application(long caseReference, TecCase tecCase) {
+        database.update("""
+            update tec_case
+               set time_extension_vehicle_registration = :timeExtensionVehicleRegistration,
+                   time_extension_applicant = :timeExtensionApplicant,
+                   time_extension_location_of_contravention = :timeExtensionLocationOfContravention,
+                   time_extension_date_of_contravention = :timeExtensionDateOfContravention,
+                   time_extension_full_name = :timeExtensionFullName,
+                   time_extension_address = :timeExtensionAddress,
+                   time_extension_postcode = :timeExtensionPostcode,
+                   time_extension_reasons_given = :timeExtensionReasonsGiven,
+                   time_extension_signed_and_dated = :timeExtensionSignedAndDated,
+                   time_extension_date_signed = :timeExtensionDateSigned
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("timeExtensionVehicleRegistration", tecCase.getTimeExtensionVehicleRegistration())
+            .addValue("timeExtensionApplicant", tecCase.getTimeExtensionApplicant())
+            .addValue(
+                "timeExtensionLocationOfContravention",
+                tecCase.getTimeExtensionLocationOfContravention()
+            )
+            .addValue("timeExtensionDateOfContravention", tecCase.getTimeExtensionDateOfContravention())
+            .addValue("timeExtensionFullName", tecCase.getTimeExtensionFullName())
+            .addValue("timeExtensionAddress", tecCase.getTimeExtensionAddress())
+            .addValue("timeExtensionPostcode", tecCase.getTimeExtensionPostcode())
+            .addValue(
+                "timeExtensionReasonsGiven",
+                tecCase.getTimeExtensionReasonsGiven() == null
+                    ? null
+                    : tecCase.getTimeExtensionReasonsGiven().name()
+            )
+            .addValue(
+                "timeExtensionSignedAndDated",
+                tecCase.getTimeExtensionSignedAndDated() == null
+                    ? null
+                    : tecCase.getTimeExtensionSignedAndDated().name()
+            )
+            .addValue("timeExtensionDateSigned", tecCase.getTimeExtensionDateSigned()));
     }
 
     public void recordPayment(long caseReference, String status, String reference, String closureReason) {

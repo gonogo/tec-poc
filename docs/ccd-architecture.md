@@ -74,7 +74,8 @@ ExUI Case list / Find case expose a **case type** filter. Fresh sessions prefera
 [exui-navigation.md](./exui-navigation.md).
 
 Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
-and `editApplication`. Create batch is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
+and the form-specific edit events (`editTe9Application`, `editPe3Application`, `editTe7Application`,
+`editPe2Application`). Create batch is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
 from ExUI primary nav (not as a case-scoped Next step).
 
 ### States and events
@@ -98,8 +99,11 @@ The event handlers update TEC-owned data as follows:
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
 | `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
-| `editApplication` | Optional TE9/PE3 application fields (clerk) | Upserts application columns on `public.tec_case` | unchanged |
+| `editTe9Application` | Optional TE9 application fields (clerk; no PCN) | Updates TE9 application columns except form and PCN | unchanged |
+| `editPe3Application` | Optional PE3 application fields (clerk; no PCN) | Updates PE3 application columns except form and PCN | unchanged |
 | `recordTimeExtension` | Optional TE7/PE2 time-extension fields | Upserts time-extension columns on `public.tec_case` | unchanged |
+| `editTe7Application` | Optional TE7 fields (clerk; no PCN) | Updates TE7 columns except form and PCN | unchanged |
+| `editPe2Application` | Optional PE2 fields (clerk; no PCN) | Updates PE2 columns except form and PCN | unchanged |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
 `bin/attach-case-file-document.sh`, which posts the file to Case Document AM (`:4455`) then submits
@@ -114,8 +118,11 @@ PE2 fields via this event; Case details shows them under a heading driven by the
 (**Application to file out of time** / **Application for extension of time** for TE7 by permission
 sought; **Application to file out of time** for PE2).
 
-`editApplication` is clerk-facing and appears in Manage Case Next steps. It presents all application
-fields on a single page so caseworkers can correct OCR data.
+`editTe9Application`, `editPe3Application`, `editTe7Application`, and `editPe2Application` are
+clerk-facing and appear in Manage Case Next steps only when the matching form is on the case
+(`applicationForm` or `timeExtensionForm`). Each presents the editable fields for that form on a
+single page so caseworkers can correct OCR data. Penalty charge number and form validation result
+are not shown and are not changed by these events.
 
 Local CDAM expects dm-store on `:4506`. `bootWithCCD` starts `./bin/start-local-dm-store.sh`
 automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
@@ -131,14 +138,15 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 - **Case details**: a **Registration** section containing identifiers, local authority, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
   document and date); an application section headed by form and timeliness
-  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) for a single
-  shared form validation result plus OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN,
+  (**Witness statement** or **Statutory declaration**, each **In time** or **Out of time**) with
+  **Form validation result** at the top, then OCR-extracted TE9/PE3 data (date received, type, form, PCN/VRN,
   applicant and address fields, declaration, and conditional fields such as TE7 submitted, PE3 reasons
   given, and TE9 payment details); and a time-extension section headed by TE7 permission sought
   (**Application to file out of time** or **Application for extension of time**) or
-  **Application to file out of time** for PE2, covering form, PCN/VRN, respondent details, permission
-  sought, reasons given, signed and dated, signed by, and related fields (form validation is the same
-  shared case field shown at the top of the active section).
+  **Application to file out of time** for PE2, again with **Form validation result** at the top (same shared
+  case value), then form, PCN/VRN, respondent details, permission sought, reasons given, signed and dated,
+  signed by, and related fields. Form validation is changed only via **Validate application form**, not
+  the form-specific edit events.
 - **Case File View**: document viewer component. Folders are defined as CCD categories in
   `CaseFileCategory` (Hearing documents, Orders and notices of hearings, Applications,
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in

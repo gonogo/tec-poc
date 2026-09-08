@@ -21,7 +21,8 @@ class TecPrototypeTasksTest {
             .contains("Reassign")
             .contains("Unassigned")
             .contains("Complete registration checks")
-            .contains("/cases/case-details/1788364399834478/trigger/editApplication")
+            .doesNotContain("Edit TE9 application")
+            .doesNotContain("editTe9Application")
             .contains("Chase outstanding payment confirmation");
     }
 
@@ -38,7 +39,7 @@ class TecPrototypeTasksTest {
     }
 
     @Test
-    void shouldShowEditApplicationTaskWhenApplicationRecorded() {
+    void shouldShowEditTe9ApplicationTaskWhenTe9Recorded() {
         TecCase tecCase = new TecCase();
         tecCase.setApplicationForm(ApplicationForm.TE9);
 
@@ -49,8 +50,26 @@ class TecPrototypeTasksTest {
         );
 
         assertThat(markdown)
-            .contains("<strong>Edit application</strong>")
-            .contains("/cases/case-details/1/trigger/editApplication");
+            .contains("<strong>Edit TE9 application</strong>")
+            .contains("/cases/case-details/1/trigger/editTe9Application")
+            .doesNotContain("editPe3Application")
+            .doesNotContain("editTe7Application")
+            .doesNotContain("editPe2Application");
+    }
+
+    @Test
+    void shouldShowEditTasksForEachFormOnTheCase() {
+        TecCase tecCase = new TecCase();
+        tecCase.setApplicationForm(ApplicationForm.PE3);
+        tecCase.setTimeExtensionForm(TimeExtensionForm.TE7);
+
+        String markdown = TecPrototypeTasks.markdownFor(1L, CaseState.CASE_ISSUED, tecCase);
+
+        assertThat(markdown)
+            .contains("/cases/case-details/1/trigger/editPe3Application")
+            .contains("/cases/case-details/1/trigger/editTe7Application")
+            .doesNotContain("editTe9Application")
+            .doesNotContain("editPe2Application");
     }
 
     @Test

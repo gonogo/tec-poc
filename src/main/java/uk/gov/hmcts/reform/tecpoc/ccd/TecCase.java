@@ -91,11 +91,19 @@ public class TecCase {
     private String formValidationComment;
 
     /**
-     * Case-view display for form validation. Always populated so ExUI shows the row even when
-     * {@link #formValidationResult} is unset ({@code @JsonInclude(NON_NULL)} would otherwise omit it).
+     * Case-view display for form validation at the top of the TE9/PE3 section. Always populated so
+     * ExUI shows the row even when {@link #formValidationResult} is unset
+     * ({@code @JsonInclude(NON_NULL)} would otherwise omit it).
      */
-    @CCD(label = "Form validation result")
+    @CCD(label = "Form validation result", searchable = false)
     private String formValidationResultDisplay;
+
+    /**
+     * Case-view display for the same shared form validation result at the top of the TE7/PE2
+     * section. Separate field id so CCD can show the value under both form headings.
+     */
+    @CCD(label = "Form validation result", searchable = false)
+    private String timeExtensionFormValidationResultDisplay;
 
     @CCD(label = "Date received")
     private LocalDate applicationDateReceived;

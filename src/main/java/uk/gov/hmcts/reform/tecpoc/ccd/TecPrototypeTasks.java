@@ -77,6 +77,11 @@ final class TecPrototypeTasks {
                 List.of()
             ));
 
+            List<NextStep> registrationNextSteps = new ArrayList<>();
+            registrationNextSteps.add(new NextStep("Validate application form", "verifyFormValidation"));
+            registrationNextSteps.addAll(editApplicationNextSteps(tecCase));
+            registrationNextSteps.add(new NextStep("Review case details", null));
+
             // Assigned to demo user with multiple Next steps links.
             tasks.add(new PrototypeTask(
                 "Complete registration checks",
@@ -84,11 +89,7 @@ final class TecPrototypeTasks {
                 LocalDate.now().plusDays(3),
                 DEMO_USER,
                 List.of("Reassign", "Unassign", "Go to task"),
-                List.of(
-                    new NextStep("Validate application form", "verifyFormValidation"),
-                    new NextStep("Edit application", "editApplication"),
-                    new NextStep("Review case details", null)
-                )
+                registrationNextSteps
             ));
 
             // Overdue unassigned task with only Assign to me.
@@ -102,18 +103,35 @@ final class TecPrototypeTasks {
             ));
         }
 
-        if (tecCase.getApplicationForm() != null) {
+        for (NextStep editStep : editApplicationNextSteps(tecCase)) {
             tasks.add(new PrototypeTask(
-                "Edit application",
+                editStep.label(),
                 "Medium",
                 LocalDate.now().plusDays(5),
                 DEMO_USER,
                 List.of("Reassign", "Unassign", "Go to task"),
-                List.of(new NextStep("Edit application", "editApplication"))
+                List.of(editStep)
             ));
         }
 
         return tasks;
+    }
+
+    private static List<NextStep> editApplicationNextSteps(TecCase tecCase) {
+        List<NextStep> steps = new ArrayList<>();
+        if (tecCase.getApplicationForm() == ApplicationForm.TE9) {
+            steps.add(new NextStep("Edit TE9 application", "editTe9Application"));
+        }
+        if (tecCase.getApplicationForm() == ApplicationForm.PE3) {
+            steps.add(new NextStep("Edit PE3 application", "editPe3Application"));
+        }
+        if (tecCase.getTimeExtensionForm() == TimeExtensionForm.TE7) {
+            steps.add(new NextStep("Edit TE7 application", "editTe7Application"));
+        }
+        if (tecCase.getTimeExtensionForm() == TimeExtensionForm.PE2) {
+            steps.add(new NextStep("Edit PE2 application", "editPe2Application"));
+        }
+        return steps;
     }
 
     private static String renderTask(long caseReference, PrototypeTask task) {
