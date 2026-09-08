@@ -409,8 +409,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
         repository.insertDocument(
             event.caseReference(),
             categoryId,
-            document.getUrl(),
-            document.getBinaryUrl(),
+            CdamDocumentUrls.toCdamUrl(document.getUrl()),
+            CdamDocumentUrls.toCdamUrl(document.getBinaryUrl()),
             document.getFilename()
         );
         return SubmitResponse.defaultResponse();

@@ -151,10 +151,10 @@ above). That creates a real batch case through CCD.
 
 Optional overrides: `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `LOCAL_AUTHORITY`,
 `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
-Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
+Completed batches get sample Inputs/Outputs documents attached for Batch details demos.
 
 In Manage Case, open Case list → set case type to **Batch** → open a row for History, Tasks,
-Case details, and Case File View.
+and Batch details (Inputs/Outputs links at the bottom of Batch details).
 
 ### Prototype Tasks tab (local)
 

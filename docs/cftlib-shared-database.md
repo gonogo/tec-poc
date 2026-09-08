@@ -33,7 +33,7 @@ Without CFTLib overrides, `application.yaml` defaults to PostgreSQL on `localhos
 | `tec.ccd.*` | Decentralised runtime embedded in TEC | Local CCD lifecycle state, revisions, event history and runtime bookkeeping |
 | `tec.public.tec_case` | TEC application | The PCN business fields used by this proof of concept |
 | `tec.public.tec_batch` | TEC application | Batch metadata for case type `TEC_BATCH` |
-| `tec.public.tec_batch_document` | TEC application | Batch Case File View document metadata |
+| `tec.public.tec_batch_document` | TEC application | Batch Inputs/Outputs document metadata (Case details links) |
 
 Tables with similar names in `datastore.public` and `tec.ccd` are different physical objects in different databases.
 They serve different owners and transaction boundaries; they are not full replicas of one another.

@@ -45,8 +45,8 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
 
     private static ListValue<Document> toListValue(TecCaseDocument document) {
         Document ccdDocument = Document.builder()
-            .url(document.documentUrl())
-            .binaryUrl(document.documentBinaryUrl())
+            .url(CdamDocumentUrls.toCdamUrl(document.documentUrl()))
+            .binaryUrl(CdamDocumentUrls.toCdamUrl(document.documentBinaryUrl()))
             .filename(document.filename())
             .categoryId(document.categoryId())
             .uploadTimestamp(

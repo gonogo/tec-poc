@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Document folders shown in the ExUI Case File View for every TEC batch.
+ * Document categories for TEC batch inputs and outputs.
  */
 @RequiredArgsConstructor
 @Getter
@@ -32,7 +32,7 @@ public enum BatchFileCategory {
 
     public static BatchFileCategory require(String folderOrCategoryId) {
         return resolve(folderOrCategoryId).orElseThrow(() -> new IllegalArgumentException(
-            "Unknown Batch File View folder: '" + folderOrCategoryId + "'. "
+            "Unknown batch document category: '" + folderOrCategoryId + "'. "
                 + "Use a category id or label from: "
                 + knownFoldersDescription()
         ));

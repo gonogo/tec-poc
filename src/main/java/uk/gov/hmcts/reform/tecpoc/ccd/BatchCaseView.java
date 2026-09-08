@@ -15,6 +15,7 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
 
     private static final String VALIDATION_NOT_RECORDED = "Not yet validated";
+    private static final String OUTPUTS_EMPTY_DISPLAY = "-";
 
     private final BatchCaseRepository repository;
 
@@ -37,7 +38,9 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
                 validationResult == null ? VALIDATION_NOT_RECORDED : validationResult.getLabel()
             );
         }
-        batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
+        List<BatchCaseDocument> documents = repository.findDocuments(request.caseRef());
+        batchCase.setInputDocuments(toDocuments(documents, BatchFileCategory.INPUTS.getId()));
+        applyOutputs(batchCase, toDocuments(documents, BatchFileCategory.OUTPUTS.getId()));
         return batchCase;
     }
 
@@ -49,16 +52,27 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
         };
     }
 
-    static List<ListValue<Document>> toAllDocuments(List<BatchCaseDocument> documents) {
+    static void applyOutputs(BatchCase batchCase, List<ListValue<Document>> outputs) {
+        if (outputs.isEmpty()) {
+            batchCase.setOutputDocuments(null);
+            batchCase.setOutputsDisplay(OUTPUTS_EMPTY_DISPLAY);
+        } else {
+            batchCase.setOutputDocuments(outputs);
+            batchCase.setOutputsDisplay(null);
+        }
+    }
+
+    static List<ListValue<Document>> toDocuments(List<BatchCaseDocument> documents, String categoryId) {
         return documents.stream()
+            .filter(document -> categoryId.equalsIgnoreCase(document.categoryId()))
             .map(BatchCaseView::toListValue)
             .toList();
     }
 
     private static ListValue<Document> toListValue(BatchCaseDocument document) {
         Document ccdDocument = Document.builder()
-            .url(document.documentUrl())
-            .binaryUrl(document.documentBinaryUrl())
+            .url(CdamDocumentUrls.toCdamUrl(document.documentUrl()))
+            .binaryUrl(CdamDocumentUrls.toCdamUrl(document.documentBinaryUrl()))
             .filename(document.filename())
             .categoryId(document.categoryId())
             .uploadTimestamp(

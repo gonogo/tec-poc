@@ -175,10 +175,10 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage
 
 | Piece | Location / behaviour |
 | --- | --- |
-| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Case details, Case File View |
+| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Batch details |
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
-| File folders | Inputs, Outputs (`BatchFileCategory`) |
+| Documents | Inputs and Outputs linked from Batch details (`BatchFileCategory`; no Case File View tab) |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
@@ -330,7 +330,8 @@ CFTLib itself is not deployed.
 | Definition used by the local CCD stack | Generated `build/ccd-definition/TEC` and `TEC_BATCH` imported by `TecCftLibConfiguration` |
 | PCN business data | `tec.public.tec_case` |
 | Batch business data | `tec.public.tec_batch` / `tec.public.tec_batch_document` |
-| Case File View documents | `tec.public.tec_case_document` (PCN) / batch document table |
+| Case File View documents (PCN) | `tec.public.tec_case_document` |
+| Batch documents (Case details links) | `tec.public.tec_batch_document` |
 | Decentralised lifecycle metadata and event history | SDK-managed `tec.ccd` schema |
 | Current CCD-facing field values | `TecCaseView` / `BatchCaseView` projection |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |

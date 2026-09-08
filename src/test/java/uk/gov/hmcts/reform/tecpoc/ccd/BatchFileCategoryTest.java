@@ -35,6 +35,6 @@ class BatchFileCategoryTest {
     void shouldRejectUnknownFolder() {
         assertThatThrownBy(() -> BatchFileCategory.require("unknown-folder"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unknown Batch File View folder");
+            .hasMessageContaining("Unknown batch document category");
     }
 }

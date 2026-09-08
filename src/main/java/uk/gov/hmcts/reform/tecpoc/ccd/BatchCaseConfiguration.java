@@ -36,7 +36,6 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         configureAccessProfiles(builder);
         configureStateAccess(builder);
         configureCaseView(builder);
-        configureCaseFileCategories(builder);
         configureEvents(builder);
     }
 
@@ -55,23 +54,12 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         }
     }
 
-    private void configureCaseFileCategories(
-        DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder
-    ) {
-        for (BatchFileCategory category : BatchFileCategory.values()) {
-            builder.categories(UserRole.CLERK)
-                .categoryID(category.getId())
-                .categoryLabel(category.getLabel())
-                .displayOrder(category.getDisplayOrder());
-        }
-    }
-
     private void configureCaseView(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
         builder.tab("tasks", "Tasks")
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 
-        builder.tab("caseDetails", "Case details")
+        builder.tab("caseDetails", "Batch details")
             .field(BatchCase::getStatusDisplay)
             .field(BatchCase::getBatchValidationResultDisplay)
             .field(BatchCase::getBatchIdentifier)
@@ -79,11 +67,10 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getOperation)
             .field(BatchCase::getPcnCount)
             .field(BatchCase::getReceivedVia)
-            .field(BatchCase::getReceivedAt);
-
-        builder.tab("caseFileView", "Case File View")
-            .field(BatchCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
-            .field(BatchCase::getAllDocuments, NEVER_SHOW);
+            .field(BatchCase::getReceivedAt)
+            .field(BatchCase::getInputDocuments)
+            .field(BatchCase::getOutputDocuments)
+            .field(BatchCase::getOutputsDisplay);
 
         builder.searchInputFields()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
@@ -315,8 +302,8 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         repository.insertDocument(
             caseReference,
             categoryId,
-            document.getUrl(),
-            document.getBinaryUrl(),
+            CdamDocumentUrls.toCdamUrl(document.getUrl()),
+            CdamDocumentUrls.toCdamUrl(document.getBinaryUrl()),
             document.getFilename()
         );
     }

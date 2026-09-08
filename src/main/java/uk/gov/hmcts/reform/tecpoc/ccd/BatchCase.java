@@ -6,7 +6,6 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import uk.gov.hmcts.ccd.sdk.api.CCD;
-import uk.gov.hmcts.ccd.sdk.type.ComponentLauncher;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.FieldType;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
@@ -88,19 +87,29 @@ public class BatchCase {
     private List<BatchStatementOfTruthAgreement> batchStatementOfTruth;
 
     /**
-     * Case File View source documents. Populated by {@link BatchCaseView}; not shown on Case details.
+     * Input documents for Case details (media viewer). Populated by {@link BatchCaseView}.
      */
-    @CCD(label = "All documents", searchable = false)
-    private List<ListValue<Document>> allDocuments;
+    @CCD(label = "Inputs", searchable = false)
+    private List<ListValue<Document>> inputDocuments;
+
+    /**
+     * Output documents for Case details (media viewer). Populated by {@link BatchCaseView}
+     * when the batch has outputs; otherwise {@link #outputsDisplay} is used.
+     */
+    @CCD(label = "Outputs", searchable = false)
+    private List<ListValue<Document>> outputDocuments;
+
+    /**
+     * Shown as Outputs when there are no output documents ({@code -}).
+     */
+    @CCD(label = "Outputs", searchable = false)
+    private String outputsDisplay;
 
     /**
      * Event-only field used by {@code attachBatchDocument} and {@code uploadBatch}.
      */
     @CCD(label = "Batch file", searchable = false)
     private Document batchFileDocument;
-
-    @CCD(label = "Case file view")
-    private ComponentLauncher caseFileView;
 
     @CCD(label = "Tasks", searchable = false)
     private String tasksMarkdown;

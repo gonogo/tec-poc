@@ -28,7 +28,7 @@ Usage: ${0} <batch-case-reference> <output-file-1> <output-file-2>
 
 Complete processing for a TEC batch case:
   - verify the case is a batch (TEC_BATCH)
-  - attach the two files under Case File View → Outputs
+  - attach the two files as Outputs (shown on Batch details)
   - set Batch validation result to
       "<valid> PCNs valid, <removed> PCNs removed, see exception report"
     where <removed> is a random 5–20% of the batch's Number of PCNs, and
