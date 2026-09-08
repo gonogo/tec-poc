@@ -71,8 +71,8 @@ ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
 (`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload a file, review
 placeholder validation, confirm the statement of truth, Check your answers, then Submit. The
 confirmation screen shows the new case number (no Manage cases link in the body). Open Case list
-via **Manage cases** and use the case type filter to switch between PCN cases (`TEC`) and batches
-(`TEC_BATCH` / **Batch**).
+via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**) and batches
+(`TEC_BATCH` / **TEC Batch**).
 
 Journey detail: [docs/ccd-architecture.md](docs/ccd-architecture.md#create-batch-journey-uploadbatch).
 
@@ -137,7 +137,7 @@ The response contains the CCD-generated reference and initial state:
 
 ## Create a batch
 
-Batches are a second CCD case type (`TEC_BATCH`, display name **Batch**).
+Batches are a second CCD case type (`TEC_BATCH`, display name **TEC Batch**).
 
 **In Manage Case:** use primary nav **Create batch** to run the clerk `uploadBatch` wizard (see
 above). That creates a real batch case through CCD.
@@ -153,7 +153,7 @@ Optional overrides: `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`
 `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
 Completed batches get sample Inputs/Outputs documents attached for Batch details demos.
 
-In Manage Case, open Case list → set case type to **Batch** → open a row for History, Tasks,
+In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
 and Batch details (Inputs/Outputs links at the bottom of Batch details).
 
 ### Prototype Tasks tab (local)

@@ -25,7 +25,7 @@ flowchart LR
   xui -->|"GET /external/config/ui/"| menu[menuConfigs]
   menu --> nav[Primary_nav]
   nav -->|"Create batch"| create[Create_batch_journey]
-  xui -->|"Case list case type Batch"| batches[TEC_BATCH_cases]
+  xui -->|"Case list case type TEC Batch"| batches[TEC_BATCH_cases]
 ```
 
 ### How ExUI nav actually works
@@ -121,7 +121,7 @@ Details: [exui-navigation.md](./exui-navigation.md).
 - Link opens the `uploadBatch` CCD wizard at `/cases/case-create/TEC/TEC_BATCH/uploadBatch`.
 - Create case / Find case remain; Case list can stay hidden with cases reachable via Manage cases.
 - Local POC can demonstrate the same nav via the nav proxy without AAT/prod deploy.
-- Batches are browsable as case type **Batch** on Case list / Find case.
+- Batches are browsable as case type **TEC Batch** on Case list / Find case.
 
 Journey behaviour (TEC / this POC): see [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch).
 

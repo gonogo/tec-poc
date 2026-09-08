@@ -56,8 +56,8 @@ Jurisdiction id is `TEC`. Case types:
 
 | Case type id | Display name | Purpose |
 | --- | --- | --- |
-| `TEC` | TEC case | PCN cases |
-| `TEC_BATCH` | Batch | Uploaded batches |
+| `TEC` | TEC PCN | PCN cases |
+| `TEC_BATCH` | TEC Batch | Uploaded batches |
 
 Both types reuse the same roles:
 
@@ -169,7 +169,7 @@ so Manage and Next steps layouts can be compared.
 Case-scoped Tasks HTML is not the place for Create batch. That belongs in ExUI primary
 navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage-batches-plan.md) and
 [exui-navigation.md](./exui-navigation.md). Existing batches are opened from Case list with case type
-**Batch** (`TEC_BATCH`).
+**TEC Batch** (`TEC_BATCH`).
 
 ### Batch case type (`TEC_BATCH`)
 

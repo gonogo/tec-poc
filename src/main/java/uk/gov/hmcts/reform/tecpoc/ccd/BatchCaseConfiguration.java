@@ -28,7 +28,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
 
     @Override
     public void configureDecentralised(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
-        builder.caseType(CASE_TYPE, "Batch", "A TEC batch");
+        builder.caseType(CASE_TYPE, "TEC Batch", "A TEC Batch case");
         builder.jurisdiction("TEC", "Traffic Enforcement Centre", "Traffic Enforcement Centre");
         builder.hmctsServiceId("TEC1");
         builder.setCallbackHost(System.getenv().getOrDefault("API_URL", "http://localhost:4013"));

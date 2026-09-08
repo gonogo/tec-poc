@@ -27,7 +27,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
     @Override
     public void configureDecentralised(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
-        builder.caseType(CASE_TYPE, "TEC case", "A TEC PCN case");
+        builder.caseType(CASE_TYPE, "TEC PCN", "A TEC PCN case");
         builder.jurisdiction("TEC", "Traffic Enforcement Centre", "Traffic Enforcement Centre");
         builder.hmctsServiceId("TEC1");
         builder.setCallbackHost(System.getenv().getOrDefault("API_URL", "http://localhost:4013"));

@@ -1,7 +1,7 @@
 # ExUI primary navigation — Create batch
 
 TEC clerks need a global Manage Cases nav link for **Create batch**. The link opens the
-`uploadBatch` CCD create event on case type **Batch** (`TEC_BATCH`). Browsing existing batches
+`uploadBatch` CCD create event on case type **TEC Batch** (`TEC_BATCH`). Browsing existing batches
 uses the ExUI Case list with that case type, not a separate batch list URL.
 
 Primary navigation is owned by ExUI (`rpx-xui-webapp`) `menuConfigs`. This POC simulates that
@@ -49,7 +49,7 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 7. Complete the wizard (batch type → interstitial → upload → validation → statement of truth →
    Check your answers → Submit). Confirmation shows the case number; it does **not** include a
    Manage cases link in the body.
-8. Open Case list via **Manage cases** and use the case type filter: **TEC case** (PCN) vs **Batch**
+8. Open Case list via **Manage cases** and use the case type filter: **TEC PCN** vs **TEC Batch**
 
 If Create batch does nothing / errors on start, confirm definitions were re-imported after granting
 clerks Create (`UserRole.CLERK` is `CRU`) and hard-refresh so `headerConfig` is not stale.
