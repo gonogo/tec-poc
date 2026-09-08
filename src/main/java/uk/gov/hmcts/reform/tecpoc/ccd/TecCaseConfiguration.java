@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.api.CCDConfig;
 import uk.gov.hmcts.ccd.sdk.api.DecentralisedConfigBuilder;
+import uk.gov.hmcts.ccd.sdk.api.EventMetadata;
 import uk.gov.hmcts.ccd.sdk.api.EventPayload;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
@@ -268,7 +269,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .name("Validate application form")
             .grant(Permission.CRU, UserRole.CLERK)
             .fields()
-            .mandatory(TecCase::getFormValidationResult);
+            .mandatory(TecCase::getFormValidationResult)
+            .optional(TecCase::getFormValidationComment);
 
         builder.decentralisedEvent("editApplication", this::editApplication)
             .forStates(CaseState.values())
@@ -381,7 +383,13 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             event.caseReference(),
             event.caseData().getFormValidationResult()
         );
-        return SubmitResponse.defaultResponse();
+        String comment = event.caseData().getFormValidationComment();
+        if (comment == null || comment.isBlank()) {
+            return SubmitResponse.defaultResponse();
+        }
+        return SubmitResponse.<CaseState>builder()
+            .eventMetadata(EventMetadata.builder().description(comment.trim()).build())
+            .build();
     }
 
     private SubmitResponse<CaseState> attachCaseFileDocument(EventPayload<TecCase, CaseState> event) {

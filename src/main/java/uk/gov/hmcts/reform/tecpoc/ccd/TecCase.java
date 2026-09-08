@@ -87,6 +87,9 @@ public class TecCase {
     )
     private FormValidationResult formValidationResult;
 
+    @CCD(label = "Comment", typeOverride = FieldType.TextArea)
+    private String formValidationComment;
+
     /**
      * Case-view display for form validation. Always populated so ExUI shows the row even when
      * {@link #formValidationResult} is unset ({@code @JsonInclude(NON_NULL)} would otherwise omit it).
