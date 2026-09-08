@@ -75,14 +75,14 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         builder.searchInputFields()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
-            .field(BatchCase::getOperation, "Operation")
+            .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getReceivedVia, "Received via");
 
         builder.searchResultFields()
             .caseReferenceField()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
-            .field(BatchCase::getOperation, "Operation")
+            .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs")
             .field(BatchCase::getReceivedVia, "Received via")
             .field(BatchCase::getReceivedAt, "Received at");
@@ -90,14 +90,14 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         builder.workBasketInputFields()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
-            .field(BatchCase::getOperation, "Operation")
+            .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getReceivedVia, "Received via");
 
         builder.workBasketResultFields()
             .caseReferenceField()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
-            .field(BatchCase::getOperation, "Operation")
+            .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs")
             .field(BatchCase::getReceivedVia, "Received via")
             .field(BatchCase::getReceivedAt, "Received at");
@@ -129,7 +129,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .page("selectBatchType")
             .pageLabel("Create batch")
             .mandatory(
-                BatchCase::getOperation,
+                BatchCase::getBatchTypeSelection,
                 null,
                 null,
                 "Select batch type",
@@ -250,9 +250,13 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         BatchCase data = event.caseData();
         BatchUploadJourney.applySubmitDefaults(event.caseReference(), data);
 
-        if (data.getOperation() == null) {
-            throw new IllegalArgumentException("operation is required");
+        if (data.getBatchTypeSelection() != null) {
+            data.setOperation(data.getBatchTypeSelection().toOperation());
         }
+        if (data.getOperation() == null) {
+            throw new IllegalArgumentException("batch type is required");
+        }
+        data.setBatchTypeSelection(null);
         if (!BatchUploadJourney.hasAcceptedStatementOfTruth(data)) {
             throw new IllegalArgumentException(
                 "You must confirm that the facts stated in this batch request are true"

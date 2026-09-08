@@ -179,6 +179,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | Documents | Inputs and Outputs linked from Batch details (`BatchFileCategory`; no Case File View tab) |
+| Search / work basket | Batch identifier, local authority, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
@@ -190,7 +191,7 @@ copy and some submit metadata are still placeholders.
 
 | Step | Page id | Notes |
 | --- | --- | --- |
-| Select batch type | `selectBatchType` | `FixedRadioList` of `BatchOperation` (label includes a short description) |
+| Select batch type | `selectBatchType` | `FixedRadioList` of `BatchTypeOption` (label includes a short description); stored as `BatchOperation` |
 | Before you start | `interstitial` | Placeholder guidance |
 | Upload batch file | `uploadFile` | Mid-event sets placeholder excluded-PCN count |
 | Some data cannot be processed | `validationResults` | Static HTML matching the design mock |

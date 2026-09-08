@@ -3,62 +3,43 @@ package uk.gov.hmcts.reform.tecpoc.ccd;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.hmcts.ccd.sdk.api.HasLabel;
 
+/**
+ * Batch type values for case data and Case list / Find case filters ({@code FixedList}).
+ * Create batch radios use {@link BatchTypeOption}.
+ * ExUI prepends an empty “Any”/unset option to FixedList filter dropdowns.
+ */
 public enum BatchOperation implements HasLabel {
 
     @JsonProperty("registration")
-    REGISTRATION(
-        "Registration",
-        "Create new PCN registrations from an uploaded batch file"
-    ),
+    REGISTRATION("Registration"),
 
     @JsonProperty("warrantAuthRequests")
-    WARRANT_AUTH_REQUESTS(
-        "Warrant auth requests",
-        "Submit PCNs for warrant authorisation"
-    ),
+    WARRANT_AUTH_REQUESTS("Warrant auth requests"),
 
     @JsonProperty("warrantReissueRequests")
-    WARRANT_REISSUE_REQUESTS(
-        "Warrant reissue requests",
-        "Request reissue of warrants for PCNs"
-    ),
+    WARRANT_REISSUE_REQUESTS("Warrant reissue requests"),
 
     @JsonProperty("outOfTimeDecisions")
-    OUT_OF_TIME_DECISIONS(
-        "Out-of-time decisions",
-        "Submit out-of-time application decisions"
-    ),
+    OUT_OF_TIME_DECISIONS("Out-of-time decisions"),
 
     @JsonProperty("changeOfAddress")
-    CHANGE_OF_ADDRESS(
-        "Change of address",
-        "Update respondent addresses from a batch file"
-    ),
+    CHANGE_OF_ADDRESS("Change of address"),
 
     @JsonProperty("caseClosureRequests")
-    CASE_CLOSURE_REQUESTS(
-        "Case closure requests",
-        "Request closure of PCN cases in bulk"
-    );
+    CASE_CLOSURE_REQUESTS("Case closure requests");
 
-    private final String shortLabel;
-    private final String description;
+    private final String label;
 
-    BatchOperation(String shortLabel, String description) {
-        this.shortLabel = shortLabel;
-        this.description = description;
+    BatchOperation(String label) {
+        this.label = label;
     }
 
-    /**
-     * Radio / list label. CCD FixedRadioList has no per-option hint, so the short
-     * description is appended for the Create batch journey.
-     */
     @Override
     public String getLabel() {
-        return shortLabel + " — " + description;
+        return label;
     }
 
     public String getShortLabel() {
-        return shortLabel;
+        return label;
     }
 }

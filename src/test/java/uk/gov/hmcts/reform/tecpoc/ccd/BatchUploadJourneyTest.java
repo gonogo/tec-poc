@@ -89,7 +89,7 @@ class BatchUploadJourneyTest {
     @Test
     void uploadBatchPersistsBatchAttachesDocumentAndReturnsConfirmation() {
         BatchCase data = new BatchCase();
-        data.setOperation(BatchOperation.WARRANT_AUTH_REQUESTS);
+        data.setBatchTypeSelection(BatchTypeOption.WARRANT_AUTH_REQUESTS);
         data.setBatchStatementOfTruth(List.of(BatchStatementOfTruthAgreement.BELIEVE_TRUE));
         data.setExcludedPcnCount(23);
         Document document = Document.builder()
@@ -123,6 +123,8 @@ class BatchUploadJourneyTest {
         assertThat(response.getConfirmationBody())
             .contains("Case number: 99")
             .doesNotContain("Manage cases");
+        assertThat(data.getOperation()).isEqualTo(BatchOperation.WARRANT_AUTH_REQUESTS);
+        assertThat(data.getBatchTypeSelection()).isNull();
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000099");
         assertThat(data.getReceivedVia()).isEqualTo(BatchReceivedVia.UPLOAD);
         assertThat(data.getBatchValidationResult()).isNull();
@@ -151,7 +153,7 @@ class BatchUploadJourneyTest {
     @Test
     void uploadBatchRejectsMissingDeclaration() {
         BatchCase data = new BatchCase();
-        data.setOperation(BatchOperation.REGISTRATION);
+        data.setBatchTypeSelection(BatchTypeOption.REGISTRATION);
         data.setBatchStatementOfTruth(List.of());
 
         assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
@@ -173,12 +175,30 @@ class BatchUploadJourneyTest {
     }
 
     @Test
-    void batchOperationLabelsIncludeDescriptions() {
+    void uploadBatchRejectsMissingBatchType() {
+        BatchCase data = new BatchCase();
+        data.setBatchStatementOfTruth(List.of(BatchStatementOfTruthAgreement.BELIEVE_TRUE));
+
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
+            configuration,
+            "uploadBatch",
+            eventPayload(1L, data)
+        ))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("batch type is required");
+
+        verify(repository, never()).create(anyLong(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void batchTypeLabelsAreShortForFiltersAndLongForCreateRadios() {
         assertThat(BatchOperation.WARRANT_AUTH_REQUESTS.getLabel())
+            .isEqualTo("Warrant auth requests");
+        assertThat(BatchTypeOption.WARRANT_AUTH_REQUESTS.getLabel())
             .startsWith("Warrant auth requests — ")
             .contains("warrant authorisation");
-        assertThat(BatchOperation.WARRANT_AUTH_REQUESTS.getShortLabel())
-            .isEqualTo("Warrant auth requests");
+        assertThat(BatchTypeOption.WARRANT_AUTH_REQUESTS.toOperation())
+            .isEqualTo(BatchOperation.WARRANT_AUTH_REQUESTS);
     }
 
     @Test

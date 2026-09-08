@@ -22,11 +22,23 @@ public class BatchCase {
     private Integer pcnCount;
 
     @CCD(
-        label = "Operation",
-        typeOverride = FieldType.FixedRadioList,
+        label = "Batch type",
+        typeOverride = FieldType.FixedList,
         typeParameterOverride = "BatchOperation"
     )
     private BatchOperation operation;
+
+    /**
+     * Create batch wizard only ({@code FixedRadioList} with descriptions). Copied to
+     * {@link #operation} on submit; not searchable and not shown on Case details.
+     */
+    @CCD(
+        label = "Select batch type",
+        typeOverride = FieldType.FixedRadioList,
+        typeParameterOverride = "BatchTypeOption",
+        searchable = false
+    )
+    private BatchTypeOption batchTypeSelection;
 
     @CCD(
         label = "Received via",
