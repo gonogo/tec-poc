@@ -66,6 +66,15 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getLocalAuthority)
             .field(BatchCase::getOperation)
             .field(BatchCase::getPcnCount)
+            .field(BatchCase::getPcnProcessedCountDisplay)
+            .field(
+                BatchCase::getFeesPaid,
+                "operation=\"registration\" AND [STATE]=\"PROCESSING_COMPLETE\""
+            )
+            .field(
+                BatchCase::getFeesDue,
+                "operation=\"registration\" AND [STATE]=\"QUEUED_FOR_PROCESSING\""
+            )
             .field(BatchCase::getReceivedVia)
             .field(BatchCase::getReceivedAt)
             .field(BatchCase::getInputDocuments)
@@ -83,7 +92,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
             .field(BatchCase::getOperation, "Batch type")
-            .field(BatchCase::getPcnCount, "Number of PCNs")
+            .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
             .field(BatchCase::getReceivedAt, "Received at");
 
@@ -98,7 +107,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
             .field(BatchCase::getOperation, "Batch type")
-            .field(BatchCase::getPcnCount, "Number of PCNs")
+            .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
             .field(BatchCase::getReceivedAt, "Received at");
     }

@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
@@ -18,8 +20,31 @@ public class BatchCase {
     @CCD(label = "Batch identifier")
     private String batchIdentifier;
 
-    @CCD(label = "Number of PCNs")
+    @CCD(label = "Number of PCNs in batch")
     private Integer pcnCount;
+
+    /**
+     * Case-view display for how many PCNs have been processed. Populated by
+     * {@link BatchCaseView}: emdash while queued, otherwise the processed count.
+     */
+    @CCD(label = "Number of PCNs processed", searchable = false)
+    private String pcnProcessedCountDisplay;
+
+    /**
+     * Case-view display: registration fee paid once processing is complete
+     * ({@code Number of PCNs processed × £11}). Populated by {@link BatchCaseView}.
+     */
+    @CCD(label = "Fees paid", typeOverride = FieldType.MoneyGBP, min = 0, max = 99999999, searchable = false)
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Integer feesPaid;
+
+    /**
+     * Case-view display: registration fee due while queued
+     * ({@code Number of PCNs in batch × £11}). Populated by {@link BatchCaseView}.
+     */
+    @CCD(label = "Fees due", typeOverride = FieldType.MoneyGBP, min = 0, max = 99999999, searchable = false)
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Integer feesDue;
 
     @CCD(
         label = "Batch type",

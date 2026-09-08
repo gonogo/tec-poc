@@ -31,7 +31,7 @@ Complete processing for a TEC batch case:
   - attach the two files as Outputs (shown on Batch details)
   - set Batch validation result to
       "<valid> PCNs valid, <removed> PCNs removed, see exception report"
-    where <removed> is a random 5–20% of the batch's Number of PCNs, and
+    where <removed> is a random 5–20% of the batch's Number of PCNs in batch, and
     <valid> is the remainder
   - move the case to PROCESSING_COMPLETE
 
@@ -95,7 +95,7 @@ fi
 
 pcn_count="$(jq --raw-output '.data.pcnCount // empty' <<<"${case_response}")"
 if [[ -z "${pcn_count}" || ! "${pcn_count}" =~ ^[0-9]+$ || "${pcn_count}" -lt 1 ]]; then
-  echo "Batch case ${CASE_REFERENCE} has no usable Number of PCNs (pcnCount)" >&2
+  echo "Batch case ${CASE_REFERENCE} has no usable Number of PCNs in batch (pcnCount)" >&2
   echo "${case_response}" | jq '.data' >&2 || true
   exit 1
 fi

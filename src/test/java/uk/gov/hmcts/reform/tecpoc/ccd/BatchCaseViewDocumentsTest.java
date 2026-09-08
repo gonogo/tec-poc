@@ -43,6 +43,70 @@ class BatchCaseViewDocumentsTest {
     }
 
     @Test
+    void shouldShowEmdashForProcessedPcnsWhenQueued() {
+        BatchCase batchCase = new BatchCase();
+        batchCase.setPcnCount(200);
+
+        assertThat(
+            BatchCaseView.pcnProcessedCountDisplay(BatchCaseState.QUEUED_FOR_PROCESSING, batchCase)
+        ).isEqualTo("—");
+    }
+
+    @Test
+    void shouldShowPcnCountForProcessedPcnsWhenNotQueued() {
+        BatchCase batchCase = new BatchCase();
+        batchCase.setPcnCount(200);
+
+        assertThat(
+            BatchCaseView.pcnProcessedCountDisplay(BatchCaseState.PROCESSING_STARTED, batchCase)
+        ).isEqualTo("200");
+        assertThat(
+            BatchCaseView.pcnProcessedCountDisplay(BatchCaseState.PROCESSING_COMPLETE, batchCase)
+        ).isEqualTo("200");
+    }
+
+    @Test
+    void shouldShowFeesDueWhenRegistrationQueued() {
+        BatchCase batchCase = new BatchCase();
+        batchCase.setOperation(BatchOperation.REGISTRATION);
+        batchCase.setPcnCount(200);
+
+        BatchCaseView.applyFees(batchCase, BatchCaseState.QUEUED_FOR_PROCESSING);
+
+        assertThat(batchCase.getFeesDue()).isEqualTo(200 * BatchCaseView.FEE_PENCE_PER_PCN);
+        assertThat(batchCase.getFeesPaid()).isNull();
+    }
+
+    @Test
+    void shouldShowFeesPaidWhenRegistrationComplete() {
+        BatchCase batchCase = new BatchCase();
+        batchCase.setOperation(BatchOperation.REGISTRATION);
+        batchCase.setPcnCount(200);
+
+        BatchCaseView.applyFees(batchCase, BatchCaseState.PROCESSING_COMPLETE);
+
+        assertThat(batchCase.getFeesPaid()).isEqualTo(200 * BatchCaseView.FEE_PENCE_PER_PCN);
+        assertThat(batchCase.getFeesDue()).isNull();
+    }
+
+    @Test
+    void shouldOmitFeesWhenNotRegistrationOrNotApplicableState() {
+        BatchCase warrantQueued = new BatchCase();
+        warrantQueued.setOperation(BatchOperation.WARRANT_AUTH_REQUESTS);
+        warrantQueued.setPcnCount(200);
+        BatchCaseView.applyFees(warrantQueued, BatchCaseState.QUEUED_FOR_PROCESSING);
+        assertThat(warrantQueued.getFeesDue()).isNull();
+        assertThat(warrantQueued.getFeesPaid()).isNull();
+
+        BatchCase registrationStarted = new BatchCase();
+        registrationStarted.setOperation(BatchOperation.REGISTRATION);
+        registrationStarted.setPcnCount(200);
+        BatchCaseView.applyFees(registrationStarted, BatchCaseState.PROCESSING_STARTED);
+        assertThat(registrationStarted.getFeesDue()).isNull();
+        assertThat(registrationStarted.getFeesPaid()).isNull();
+    }
+
+    @Test
     void shouldMapInputDocumentsByCategory() {
         List<ListValue<Document>> inputs = BatchCaseView.toDocuments(
             DOCUMENTS,

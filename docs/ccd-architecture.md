@@ -192,6 +192,29 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage
 | Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
 
+#### Batch details presentation
+
+`BatchCaseConfiguration` declares the **Batch details** tab. `BatchCaseView` supplies values at
+runtime (status label, processed-PCN display, conditional fees, Inputs/Outputs documents).
+
+Fields appear in this order:
+
+| Field | Notes |
+| --- | --- |
+| Status | View-only label from CCD state (`Queued for processing` / `Processing started` / `Processing complete`) |
+| Batch validation result | Persisted display string, or `Not yet validated` |
+| Batch identifier, Local authority, Batch type | Persisted batch metadata |
+| Number of PCNs in batch | Persisted `pcnCount` |
+| Number of PCNs processed | Em dash while queued; otherwise the batch PCN count |
+| Fees due | `MoneyGBP`; **registration** batches in `QUEUED_FOR_PROCESSING` only — `pcnCount × £11` |
+| Fees paid | `MoneyGBP`; **registration** batches in `PROCESSING_COMPLETE` only — processed PCN count × £11 |
+| Received via, Received at | Persisted receipt metadata |
+| Inputs / Outputs | Document links from `tec_batch_document` (Outputs shows `-` when empty) |
+
+Fees are not stored on `tec_batch`. `BatchCaseView.applyFees` sets MoneyGBP pence
+(`£11.00` = `1100` per PCN) when the batch type and state match; otherwise the fields are omitted.
+Tab show conditions mirror that: `operation="registration"` plus the relevant `[STATE]`.
+
 #### Create batch journey (`uploadBatch`)
 
 Clerk-facing wizard started from ExUI primary nav. Helpers live in `BatchUploadJourney`. Validation
@@ -342,7 +365,7 @@ CFTLib itself is not deployed.
 | Case File View documents (PCN) | `tec.public.tec_case_document` |
 | Batch documents (Case details links) | `tec.public.tec_batch_document` |
 | Decentralised lifecycle metadata and event history | SDK-managed `tec.ccd` schema |
-| Current CCD-facing field values | `TecCaseView` / `BatchCaseView` projection |
+| Current CCD-facing field values | `TecCaseView` / `BatchCaseView` projection (batch fees computed in `BatchCaseView.applyFees`) |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` in `TecCaseView` |
 | ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md`; local proxy in `bin/xui-manage-batches-proxy.py` |

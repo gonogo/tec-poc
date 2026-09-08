@@ -154,7 +154,9 @@ Optional overrides: `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`
 Completed batches get sample Inputs/Outputs documents attached for Batch details demos.
 
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
-and Batch details (Inputs/Outputs links at the bottom of Batch details).
+and Batch details (Inputs/Outputs links at the bottom of Batch details). Registration batches also
+show **Fees due** while queued and **Fees paid** when processing is complete (`PCN count × £11`).
+See [docs/ccd-architecture.md](docs/ccd-architecture.md#batch-details-presentation).
 
 ### Prototype Tasks tab (local)
 
