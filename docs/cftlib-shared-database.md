@@ -34,6 +34,7 @@ Without CFTLib overrides, `application.yaml` defaults to PostgreSQL on `localhos
 | `tec.public.tec_case` | TEC application | The PCN business fields used by this proof of concept |
 | `tec.public.tec_batch` | TEC application | Batch metadata for case type `TEC_BATCH` |
 | `tec.public.tec_batch_document` | TEC application | Batch Inputs/Outputs document metadata (Case details links) |
+| `tec.public.tec_exception_case` | TEC application | Exception case metadata for case type `TEC_EXCEPTION` |
 
 Tables with similar names in `datastore.public` and `tec.ccd` are different physical objects in different databases.
 They serve different owners and transaction boundaries; they are not full replicas of one another.
@@ -44,13 +45,13 @@ CCD client
     v
 CCD Data Store (datastore database)
     |
-    | route case type TEC or TEC_BATCH to http://localhost:4013
+    | route case type TEC / TEC_BATCH / TEC_EXCEPTION to http://localhost:4013
     v
 TEC decentralised runtime (tec.ccd schema)
     |
-    | invoke event handler or CaseView (TecCaseView / BatchCaseView)
+    | invoke event handler or CaseView (TecCaseView / BatchCaseView / ExceptionCaseView)
     v
-TEC business persistence (tec.public.tec_case / tec.public.tec_batch)
+TEC business persistence (tec.public.tec_case / tec.public.tec_batch / tec.public.tec_exception_case)
 ```
 
 ## TEC business table
@@ -69,6 +70,11 @@ uppercase respondent details, vehicle/offence/date formats, a unique file/batch/
 0–999999 pence. The HTTP request applies corresponding validation before calling CCD.
 
 The table deliberately represents the current single-table POC, not a future normalised datafile/batch/PCN model.
+
+Flyway migration `V13__create_tec_exception_case.sql` adds `public.tec_exception_case` for case type
+`TEC_EXCEPTION`: case reference, penalty charge number, optional reject reason, and created-at.
+`ExceptionCaseRepository` owns that table; Form validation result / Associated TEC case displays are
+view-only placeholders (`—`) and are not persisted.
 
 ## Why the `tec.ccd` schema also exists
 
@@ -102,10 +108,12 @@ This separates the concerns:
 | Concern | Source of truth |
 | --- | --- |
 | PCN business facts | `tec.public.tec_case` |
+| Batch business facts | `tec.public.tec_batch` / `tec.public.tec_batch_document` |
+| Exception business facts | `tec.public.tec_exception_case` |
 | Decentralised CCD lifecycle and history | Runtime-owned tables in `tec.ccd` |
 | Central CCD orchestration and routing | CCD Data Store's `datastore` database |
-| Case definition and permissions | Generated `TEC` definition imported into Definition Store |
-| Current CCD-facing values | Projection returned by `TecCaseView` |
+| Case definition and permissions | Generated `TEC` / `TEC_BATCH` / `TEC_EXCEPTION` definitions imported into Definition Store |
+| Current CCD-facing values | Projection returned by `TecCaseView` / `BatchCaseView` / `ExceptionCaseView` |
 
 Exact runtime table names and columns are owned by the pinned SDK dependency and should not be relied on by TEC
 application code.

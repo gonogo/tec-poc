@@ -71,8 +71,8 @@ ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
 (`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload a file, review
 placeholder validation, confirm the statement of truth, Check your answers, then Submit. The
 confirmation screen shows the new case number (no Manage cases link in the body). Open Case list
-via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**) and batches
-(`TEC_BATCH` / **TEC Batch**).
+via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**),
+batches (`TEC_BATCH` / **TEC Batch**), and exception cases (`TEC_EXCEPTION` / **TEC Exception**).
 
 Journey detail: [docs/ccd-architecture.md](docs/ccd-architecture.md#create-batch-journey-uploadbatch).
 
@@ -157,6 +157,34 @@ In Manage Case, open Case list → set case type to **TEC Batch** → open a row
 and Batch details (Inputs/Outputs links at the bottom of Batch details). Registration batches also
 show **Fees due** while queued and **Fees paid** when processing is complete (`PCN count × £11`).
 See [docs/ccd-architecture.md](docs/ccd-architecture.md#batch-details-presentation).
+
+## Create an exception case
+
+Exception cases are a third CCD case type (`TEC_EXCEPTION`, display name **TEC Exception**). Case
+details show Form validation result and Associated TEC case as `—`, plus a PCN. Clerk Next steps
+are **Reject item** (radio reason + optional History comment; case stays open) and **Edit PCN**.
+
+With `bootWithCCD` running:
+
+```bash
+./bin/create-tec-exception-case.sh
+```
+
+Optional override: `PENALTY_CHARGE_NUMBER`.
+
+Or via the API (same token pattern as PCN create):
+
+```bash
+curl --request POST http://localhost:4013/exception-cases \
+  --header "Authorization: Bearer ${TOKEN}" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "penaltyChargeNumber": "AB1234567A0"
+  }'
+```
+
+In Manage Case, open Case list → set case type to **TEC Exception** → open a row for History,
+Tasks, Roles and access, Case details, and Case File View.
 
 ### Prototype Tasks tab (local)
 

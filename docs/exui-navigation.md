@@ -49,7 +49,8 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 7. Complete the wizard (batch type → interstitial → upload → validation → statement of truth →
    Check your answers → Submit). Confirmation shows the case number; it does **not** include a
    Manage cases link in the body.
-8. Open Case list via **Manage cases** and use the case type filter: **TEC PCN** vs **TEC Batch**
+8. Open Case list via **Manage cases** and use the case type filter: **TEC PCN**, **TEC Batch**,
+   or **TEC Exception**
 
 If Create batch does nothing / errors on start, confirm definitions were re-imported after granting
 clerks Create (`UserRole.CLERK` is `CRU`) and hard-refresh so `headerConfig` is not stale.
@@ -63,11 +64,11 @@ Wizard pages and confirmation copy: [ccd-architecture.md](./ccd-architecture.md#
 ExUI Case list defaults from `localStorage` (last work-basket query) or else
 `jurisdictions[0].caseTypes[0]`. This app cannot pin the default. Mitigations:
 
-- Case type id `TEC_BATCH` sorts after `TEC` alphabetically
-- CFTLib imports `TEC` before `TEC_BATCH`
+- Case type ids `TEC_BATCH` and `TEC_EXCEPTION` sort after `TEC` alphabetically
+- CFTLib imports `TEC` before `TEC_BATCH` and `TEC_EXCEPTION`
 - Demo user profile remains on `TEC`
 
-If the list sticks on Batch after testing, clear site data for localhost:3000.
+If the list sticks on Batch or Exception after testing, clear site data for localhost:3000.
 
 ## Draft menu shape
 
