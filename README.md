@@ -15,6 +15,7 @@ All CCD config including states, events, roles and case types are for illustrati
 - Docker
 - An authenticated HMCTS Azure Container Registry session (`az acr login --name hmctsprod`)
 - `jq` for the command-line example below
+- Ruby 3.3 and Bundler (optional; needed for the design docs preview started with `bootWithCCD`)
 
 Gradle is provided by the checked-in `./gradlew` wrapper.
 
@@ -35,13 +36,22 @@ The local services are:
 
 - TEC API and decentralised callback runtime: http://localhost:4013
 - Manage Case (XUI): http://localhost:3000 (nav-injection proxy; real container on :3002)
+- Design docs (GOV.UK Tech Docs / Middleman): http://localhost:4567
 - CCD Data Store: http://localhost:4452
 - IDAM simulator: http://localhost:5062
 - S2S simulator: http://localhost:8489
 - Shared PostgreSQL: `localhost:6432` (the TEC database is `tec`)
 
+`bootWithCCD` starts the design docs preview via `bin/start-design-docs.sh` (first run may run
+`bundle install` under `design_docs/`). If Ruby/Bundler are missing, the stack still starts and the
+docs server is skipped; install Ruby 3.3 and re-run, or start `./bin/start-design-docs.sh` alone.
+
+The same site publishes to GitHub Pages from `.github/workflows/deploy-pages.yml` when `design_docs/`
+changes on `main`. Enable **Settings → Pages → Source: GitHub Actions**, and keep `host` /
+`github_repo` in `design_docs/config/tech-docs.yml` aligned with the Pages URL.
+
 Stop the Java stack with `Ctrl-C`. The Docker containers will continue to run; to tear everything down
-(Java processes, local stubs/proxies, and CFTLib containers) and free the required ports:
+(Java processes, local stubs/proxies, design docs server, and CFTLib containers) and free the required ports:
 
 ```bash
 ./bin/stop-boot-with-ccd.sh

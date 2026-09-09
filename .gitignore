@@ -28,5 +28,7 @@ bin/.local-dm-store-stub.log
 bin/.local-dm-store-data/
 bin/.xui-manage-batches-proxy.pid
 bin/.xui-manage-batches-proxy.log
+bin/.design-docs.pid
+bin/.design-docs.log
 bin/.venv-generate-application/
 __pycache__/
