@@ -4,8 +4,10 @@ This codebase is a local sandbox for experimentation around CCD config and its e
 
 Functionality is underpinned by runtime supplied by [rse-cft-lib](https://github.com/hmcts/rse-cft-lib). See
 (AI-generated) doc
-[TEC decentralised CCD architecture](docs/ccd-architecture.md) for the build-time and local runtime architecture, and
-[CFTLib Shared Database](docs/cftlib-shared-database.md) for a description of the decentralised CCD datamodel.
+[TEC decentralised CCD architecture](design_docs/source/ccd-architecture.html.md.erb) for the build-time and local runtime architecture, and
+[CFTLib Shared Database](design_docs/source/cftlib-shared-database.html.md.erb) for a description of the decentralised CCD datamodel.
+Rendered versions are on the design docs site at http://localhost:4567 (for example
+[/ccd-architecture.html](http://localhost:4567/ccd-architecture.html)).
 
 All CCD config including states, events, roles and case types are for illustration only.
 
@@ -67,7 +69,8 @@ To stop and start again in one step:
 
 CFTLib starts the Manage Case web application in Docker on port **3002**. A local proxy on
 **http://localhost:3000** injects a TEC **Create batch** primary-nav item (see
-[docs/exui-navigation.md](docs/exui-navigation.md)).
+[design_docs/source/exui-navigation.html.md.erb](design_docs/source/exui-navigation.html.md.erb)
+or http://localhost:4567/exui-navigation.html).
 
 Open http://localhost:3000 and sign in with the configured local clerk account:
 
@@ -84,7 +87,8 @@ confirmation screen shows the new case number (no Manage cases link in the body)
 via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**),
 batches (`TEC_BATCH` / **TEC Batch**), and exception cases (`TEC_EXCEPTION` / **TEC Exception**).
 
-Journey detail: [docs/ccd-architecture.md](docs/ccd-architecture.md#create-batch-journey-uploadbatch).
+Journey detail: [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#create-batch-journey-uploadbatch)
+(or http://localhost:4567/ccd-architecture.html#create-batch-journey-uploadbatch).
 
 ## Create a PCN case
 
@@ -166,7 +170,8 @@ Completed batches get sample Inputs/Outputs documents attached for Batch details
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
 and Batch details (Inputs/Outputs links at the bottom of Batch details). Registration batches also
 show **Fees due** while queued and **Fees paid** when processing is complete (`PCN count × £11`).
-See [docs/ccd-architecture.md](docs/ccd-architecture.md#batch-details-presentation).
+See [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#batch-details-presentation)
+(or http://localhost:4567/ccd-architecture.html#batch-details-presentation).
 
 ## Create an exception case
 

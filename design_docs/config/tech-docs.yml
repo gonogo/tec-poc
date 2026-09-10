@@ -5,13 +5,13 @@ host: https://hmcts.github.io/tec-poc
 
 # Header-related options
 show_govuk_logo: false
-service_name: Technical documentation
+service_name: TEC API POC
 service_link: /
 phase: Beta
 
 # Links to show on right-hand-side of header
 header_links:
-  Get started: /get-started.html
+  Architecture: /ccd-architecture.html
   Support: /support.html
 
 # Enables search functionality. This indexes pages only and is not recommended for single-page sites.

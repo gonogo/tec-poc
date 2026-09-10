@@ -1,3 +1,8 @@
+---
+title: "ExUI “Create batch” primary navigation"
+weight: 50
+---
+
 # ExUI “Create batch” primary navigation
 
 Architect proposal: add a role-gated **Create batch** item to Manage Cases primary navigation
@@ -40,8 +45,8 @@ flowchart LR
 The durable change is a **code change (and release) of ExUI menuConfigs**.
 
 Menu shape and JSON fragment for discussion:
-[exui-navigation.md](./exui-navigation.md) and
-[exui-header-config.example.json](./exui-header-config.example.json).
+[exui-navigation](/exui-navigation.html) and
+[exui-header-config.example.json](/exui-header-config.example.json).
 
 ### Proposed menu shape for TEC
 
@@ -60,7 +65,7 @@ Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Mana
   `caseworker-tec-system` (`UserRole` in this repo).
 - **Label:** `Create batch`
 - **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Create batch CCD wizard — see
-  [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch)).
+  [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch)).
 
 ### What to change in ExUI
 
@@ -94,7 +99,7 @@ This repo simulates the menuConfigs change locally with a reverse proxy (not a c
   `/external/config/ui/` to inject a `caseworker-tec` menu that includes **Create batch**.
 - Create batch nav href is the ExUI deep link for `uploadBatch`; `/tec-create-batch` redirects there.
 
-Details: [exui-navigation.md](./exui-navigation.md).
+Details: [exui-navigation](/exui-navigation.html).
 
 - `RSE_LIB_XUI_ENV_HEADER_CONFIG` will **not** work — UI ignores it for `headerConfig`.
 - Restarting the stock stack alone without the proxy (or with XUI still bound to :3000) will
@@ -112,7 +117,7 @@ Details: [exui-navigation.md](./exui-navigation.md).
 5. **Release coupling** — nav appears only after an ExUI release; create-batch URL must exist (or be
    behind a flag/placeholder) per environment.
 6. **Case list default case type** — ExUI defaults via localStorage / first case type; see
-   [exui-navigation.md](./exui-navigation.md).
+   [exui-navigation](/exui-navigation.html).
 
 ## Acceptance criteria
 
@@ -123,7 +128,7 @@ Details: [exui-navigation.md](./exui-navigation.md).
 - Local POC can demonstrate the same nav via the nav proxy without AAT/prod deploy.
 - Batches are browsable as case type **TEC Batch** on Case list / Find case.
 
-Journey behaviour (TEC / this POC): see [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch).
+Journey behaviour (TEC / this POC): see [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch).
 
 ## Follow-ups
 

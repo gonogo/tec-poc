@@ -1,3 +1,8 @@
+---
+title: TEC decentralised CCD architecture
+weight: 20
+---
+
 # TEC decentralised CCD architecture
 
 This document describes the architecture implemented by this proof of concept. The repository is local-only: the
@@ -76,7 +81,7 @@ exception create remain system-only via the hidden `createTecCase` / `createExce
 
 ExUI Case list / Find case expose a **case type** filter. Fresh sessions preferably land on `TEC`
 (import order + alphabetical id); ExUI may remember the last selection in `localStorage` — see
-[exui-navigation.md](./exui-navigation.md).
+[exui-navigation](/exui-navigation.html).
 
 Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
 and the form-specific edit events (`editTe9Application`, `editPe3Application`, `editTe7Application`,
@@ -189,8 +194,8 @@ When a case is in `CASE_ISSUED`, the tab shows a mix of unassigned, assigned-to-
 so Manage and Next steps layouts can be compared.
 
 Case-scoped Tasks HTML is not the place for Create batch. That belongs in ExUI primary
-navigation via `menuConfigs` — see [exui-manage-batches-plan.md](./exui-manage-batches-plan.md) and
-[exui-navigation.md](./exui-navigation.md). Existing batches are opened from Case list with case type
+navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-batches-plan.html) and
+[exui-navigation](/exui-navigation.html). Existing batches are opened from Case list with case type
 **TEC Batch** (`TEC_BATCH`).
 
 ### Batch case type (`TEC_BATCH`)
@@ -399,7 +404,7 @@ CFTLib itself is not deployed.
 | Current CCD-facing field values | `TecCaseView` / `BatchCaseView` / `ExceptionCaseView` projection (batch fees computed in `BatchCaseView.applyFees`) |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` / `BatchPrototypeTasks` / `ExceptionPrototypeTasks` |
-| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `docs/exui-manage-batches-plan.md`; local proxy in `bin/xui-manage-batches-proxy.py` |
+| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `/exui-manage-batches-plan.html`; local proxy in `bin/xui-manage-batches-proxy.py` |
 | Create batch wizard copy / confirmation | `BatchUploadJourney` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 

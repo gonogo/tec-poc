@@ -1,3 +1,8 @@
+---
+title: "ExUI primary navigation — Create batch"
+weight: 40
+---
+
 # ExUI primary navigation — Create batch
 
 TEC clerks need a global Manage Cases nav link for **Create batch**. The link opens the
@@ -5,7 +10,7 @@ TEC clerks need a global Manage Cases nav link for **Create batch**. The link op
 uses the ExUI Case list with that case type, not a separate batch list URL.
 
 Primary navigation is owned by ExUI (`rpx-xui-webapp`) `menuConfigs`. This POC simulates that
-locally; see also [exui-manage-batches-plan.md](./exui-manage-batches-plan.md) (historical nav
+locally; see also [exui-manage-batches-plan](/exui-manage-batches-plan.html) (historical nav
 proposal, updated for Create batch + CCD batches).
 
 ## How ExUI builds the primary nav
@@ -57,7 +62,7 @@ clerks Create (`UserRole.CLERK` is `CRU`) and hard-refresh so `headerConfig` is 
 
 Proxy logs: `bin/.xui-manage-batches-proxy.log`
 
-Wizard pages and confirmation copy: [ccd-architecture.md](./ccd-architecture.md#create-batch-journey-uploadbatch).
+Wizard pages and confirmation copy: [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch).
 
 ### Case type filter default
 
@@ -72,7 +77,7 @@ If the list sticks on Batch or Exception after testing, clear site data for loca
 
 ## Draft menu shape
 
-See [`exui-header-config.example.json`](./exui-header-config.example.json).
+See [`exui-header-config.example.json`](/exui-header-config.example.json).
 
 | Item | Local `href` |
 | --- | --- |
