@@ -5,7 +5,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Placeholder Create batch journey helpers (validation copy and confirmation text).
+ * Placeholder Upload batch file journey helpers (validation copy and confirmation text).
  */
 final class BatchUploadJourney {
 

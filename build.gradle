@@ -233,7 +233,7 @@ tasks.withType(CftlibExec).configureEach {
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
-  // Real XUI binds here; bin/start-xui-manage-batches-proxy.sh publishes :3000 and injects Create batch.
+  // Real XUI binds here; bin/start-xui-manage-batches-proxy.sh publishes :3000 and injects Upload batch file.
   environment 'XUI_PORT', '3002'
   // Compose interpolates these into xui-manage-cases environment (overrides xui.env).
   // Unset values fall back to AAT URLs which CFTLib rewrites to the IDAM simulator (:5062),

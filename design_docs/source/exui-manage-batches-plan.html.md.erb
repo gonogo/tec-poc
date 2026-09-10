@@ -1,27 +1,27 @@
 ---
-title: "ExUI “Create batch” primary navigation"
+title: "ExUI “Upload batch file” primary navigation"
 weight: 50
 ---
 
-# ExUI “Create batch” primary navigation
+# ExUI “Upload batch file” primary navigation
 
-Architect proposal: add a role-gated **Create batch** item to Manage Cases primary navigation
+Architect proposal: add a role-gated **Upload batch file** item to Manage Cases primary navigation
 by changing ExUI `menuConfigs`, with a local proxy path for the TEC prototype and a later
 platform release for shared environments.
 
 Batches themselves are modelled as CCD case type `TEC_BATCH` and browsed from Case list / Find
-case (case type filter). Create batch is the clerk-visible `uploadBatch` CCD event, linked from
+case (case type filter). Upload batch file is the clerk-visible `uploadBatch` CCD event, linked from
 primary nav via an ExUI case-create deep link.
 
 ## Problem
 
-TEC clerks need a **global** Create batch entry point from Manage Cases (not case-scoped).
+TEC clerks need a **global** Upload batch file entry point from Manage Cases (not case-scoped).
 CCD tabs and case events cannot own this nav item. Primary navigation is owned by **ExUI**
 (`rpx-xui-webapp`).
 
 ## Recommended solution
 
-Add a **Create batch** item to ExUI’s baked-in menu configuration
+Add an **Upload batch file** item to ExUI’s baked-in menu configuration
 (`api/configuration/menuConfigs/`), gated to TEC IdAM roles, pointing at the create-batch URL.
 
 ```mermaid
@@ -29,7 +29,7 @@ flowchart LR
   user[TEC_clerk] --> xui[Manage_Cases]
   xui -->|"GET /external/config/ui/"| menu[menuConfigs]
   menu --> nav[Primary_nav]
-  nav -->|"Create batch"| create[Create_batch_journey]
+  nav -->|"Upload batch file"| create[Create_batch_journey]
   xui -->|"Case list case type TEC Batch"| batches[TEC_BATCH_cases]
 ```
 
@@ -55,7 +55,7 @@ Add a dedicated role key (recommended), rather than appending into `.+` for all 
 | Item | `href` |
 | --- | --- |
 | Create case | `/cases/case-filter` |
-| **Create batch** | Absolute URL of the create-batch journey (per env) |
+| **Upload batch file** | Absolute URL of the create-batch journey (per env) |
 | Find case | `/cases/case-search` (right-aligned, existing pattern) |
 
 Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Manage cases** title.
@@ -63,13 +63,13 @@ Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Mana
 - **Role key:** `caseworker-tec` (or `^caseworker-tec` / `^caseworker-tec$` depending on whether
   `caseworker-tec-system` should see it). Local IdAM roles today: `caseworker-tec`,
   `caseworker-tec-system` (`UserRole` in this repo).
-- **Label:** `Create batch`
-- **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Create batch CCD wizard — see
-  [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch)).
+- **Label:** `Upload batch file`
+- **Target:** `/cases/case-create/TEC/TEC_BATCH/uploadBatch` (Upload batch file CCD wizard — see
+  [ccd-architecture](/ccd-architecture.html#upload-batch-file-journey-uploadbatch)).
 
 ### What to change in ExUI
 
-1. `api/configuration/menuConfigs/base-config.ts` — add TEC role-key menu including Create batch.
+1. `api/configuration/menuConfigs/base-config.ts` — add TEC role-key menu including Upload batch file.
 2. Confirm whether AAT needs anything in `aat-diffs.ts` (usually not for a new key).
 3. Do not copy Case list into the TEC key unless product wants it; title/home already opens cases.
 4. Release via normal ExUI pipeline; environments pick up the new webapp image.
@@ -79,7 +79,7 @@ Omit **Case list** from the TEC menu; clerks still reach `/cases` via the **Mana
 | Concern | Owner |
 | --- | --- |
 | Nav item + role gating | ExUI (`rpx-xui-webapp`) |
-| Create batch journey + URL | TEC |
+| Upload batch file journey + URL | TEC |
 | Batch list/details (`TEC_BATCH`) | TEC / this POC |
 | IdAM roles for TEC clerks | IdAM / TEC access model |
 | This POC repo (`tec-poc`) | Cannot ship primary nav; only documents and local wiring |
@@ -96,14 +96,14 @@ This repo simulates the menuConfigs change locally with a reverse proxy (not a c
 
 - `bootWithCCD` sets `XUI_PORT=3002` (real Manage Cases container).
 - `bin/start-xui-manage-batches-proxy.sh` publishes **http://localhost:3000** and rewrites
-  `/external/config/ui/` to inject a `caseworker-tec` menu that includes **Create batch**.
-- Create batch nav href is the ExUI deep link for `uploadBatch`; `/tec-create-batch` redirects there.
+  `/external/config/ui/` to inject a `caseworker-tec` menu that includes **Upload batch file**.
+- Upload batch file nav href is the ExUI deep link for `uploadBatch`; `/tec-create-batch` redirects there.
 
 Details: [exui-navigation](/exui-navigation.html).
 
 - `RSE_LIB_XUI_ENV_HEADER_CONFIG` will **not** work — UI ignores it for `headerConfig`.
 - Restarting the stock stack alone without the proxy (or with XUI still bound to :3000) will
-  **not** show Create batch.
+  **not** show Upload batch file.
 
 ## Risks / decisions
 
@@ -112,7 +112,7 @@ Details: [exui-navigation](/exui-navigation.html).
 2. **Who sees the link** — clerks only vs clerks + system role.
 3. **Create case visibility** — TEC create is system-driven today; keeping Create case in the TEC
    menu matches ExUI norms but may be unused for clerks.
-4. **Cross-jurisdiction pollution** — dedicated `caseworker-tec` key avoids showing Create batch
+4. **Cross-jurisdiction pollution** — dedicated `caseworker-tec` key avoids showing Upload batch file
    to all `.+` users.
 5. **Release coupling** — nav appears only after an ExUI release; create-batch URL must exist (or be
    behind a flag/placeholder) per environment.
@@ -121,18 +121,18 @@ Details: [exui-navigation](/exui-navigation.html).
 
 ## Acceptance criteria
 
-- TEC clerk signing into Manage Cases sees **Create batch** in the primary nav (not Manage batches).
+- TEC clerk signing into Manage Cases sees **Upload batch file** in the primary nav (not Manage batches).
 - Non-TEC users do not see it.
 - Link opens the `uploadBatch` CCD wizard at `/cases/case-create/TEC/TEC_BATCH/uploadBatch`.
 - Create case / Find case remain; Case list can stay hidden with cases reachable via Manage cases.
 - Local POC can demonstrate the same nav via the nav proxy without AAT/prod deploy.
 - Batches are browsable as case type **TEC Batch** on Case list / Find case.
 
-Journey behaviour (TEC / this POC): see [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch).
+Journey behaviour (TEC / this POC): see [ccd-architecture](/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
 
 ## Follow-ups
 
-- [ ] ExUI PR: add `caseworker-tec` menu key with Create batch + standard items in `base-config.ts`
-- [x] Create batch journey: clerk-visible `uploadBatch` CCD multi-page event
+- [ ] ExUI PR: add `caseworker-tec` menu key with Upload batch file + standard items in `base-config.ts`
+- [x] Upload batch file journey: clerk-visible `uploadBatch` CCD multi-page event
 - [x] Local simulation: nav-injection proxy on :3000 (`bin/start-xui-manage-batches-proxy.sh`)
 - [x] CCD `TEC_BATCH` case type for batch list/details

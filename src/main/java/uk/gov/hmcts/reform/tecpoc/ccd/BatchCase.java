@@ -54,7 +54,7 @@ public class BatchCase {
     private BatchOperation operation;
 
     /**
-     * Create batch wizard only ({@code FixedRadioList} with descriptions). Copied to
+     * Upload batch file wizard only ({@code FixedRadioList} with descriptions). Copied to
      * {@link #operation} on submit; not searchable and not shown on Case details.
      */
     @CCD(
@@ -105,13 +105,13 @@ public class BatchCase {
     private String batchValidationResultDisplay;
 
     /**
-     * PCNs excluded from the batch after placeholder validation (Create batch journey).
+     * PCNs excluded from the batch after placeholder validation (Upload batch file journey).
      */
     @CCD(label = "Excluded PCNs", searchable = false)
     private Integer excludedPcnCount;
 
     /**
-     * Statement of truth agreement (Create batch journey). MultiSelectList with one option
+     * Statement of truth agreement (Upload batch file journey). MultiSelectList with one option
      * renders as a checkbox, matching the PCS pattern. Label is shown on Check your answers
      * (and beside the checkbox on the Statement of truth page).
      */

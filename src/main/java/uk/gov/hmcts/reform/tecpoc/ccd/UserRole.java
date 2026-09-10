@@ -10,7 +10,7 @@ public enum UserRole implements HasRole {
 
     SYSTEM("caseworker-tec-system", Permission.CRUD),
     /**
-     * Includes Create so clerks can start the Create batch ({@code uploadBatch}) journey.
+     * Includes Create so clerks can start the Upload batch file ({@code uploadBatch}) journey.
      * PCN create remains system-only via {@code createTecCase} {@code NEVER_SHOW}.
      */
     CLERK("caseworker-tec", Permission.CRU);

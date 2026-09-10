@@ -130,13 +130,13 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
 
         builder.decentralisedEvent(UPLOAD_BATCH_EVENT_ID, this::uploadBatch)
             .initialState(BatchCaseState.QUEUED_FOR_PROCESSING)
-            .name("Create batch")
+            .name("Upload batch file")
             .showSummary()
             .endButtonLabel("Submit")
             .grant(Permission.CRUD, UserRole.CLERK, UserRole.SYSTEM)
             .fields()
             .page("selectBatchType")
-            .pageLabel("Create batch")
+            .pageLabel("Upload batch file")
             .mandatory(
                 BatchCase::getBatchTypeSelection,
                 null,

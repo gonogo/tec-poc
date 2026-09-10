@@ -75,7 +75,7 @@ All three types reuse the same roles:
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
 | `CLERK` | `caseworker-tec` | CRU | Create, read and update in every state |
 
-Clerk **Create** is required so ExUI can start the Create batch (`uploadBatch`) journey. PCN and
+Clerk **Create** is required so ExUI can start the Upload batch file (`uploadBatch`) journey. PCN and
 exception create remain system-only via the hidden `createTecCase` / `createExceptionCase` events
 (`NEVER_SHOW`).
 
@@ -85,7 +85,7 @@ ExUI Case list / Find case expose a **case type** filter. Fresh sessions prefera
 
 Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
 and the form-specific edit events (`editTe9Application`, `editPe3Application`, `editTe7Application`,
-`editPe2Application`). Create batch is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
+`editPe2Application`). Upload batch file is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
 from ExUI primary nav (not as a case-scoped Next step). Clerk-visible exception events are
 `rejectItem` and `editPcn` on `TEC_EXCEPTION`.
 
@@ -193,7 +193,7 @@ HTML from `TecCaseView`. It does not call role-assignment or allocate-access API
 When a case is in `CASE_ISSUED`, the tab shows a mix of unassigned, assigned-to-you and assigned-to-someone-else cards
 so Manage and Next steps layouts can be compared.
 
-Case-scoped Tasks HTML is not the place for Create batch. That belongs in ExUI primary
+Case-scoped Tasks HTML is not the place for Upload batch file. That belongs in ExUI primary
 navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-batches-plan.html) and
 [exui-navigation](/exui-navigation.html). Existing batches are opened from Case list with case type
 **TEC Batch** (`TEC_BATCH`).
@@ -208,7 +208,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | Documents | Inputs and Outputs linked from Batch details (`BatchFileCategory`; no Case File View tab) |
 | Search / work basket | Batch identifier, local authority, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
-| Clerk Create batch | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
+| Clerk Upload batch file | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
 
 #### Batch details presentation
@@ -234,14 +234,15 @@ Fees are not stored on `tec_batch`. `BatchCaseView.applyFees` sets MoneyGBP penc
 (`£11.00` = `1100` per PCN) when the batch type and state match; otherwise the fields are omitted.
 Tab show conditions mirror that: `operation="registration"` plus the relevant `[STATE]`.
 
-#### Create batch journey (`uploadBatch`)
+#### Upload batch file journey (`uploadBatch`)
 
-Clerk-facing wizard started from ExUI primary nav. Helpers live in `BatchUploadJourney`. Validation
+Clerk-facing wizard started from ExUI primary nav. Event name / caption is **Upload batch file**;
+the `selectBatchType` page heading matches. Helpers live in `BatchUploadJourney`. Validation
 copy and some submit metadata are still placeholders.
 
 | Step | Page id | Notes |
 | --- | --- | --- |
-| Select batch type | `selectBatchType` | `FixedRadioList` of `BatchTypeOption` (label includes a short description); stored as `BatchOperation` |
+| Upload batch file | `selectBatchType` | Page heading **Upload batch file**; `FixedRadioList` of `BatchTypeOption` (label includes a short description); stored as `BatchOperation` |
 | Before you start | `interstitial` | Placeholder guidance |
 | Upload batch file | `uploadFile` | Mid-event sets placeholder excluded-PCN count |
 | Some data cannot be processed | `validationResults` | Static HTML matching the design mock |
@@ -404,8 +405,8 @@ CFTLib itself is not deployed.
 | Current CCD-facing field values | `TecCaseView` / `BatchCaseView` / `ExceptionCaseView` projection (batch fees computed in `BatchCaseView.applyFees`) |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
 | Prototype task list shown on Tasks tab | `TecPrototypeTasks` / `BatchPrototypeTasks` / `ExceptionPrototypeTasks` |
-| ExUI primary nav (e.g. Create batch) | ExUI `menuConfigs` — plan in `/exui-manage-batches-plan.html`; local proxy in `bin/xui-manage-batches-proxy.py` |
-| Create batch wizard copy / confirmation | `BatchUploadJourney` |
+| ExUI primary nav (e.g. Upload batch file) | ExUI `menuConfigs` — plan in `/exui-manage-batches-plan.html`; local proxy in `bin/xui-manage-batches-proxy.py` |
+| Upload batch file wizard copy / confirmation | `BatchUploadJourney` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |
 
 ## Repository map

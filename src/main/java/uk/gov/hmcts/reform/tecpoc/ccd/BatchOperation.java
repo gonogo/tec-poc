@@ -5,7 +5,7 @@ import uk.gov.hmcts.ccd.sdk.api.HasLabel;
 
 /**
  * Batch type values for case data and Case list / Find case filters ({@code FixedList}).
- * Create batch radios use {@link BatchTypeOption}.
+ * Upload batch file radios use {@link BatchTypeOption}.
  * ExUI prepends an empty “Any”/unset option to FixedList filter dropdowns.
  */
 public enum BatchOperation implements HasLabel {

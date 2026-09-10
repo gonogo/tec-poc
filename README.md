@@ -68,7 +68,7 @@ To stop and start again in one step:
 ### Use Manage Case
 
 CFTLib starts the Manage Case web application in Docker on port **3002**. A local proxy on
-**http://localhost:3000** injects a TEC **Create batch** primary-nav item (see
+**http://localhost:3000** injects a TEC **Upload batch file** primary-nav item (see
 [design_docs/source/exui-navigation.html.md.erb](design_docs/source/exui-navigation.html.md.erb)
 or http://localhost:4567/exui-navigation.html).
 
@@ -79,7 +79,7 @@ Username: tec-demo@test.com
 Password: password
 ```
 
-After sign-in you should see **Create batch** in the primary navigation (local simulation of the
+After sign-in you should see **Upload batch file** in the primary navigation (local simulation of the
 ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
 (`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload a file, review
 placeholder validation, confirm the statement of truth, Check your answers, then Submit. The
@@ -87,8 +87,8 @@ confirmation screen shows the new case number (no Manage cases link in the body)
 via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**),
 batches (`TEC_BATCH` / **TEC Batch**), and exception cases (`TEC_EXCEPTION` / **TEC Exception**).
 
-Journey detail: [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#create-batch-journey-uploadbatch)
-(or http://localhost:4567/ccd-architecture.html#create-batch-journey-uploadbatch).
+Journey detail: [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
+(or http://localhost:4567/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
 
 ## Create a PCN case
 
@@ -153,7 +153,7 @@ The response contains the CCD-generated reference and initial state:
 
 Batches are a second CCD case type (`TEC_BATCH`, display name **TEC Batch**).
 
-**In Manage Case:** use primary nav **Create batch** to run the clerk `uploadBatch` wizard (see
+**In Manage Case:** use primary nav **Upload batch file** to run the clerk `uploadBatch` wizard (see
 above). That creates a real batch case through CCD.
 
 **Via API / scripts** (hidden `createBatch` event — for seeding demos):

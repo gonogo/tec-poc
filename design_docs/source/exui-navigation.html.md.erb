@@ -1,17 +1,17 @@
 ---
-title: "ExUI primary navigation — Create batch"
+title: "ExUI primary navigation — Upload batch file"
 weight: 40
 ---
 
-# ExUI primary navigation — Create batch
+# ExUI primary navigation — Upload batch file
 
-TEC clerks need a global Manage Cases nav link for **Create batch**. The link opens the
+TEC clerks need a global Manage Cases nav link for **Upload batch file**. The link opens the
 `uploadBatch` CCD create event on case type **TEC Batch** (`TEC_BATCH`). Browsing existing batches
 uses the ExUI Case list with that case type, not a separate batch list URL.
 
 Primary navigation is owned by ExUI (`rpx-xui-webapp`) `menuConfigs`. This POC simulates that
 locally; see also [exui-manage-batches-plan](/exui-manage-batches-plan.html) (historical nav
-proposal, updated for Create batch + CCD batches).
+proposal, updated for Upload batch file + CCD batches).
 
 ## How ExUI builds the primary nav
 
@@ -33,8 +33,8 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 | --- | --- |
 | `XUI_PORT=3002` in `build.gradle` | Real Manage Cases container |
 | `bin/start-xui-manage-batches-proxy.sh` | Started by `bootWithCCD`; listens on **:3000** |
-| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add a `caseworker-tec` menu including **Create batch** |
-| `/cases/case-create/TEC/TEC_BATCH/uploadBatch` | ExUI Angular route for the Create batch CCD wizard (nav `href` must be this) |
+| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add a `caseworker-tec` menu including **Upload batch file** |
+| `/cases/case-create/TEC/TEC_BATCH/uploadBatch` | ExUI Angular route for the Upload batch file CCD wizard (nav `href` must be this) |
 | `/tec-create-batch` | Legacy bookmark path only; proxy redirects. Do **not** use as nav `href` — ExUI uses `routerLink`, so an unknown path falls through to `/cases` |
 
 ### Verify
@@ -45,11 +45,11 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
    `./bin/restart-xui-manage-batches-proxy.sh`
 3. Open **http://localhost:3000** (not `:3002`) and sign in as `tec-demo@test.com` / `password`
 4. After login the browser address bar should stay on port **3000**. If it switches to
-   `:3002`, you are past the proxy and will not see Create batch — restart the proxy
+   `:3002`, you are past the proxy and will not see Upload batch file — restart the proxy
    (step 2) and sign in again via `:3000`.
-5. Primary nav should include **Create batch** between Create case and Find case
+5. Primary nav should include **Upload batch file** between Create case and Find case
    (no **Case list** item — open cases via **Manage cases** title)
-6. Clicking Create batch opens the `uploadBatch` wizard at
+6. Clicking Upload batch file opens the `uploadBatch` wizard at
    `/cases/case-create/TEC/TEC_BATCH/uploadBatch`
 7. Complete the wizard (batch type → interstitial → upload → validation → statement of truth →
    Check your answers → Submit). Confirmation shows the case number; it does **not** include a
@@ -57,12 +57,12 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 8. Open Case list via **Manage cases** and use the case type filter: **TEC PCN**, **TEC Batch**,
    or **TEC Exception**
 
-If Create batch does nothing / errors on start, confirm definitions were re-imported after granting
+If Upload batch file does nothing / errors on start, confirm definitions were re-imported after granting
 clerks Create (`UserRole.CLERK` is `CRU`) and hard-refresh so `headerConfig` is not stale.
 
 Proxy logs: `bin/.xui-manage-batches-proxy.log`
 
-Wizard pages and confirmation copy: [ccd-architecture](/ccd-architecture.html#create-batch-journey-uploadbatch).
+Wizard pages and confirmation copy: [ccd-architecture](/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
 
 ### Case type filter default
 
@@ -82,7 +82,7 @@ See [`exui-header-config.example.json`](/exui-header-config.example.json).
 | Item | Local `href` |
 | --- | --- |
 | Create case | `/cases/case-filter` |
-| **Create batch** | `/cases/case-create/TEC/TEC_BATCH/uploadBatch` |
+| **Upload batch file** | `/cases/case-create/TEC/TEC_BATCH/uploadBatch` |
 | Find case | `/cases/case-search` (right-aligned) |
 
 **Case list** is omitted from the TEC menu. Clerks still reach `/cases` via the **Manage cases**
@@ -104,5 +104,5 @@ ExUI pipeline. Do not rely on `RSE_LIB_XUI_ENV_HEADER_CONFIG` — the UI ignores
 
 | Java role | IdAM role | Notes |
 | --- | --- | --- |
-| `CLERK` | `caseworker-tec` | Case-type `CRU` so Create batch (`uploadBatch`) can start |
+| `CLERK` | `caseworker-tec` | Case-type `CRU` so Upload batch file (`uploadBatch`) can start |
 | `SYSTEM` | `caseworker-tec-system` | Full CRUD; used by API / scripts |

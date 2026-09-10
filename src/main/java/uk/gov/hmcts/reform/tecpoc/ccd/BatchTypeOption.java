@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.hmcts.ccd.sdk.api.HasLabel;
 
 /**
- * Create batch radio options. Labels include a short description because CCD
+ * Upload batch file radio options. Labels include a short description because CCD
  * {@code FixedRadioList} has no per-option hint. Mapped to {@link BatchOperation} on submit.
  */
 public enum BatchTypeOption implements HasLabel {

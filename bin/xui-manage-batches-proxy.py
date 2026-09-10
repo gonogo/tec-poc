@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Reverse-proxy Manage Cases and inject a TEC 'Create batch' primary-nav item.
+"""Reverse-proxy Manage Cases and inject a TEC 'Upload batch file' primary-nav item.
 
 CFTLib's XUI builds headerConfig from baked-in menuConfigs. This proxy sits on the
 public Manage Cases port, forwards to the real XUI container on an internal port,
 and rewrites GET /external/config/ui/ (and the legacy /external/configuration-ui/
-path) so TEC clerks see Create batch without a custom XUI image.
+path) so TEC clerks see Upload batch file without a custom XUI image.
 
-Create batch nav points at the ExUI CCD create-case deep link for uploadBatch.
+Upload batch file nav points at the ExUI CCD create-case deep link for uploadBatch.
 Legacy /tec-create-batch redirects there for bookmarks.
 """
 
@@ -30,7 +30,7 @@ CREATE_BATCH_PATH = os.environ.get("XUI_NAV_PROXY_CREATE_BATCH_PATH") or os.envi
 )
 LEGACY_CREATE_BATCH_STUB = "/tec-create-batch"
 TEC_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_ROLE_KEY", "caseworker-tec")
-CREATE_BATCH_LABEL = "Create batch"
+CREATE_BATCH_LABEL = "Upload batch file"
 
 _HOP_BY_HOP = {
     "connection",
@@ -82,7 +82,7 @@ def _create_batch_item(create_batch_href: str) -> dict:
 
 
 def _force_create_batch_href(items: list, create_batch_href: str) -> tuple[list, bool]:
-    """Ensure every Create batch nav item points at the CCD deep link."""
+    """Ensure every Upload batch file nav item points at the CCD deep link."""
     updated: list = []
     found = False
     for item in items:
@@ -141,11 +141,11 @@ def _legacy_create_batch_bounce_html(target: str) -> bytes:
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="refresh" content="0;url={target}" />
-  <title>Create batch</title>
+  <title>Upload batch file</title>
   <script>window.location.replace({target!r});</script>
 </head>
 <body>
-  <p>Redirecting to <a href="{target}">Create batch</a>…</p>
+  <p>Redirecting to <a href="{target}">Upload batch file</a>…</p>
 </body>
 </html>
 """
@@ -269,7 +269,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             for key, value in upstream.getheaders():
                 if key.lower() in _HOP_BY_HOP:
                     continue
-                # Avoid browsers / SW keeping a stale Create batch href.
+                # Avoid browsers / SW keeping a stale Upload batch file href.
                 if path.rstrip("/") in {p.rstrip("/") for p in _CONFIG_PATHS} and key.lower() in {
                     "cache-control",
                     "etag",
@@ -347,8 +347,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
 def main() -> int:
     server = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), ProxyHandler)
     print(
-        f"XUI Create batch nav proxy listening on http://{LISTEN_HOST}:{LISTEN_PORT} "
-        f"-> {UPSTREAM} (TEC menu key {TEC_ROLE_KEY!r}, create batch {CREATE_BATCH_PATH})",
+        f"XUI Upload batch file nav proxy listening on http://{LISTEN_HOST}:{LISTEN_PORT} "
+        f"-> {UPSTREAM} (TEC menu key {TEC_ROLE_KEY!r}, upload batch file {CREATE_BATCH_PATH})",
         flush=True,
     )
     try:
