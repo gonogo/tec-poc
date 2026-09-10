@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.time.LocalDate;
@@ -33,6 +34,14 @@ public class TecCase {
         typeParameterOverride = "LocalAuthority"
     )
     private LocalAuthority localAuthority;
+
+    /**
+     * CCD case-access category (exact field id). Set from {@link #localAuthority} on create/upload;
+     * not shown on case-view tabs.
+     */
+    @CCD(label = "Case access category", searchable = false)
+    @JsonProperty("CaseAccessCategory")
+    private String caseAccessCategory;
 
     @CCD(label = "Respondent details 1")
     private String respondentDetails1;

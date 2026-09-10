@@ -29,7 +29,9 @@ CREATE_BATCH_PATH = os.environ.get("XUI_NAV_PROXY_CREATE_BATCH_PATH") or os.envi
     "/cases/case-create/TEC/TEC_BATCH/uploadBatch",
 )
 LEGACY_CREATE_BATCH_STUB = "/tec-create-batch"
-TEC_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_ROLE_KEY", "caseworker-tec")
+# Anchored so caseworker-tec-la does not match the clerk menu.
+TEC_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_ROLE_KEY", "^caseworker-tec$")
+TEC_LA_ROLE_KEY = os.environ.get("XUI_NAV_PROXY_TEC_LA_ROLE_KEY", "^caseworker-tec-la$")
 CREATE_BATCH_LABEL = "Upload batch file"
 
 _HOP_BY_HOP = {
@@ -71,13 +73,27 @@ def _tec_menu(create_batch_href: str) -> list[dict]:
     ]
 
 
+def _tec_la_menu(create_batch_href: str) -> list[dict]:
+    # Local authority users: Upload batch file + Find case only (no Create case).
+    return [
+        {"text": CREATE_BATCH_LABEL, "href": create_batch_href, "active": False},
+        {
+            "text": "Find case",
+            "href": "/cases/case-search",
+            "active": False,
+            "align": "right",
+            "ngClass": "hmcts-search-toggle__button",
+        },
+    ]
+
+
 def _create_batch_item(create_batch_href: str) -> dict:
     # roles gate keeps this off non-TEC menus when injected into the ".+" fallback.
     return {
         "text": CREATE_BATCH_LABEL,
         "href": create_batch_href,
         "active": False,
-        "roles": ["caseworker-tec", "caseworker-tec-system"],
+        "roles": ["caseworker-tec", "caseworker-tec-system", "caseworker-tec-la"],
     }
 
 
@@ -96,18 +112,24 @@ def _force_create_batch_href(items: list, create_batch_href: str) -> tuple[list,
     return updated, found
 
 
-def _inject_header_config(payload: dict, create_batch_href: str, role_key: str) -> dict:
+def _inject_header_config(
+    payload: dict,
+    create_batch_href: str,
+    role_key: str,
+    la_role_key: str,
+) -> dict:
     header = payload.get("headerConfig")
     if not isinstance(header, dict):
         header = {}
 
     tec_menu = _tec_menu(create_batch_href)
+    tec_la_menu = _tec_la_menu(create_batch_href)
     create_batch_item = _create_batch_item(create_batch_href)
 
-    # Prefer a dedicated TEC key (matched first among non-".+" keys when placed early).
-    rebuilt: dict = {role_key: tec_menu}
+    # Prefer dedicated TEC keys (matched first among non-".+" keys when placed early).
+    rebuilt: dict = {role_key: tec_menu, la_role_key: tec_la_menu}
     for key, items in header.items():
-        if key == role_key:
+        if key in (role_key, la_role_key):
             continue
         if key == ".+" and isinstance(items, list):
             items, found = _force_create_batch_href(list(items), create_batch_href)
@@ -260,7 +282,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 try:
                     payload = json.loads(raw.decode("utf-8"))
                     if isinstance(payload, dict):
-                        payload = _inject_header_config(payload, CREATE_BATCH_PATH, TEC_ROLE_KEY)
+                        payload = _inject_header_config(
+                            payload, CREATE_BATCH_PATH, TEC_ROLE_KEY, TEC_LA_ROLE_KEY
+                        )
                         raw = json.dumps(payload).encode("utf-8")
                 except (UnicodeDecodeError, json.JSONDecodeError):
                     pass
@@ -348,7 +372,8 @@ def main() -> int:
     server = ThreadingHTTPServer((LISTEN_HOST, LISTEN_PORT), ProxyHandler)
     print(
         f"XUI Upload batch file nav proxy listening on http://{LISTEN_HOST}:{LISTEN_PORT} "
-        f"-> {UPSTREAM} (TEC menu key {TEC_ROLE_KEY!r}, upload batch file {CREATE_BATCH_PATH})",
+        f"-> {UPSTREAM} (TEC menu keys {TEC_ROLE_KEY!r}/{TEC_LA_ROLE_KEY!r}, "
+        f"upload batch file {CREATE_BATCH_PATH})",
         flush=True,
     )
     try:

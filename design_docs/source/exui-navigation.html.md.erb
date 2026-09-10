@@ -33,7 +33,7 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 | --- | --- |
 | `XUI_PORT=3002` in `build.gradle` | Real Manage Cases container |
 | `bin/start-xui-manage-batches-proxy.sh` | Started by `bootWithCCD`; listens on **:3000** |
-| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add a `caseworker-tec` menu including **Upload batch file** |
+| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add `^caseworker-tec$` (clerk) and `^caseworker-tec-la$` (LA) menus including **Upload batch file** |
 | `/cases/case-create/TEC/TEC_BATCH/uploadBatch` | ExUI Angular route for the Upload batch file CCD wizard (nav `href` must be this) |
 | `/tec-create-batch` | Legacy bookmark path only; proxy redirects. Do **not** use as nav `href` — ExUI uses `routerLink`, so an unknown path falls through to `/cases` |
 
@@ -44,10 +44,12 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 2. If the nav proxy was already running from an older revision, refresh it:
    `./bin/restart-xui-manage-batches-proxy.sh`
 3. Open **http://localhost:3000** (not `:3002`) and sign in as `tec-demo@test.com` / `password`
+   (or `tec-la-demo@test.com` / `password` for the local authority user)
 4. After login the browser address bar should stay on port **3000**. If it switches to
    `:3002`, you are past the proxy and will not see Upload batch file — restart the proxy
    (step 2) and sign in again via `:3000`.
-5. Primary nav should include **Upload batch file** between Create case and Find case
+5. Primary nav should include **Upload batch file** between Create case and Find case for clerks
+   (LA users see Upload batch file + Find case only — no Create case).
    (no **Case list** item — open cases via **Manage cases** title)
 6. Clicking Upload batch file opens the `uploadBatch` wizard at
    `/cases/case-create/TEC/TEC_BATCH/uploadBatch`
@@ -90,13 +92,19 @@ title (home) link, bookmarks, or other in-app routes.
 
 ### Role key
 
-`caseworker-tec` matches clerk (`caseworker-tec`) and, as an unanchored regex substring,
-`caseworker-tec-system`. Tighten to `^caseworker-tec$` in a real ExUI PR if only clerks should
-see the link.
+Local proxy keys are anchored:
+
+| Key | Menu |
+| --- | --- |
+| `^caseworker-tec$` | Create case, Upload batch file, Find case |
+| `^caseworker-tec-la$` | Upload batch file, Find case (no Create case) |
+
+An unanchored `caseworker-tec` substring would also match `caseworker-tec-la` and
+`caseworker-tec-system`.
 
 ## Production change
 
-Add the same menu key in ExUI `api/configuration/menuConfigs/base-config.ts` and release via the
+Add the same menu keys in ExUI `api/configuration/menuConfigs/base-config.ts` and release via the
 ExUI pipeline. Do not rely on `RSE_LIB_XUI_ENV_HEADER_CONFIG` — the UI ignores it for
 `headerConfig`.
 
@@ -106,3 +114,4 @@ ExUI pipeline. Do not rely on `RSE_LIB_XUI_ENV_HEADER_CONFIG` — the UI ignores
 | --- | --- | --- |
 | `CLERK` | `caseworker-tec` | Case-type `CRU` so Upload batch file (`uploadBatch`) can start |
 | `SYSTEM` | `caseworker-tec-system` | Full CRUD; used by API / scripts |
+| `LOCAL_AUTHORITY` | `caseworker-tec-la` | Case-type `CR`; GM CaseAccessCategories on TEC / TEC_BATCH; shuttered on exceptions; no validate/edit/Tasks |

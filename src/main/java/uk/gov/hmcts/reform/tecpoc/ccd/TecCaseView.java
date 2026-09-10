@@ -39,6 +39,9 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
             : validationResult.getLabel();
         tecCase.setFormValidationResultDisplay(validationDisplay);
         tecCase.setTimeExtensionFormValidationResultDisplay(validationDisplay);
+        if (tecCase.getLocalAuthority() != null) {
+            tecCase.setCaseAccessCategory(tecCase.getLocalAuthority().getCode());
+        }
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
     }

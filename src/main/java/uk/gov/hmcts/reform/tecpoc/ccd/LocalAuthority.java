@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.lang.reflect.Field;
 import uk.gov.hmcts.ccd.sdk.api.HasLabel;
 
 /**
@@ -968,5 +969,21 @@ public enum LocalAuthority implements HasLabel {
     @Override
     public String getLabel() {
         return label;
+    }
+
+    /**
+     * CCD FixedList / CaseAccessCategory code from {@link JsonProperty} on the enum constant.
+     */
+    public String getCode() {
+        try {
+            Field field = LocalAuthority.class.getField(name());
+            JsonProperty property = field.getAnnotation(JsonProperty.class);
+            if (property == null || property.value().isBlank()) {
+                throw new IllegalStateException("Missing @JsonProperty on LocalAuthority." + name());
+            }
+            return property.value();
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("LocalAuthority." + name() + " has no field", e);
+        }
     }
 }

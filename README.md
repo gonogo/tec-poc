@@ -72,20 +72,32 @@ CFTLib starts the Manage Case web application in Docker on port **3002**. A loca
 [design_docs/source/exui-navigation.html.md.erb](design_docs/source/exui-navigation.html.md.erb)
 or http://localhost:4567/exui-navigation.html).
 
-Open http://localhost:3000 and sign in with the configured local clerk account:
+Open http://localhost:3000 and sign in with a configured local account:
 
 ```text
 Username: tec-demo@test.com
 Password: password
 ```
 
+Local authority demo user (GM-scoped TEC / batch access; no Create case / exceptions / Tasks):
+
+```text
+Username: tec-la-demo@test.com
+Password: password
+```
+
 After sign-in you should see **Upload batch file** in the primary navigation (local simulation of the
-ExUI `menuConfigs` change). That link opens the `uploadBatch` CCD wizard
-(`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload a file, review
-placeholder validation, confirm the statement of truth, Check your answers, then Submit. The
-confirmation screen shows the new case number (no Manage cases link in the body). Open Case list
-via **Manage cases** and use the case type filter to switch between PCN cases (`TEC` / **TEC PCN**),
-batches (`TEC_BATCH` / **TEC Batch**), and exception cases (`TEC_EXCEPTION` / **TEC Exception**).
+ExUI `menuConfigs` change). Clerks also see **Create case**; LA users do not. That link opens the
+`uploadBatch` CCD wizard (`/cases/case-create/TEC/TEC_BATCH/uploadBatch`): select batch type, upload
+a file, review placeholder validation, confirm the statement of truth, Check your answers, then
+Submit. The confirmation screen shows the new case number (no Manage cases link in the body). Open
+Case list via **Manage cases** and use the case type filter to switch between PCN cases
+(`TEC` / **TEC PCN**), batches (`TEC_BATCH` / **TEC Batch**), and exception cases
+(`TEC_EXCEPTION` / **TEC Exception**) — LA users do not see Exception.
+
+Seed scripts leave `localAuthority` as-is; `CaseAccessCategory` is derived server-side. For LA-visible
+cases, override when seeding, e.g. `LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-case.sh`.
+Re-seed or recreate cases after this change so categories are populated.
 
 Journey detail: [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
 (or http://localhost:4567/ccd-architecture.html#upload-batch-file-journey-uploadbatch).

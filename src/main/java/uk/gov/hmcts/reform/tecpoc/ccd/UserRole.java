@@ -13,7 +13,12 @@ public enum UserRole implements HasRole {
      * Includes Create so clerks can start the Upload batch file ({@code uploadBatch}) journey.
      * PCN create remains system-only via {@code createTecCase} {@code NEVER_SHOW}.
      */
-    CLERK("caseworker-tec", Permission.CRU);
+    CLERK("caseworker-tec", Permission.CRU),
+    /**
+     * Local authority users: Create so they can start {@code uploadBatch}; case-type Update
+     * omitted. Access to TEC / TEC_BATCH is further limited by CaseAccessCategories (GM codes).
+     */
+    LOCAL_AUTHORITY("caseworker-tec-la", Permission.CR);
 
     private final String role;
     private final Set<Permission> caseTypePermissions;

@@ -36,16 +36,20 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
         configureCaseView(builder);
         configureCaseFileCategories(builder);
         configureEvents(builder);
+
+        builder.shutterService(UserRole.LOCAL_AUTHORITY);
     }
 
     private void configureAccessProfiles(
         DecentralisedConfigBuilder<ExceptionCase, ExceptionCaseState, UserRole> builder
     ) {
-        for (UserRole role : UserRole.values()) {
-            builder.caseRoleToAccessProfile(role)
-                .accessProfiles(role.getRole())
-                .legacyIdamRole();
-        }
+        builder.caseRoleToAccessProfile(UserRole.SYSTEM)
+            .accessProfiles(UserRole.SYSTEM.getRole())
+            .legacyIdamRole();
+        builder.caseRoleToAccessProfile(UserRole.CLERK)
+            .accessProfiles(UserRole.CLERK.getRole())
+            .legacyIdamRole();
+        // LOCAL_AUTHORITY is shuttered — no access profile / state grants.
     }
 
     private void configureStateAccess(
@@ -61,6 +65,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
         DecentralisedConfigBuilder<ExceptionCase, ExceptionCaseState, UserRole> builder
     ) {
         builder.tab("tasks", "Tasks")
+            .forRoles(UserRole.CLERK, UserRole.SYSTEM)
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 

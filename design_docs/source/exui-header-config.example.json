@@ -1,11 +1,25 @@
 {
-  "_comment": "Shape for ExUI menuConfigs / local nav proxy. Case list omitted — clerks reach /cases via Manage cases title. Upload batch file deep-links into the TEC_BATCH uploadBatch CCD event; batches are browsed as CCD case type TEC_BATCH from Case list.",
-  "caseworker-tec": [
+  "_comment": "Shape for ExUI menuConfigs / local nav proxy. Case list omitted — clerks reach /cases via Manage cases title. Upload batch file deep-links into the TEC_BATCH uploadBatch CCD event; batches are browsed as CCD case type TEC_BATCH from Case list. Clerk key is anchored (^caseworker-tec$) so caseworker-tec-la does not inherit Create case.",
+  "^caseworker-tec$": [
     {
       "text": "Create case",
       "href": "/cases/case-filter",
       "active": false
     },
+    {
+      "text": "Upload batch file",
+      "href": "/cases/case-create/TEC/TEC_BATCH/uploadBatch",
+      "active": false
+    },
+    {
+      "text": "Find case",
+      "href": "/cases/case-search",
+      "active": false,
+      "align": "right",
+      "ngClass": "hmcts-search-toggle__button"
+    }
+  ],
+  "^caseworker-tec-la$": [
     {
       "text": "Upload batch file",
       "href": "/cases/case-create/TEC/TEC_BATCH/uploadBatch",

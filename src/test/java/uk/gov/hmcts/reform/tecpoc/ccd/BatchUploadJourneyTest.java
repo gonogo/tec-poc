@@ -80,7 +80,8 @@ class BatchUploadJourneyTest {
 
         assertThat(data.getReceivedVia()).isEqualTo(BatchReceivedVia.UPLOAD);
         assertThat(data.getReceivedAt()).isNotNull();
-        assertThat(data.getLocalAuthority()).isEqualTo(LocalAuthority.WESTMINSTER);
+        assertThat(data.getLocalAuthority()).isEqualTo(LocalAuthority.MANCHESTER_CITY_COUNCIL);
+        assertThat(data.getCaseAccessCategory()).isEqualTo("manchesterCityCouncil");
         assertThat(data.getPcnCount()).isEqualTo(200);
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000042");
         assertThat(data.getBatchValidationResult()).isNull();

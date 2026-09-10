@@ -43,6 +43,9 @@ public record CreateTecCaseRequest(
         tecCase.setBatchIdentifier(batchIdentifier);
         tecCase.setPenaltyChargeNumber(penaltyChargeNumber);
         tecCase.setLocalAuthority(localAuthority);
+        if (localAuthority != null) {
+            tecCase.setCaseAccessCategory(localAuthority.getCode());
+        }
         tecCase.setRespondentDetails1(respondentDetails1);
         tecCase.setRespondentDetails2(respondentDetails2);
         tecCase.setRespondentDetails3(respondentDetails3);

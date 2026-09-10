@@ -68,16 +68,22 @@ Jurisdiction id is `TEC`. Case types:
 | `TEC_BATCH` | TEC Batch | Uploaded batches |
 | `TEC_EXCEPTION` | TEC Exception | Exception items (unmatched / irrelevant submissions) |
 
-All three types reuse the same roles:
+All three types reuse overlapping roles (exceptions shutter LOCAL_AUTHORITY):
 
 | Java role | IDAM role | Case-type access | State access |
 | --- | --- | --- | --- |
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
 | `CLERK` | `caseworker-tec` | CRU | Create, read and update in every state |
+| `LOCAL_AUTHORITY` | `caseworker-tec-la` | CR on TEC / TEC_BATCH (GM CaseAccessCategories); shuttered on TEC_EXCEPTION | Read only on TEC / TEC_BATCH |
 
-Clerk **Create** is required so ExUI can start the Upload batch file (`uploadBatch`) journey. PCN and
-exception create remain system-only via the hidden `createTecCase` / `createExceptionCase` events
-(`NEVER_SHOW`).
+Clerk **Create** is required so ExUI can start the Upload batch file (`uploadBatch`) journey. Local
+authority users also have Create for `uploadBatch` only. PCN and exception create remain system-only
+via the hidden `createTecCase` / `createExceptionCase` events (`NEVER_SHOW`).
+
+LA access to TEC / TEC_BATCH is further limited by CCD **CaseAccessCategories**: case data field
+`CaseAccessCategory` is set from the local authority FixedList code on create/upload. The demo LA
+user is mapped to the ten Greater Manchester codes. Existing cases without a category need
+re-seed/recreate (or a read via CaseView, which derives the category from `localAuthority`).
 
 ExUI Case list / Find case expose a **case type** filter. Fresh sessions preferably land on `TEC`
 (import order + alphabetical id); ExUI may remember the last selection in `localStorage` — see
@@ -85,9 +91,10 @@ ExUI Case list / Find case expose a **case type** filter. Fresh sessions prefera
 
 Most system events use `[STATE]="NEVER_SHOW"`. Clerk-visible PCN events include `verifyFormValidation`
 and the form-specific edit events (`editTe9Application`, `editPe3Application`, `editTe7Application`,
-`editPe2Application`). Upload batch file is the clerk-visible `uploadBatch` event on `TEC_BATCH`, linked
-from ExUI primary nav (not as a case-scoped Next step). Clerk-visible exception events are
-`rejectItem` and `editPcn` on `TEC_EXCEPTION`.
+`editPe2Application`) — these are **not** granted to LOCAL_AUTHORITY. Upload batch file is the
+clerk- and LA-visible `uploadBatch` event on `TEC_BATCH`, linked from ExUI primary nav (not as a
+case-scoped Next step). Clerk-visible exception events are `rejectItem` and `editPcn` on
+`TEC_EXCEPTION`.
 
 ### States and events
 
@@ -374,11 +381,12 @@ infrastructure and local IDAM/S2S simulators. The important local endpoints conf
 
 The `tec` database is added to that PostgreSQL server. `TecCftLibConfiguration` then:
 
-1. creates `caseworker`, `caseworker-tec-system` and `caseworker-tec` roles;
+1. creates `caseworker`, `caseworker-tec-system`, `caseworker-tec` and `caseworker-tec-la` roles;
 2. creates `tec-system@test.com` with the system role;
 3. creates `tec-demo@test.com` with the clerk role;
-4. generates and imports the `TEC`, `TEC_BATCH` and `TEC_EXCEPTION` definitions; and
-5. creates a CCD profile for the demo user.
+4. creates `tec-la-demo@test.com` with the local authority role;
+5. generates and imports the `TEC`, `TEC_BATCH` and `TEC_EXCEPTION` definitions; and
+6. creates CCD profiles for the demo and LA demo users.
 
 Local CCD routing is set on the CFTLib-launched services as:
 

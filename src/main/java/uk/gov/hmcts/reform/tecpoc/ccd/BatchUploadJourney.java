@@ -11,7 +11,7 @@ final class BatchUploadJourney {
 
     static final int PLACEHOLDER_EXCLUDED_PCN_COUNT = 23;
     static final int PLACEHOLDER_PCN_COUNT = 200;
-    static final LocalAuthority PLACEHOLDER_LOCAL_AUTHORITY = LocalAuthority.WESTMINSTER;
+    static final LocalAuthority PLACEHOLDER_LOCAL_AUTHORITY = LocalAuthority.MANCHESTER_CITY_COUNCIL;
 
     private BatchUploadJourney() {
     }
@@ -29,6 +29,9 @@ final class BatchUploadJourney {
         }
         if (data.getLocalAuthority() == null) {
             data.setLocalAuthority(PLACEHOLDER_LOCAL_AUTHORITY);
+        }
+        if (data.getLocalAuthority() != null) {
+            data.setCaseAccessCategory(data.getLocalAuthority().getCode());
         }
         if (data.getPcnCount() == null) {
             data.setPcnCount(PLACEHOLDER_PCN_COUNT);

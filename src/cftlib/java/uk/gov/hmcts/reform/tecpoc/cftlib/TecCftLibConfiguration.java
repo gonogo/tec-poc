@@ -22,6 +22,7 @@ public class TecCftLibConfiguration implements CFTLibConfigurer {
 
     private static final String SYSTEM_USER = "tec-system@test.com";
     private static final String DEMO_USER = "tec-demo@test.com";
+    private static final String LA_DEMO_USER = "tec-la-demo@test.com";
 
     private static final String TEC_JURISDICTION = "TEC";
 
@@ -34,7 +35,8 @@ public class TecCftLibConfiguration implements CFTLibConfigurer {
         lib.createRoles(
             CASEWORKER_GENERIC_ROLE,
             UserRole.SYSTEM.getRole(),
-            UserRole.CLERK.getRole()
+            UserRole.CLERK.getRole(),
+            UserRole.LOCAL_AUTHORITY.getRole()
         );
 
         lib.createIdamUser(
@@ -47,6 +49,11 @@ public class TecCftLibConfiguration implements CFTLibConfigurer {
             ORGANISATION_MANAGER_ROLE,
             UserRole.CLERK.getRole()
         );
+        lib.createIdamUser(
+            LA_DEMO_USER,
+            CASEWORKER_GENERIC_ROLE,
+            UserRole.LOCAL_AUTHORITY.getRole()
+        );
 
         definitionGenerator.generateAllCaseTypesToJSON(new File("build/ccd-definition"));
         // Import TEC before TEC_BATCH / TEC_EXCEPTION so Definition Store / ExUI prefer PCN cases first.
@@ -56,6 +63,12 @@ public class TecCftLibConfiguration implements CFTLibConfigurer {
 
         lib.createProfile(
             DEMO_USER,
+            TEC_JURISDICTION,
+            TecCaseConfiguration.CASE_TYPE,
+            CaseState.AWAITING_RESPONDENT_RESPONSE.name()
+        );
+        lib.createProfile(
+            LA_DEMO_USER,
             TEC_JURISDICTION,
             TecCaseConfiguration.CASE_TYPE,
             CaseState.AWAITING_RESPONDENT_RESPONSE.name()

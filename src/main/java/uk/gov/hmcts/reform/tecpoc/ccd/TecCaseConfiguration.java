@@ -11,6 +11,7 @@ import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -41,30 +42,39 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
     private void configureCaseFileCategories(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
         for (CaseFileCategory category : CaseFileCategory.values()) {
-            builder.categories(UserRole.CLERK)
-                .categoryID(category.getId())
-                .categoryLabel(category.getLabel())
-                .displayOrder(category.getDisplayOrder());
+            for (UserRole role : List.of(UserRole.CLERK, UserRole.LOCAL_AUTHORITY)) {
+                builder.categories(role)
+                    .categoryID(category.getId())
+                    .categoryLabel(category.getLabel())
+                    .displayOrder(category.getDisplayOrder());
+            }
         }
     }
 
     private void configureAccessProfiles(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
-        for (UserRole role : UserRole.values()) {
-            builder.caseRoleToAccessProfile(role)
-                .accessProfiles(role.getRole())
-                .legacyIdamRole();
-        }
+        builder.caseRoleToAccessProfile(UserRole.SYSTEM)
+            .accessProfiles(UserRole.SYSTEM.getRole())
+            .legacyIdamRole();
+        builder.caseRoleToAccessProfile(UserRole.CLERK)
+            .accessProfiles(UserRole.CLERK.getRole())
+            .legacyIdamRole();
+        builder.caseRoleToAccessProfile(UserRole.LOCAL_AUTHORITY)
+            .accessProfiles(UserRole.LOCAL_AUTHORITY.getRole())
+            .caseAccessCategories(GreaterManchesterLocalAuthorities.accessCategoryCodes())
+            .legacyIdamRole();
     }
 
     private void configureStateAccess(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
         for (CaseState state : CaseState.values()) {
             builder.grant(state, Permission.CRUD, UserRole.SYSTEM);
             builder.grant(state, Set.of(Permission.R, Permission.U), UserRole.CLERK);
+            builder.grant(state, Set.of(Permission.R), UserRole.LOCAL_AUTHORITY);
         }
     }
 
     private void configureCaseView(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
         builder.tab("tasks", "Tasks")
+            .forRoles(UserRole.CLERK, UserRole.SYSTEM)
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 
@@ -246,6 +256,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .grant(Permission.R, UserRole.CLERK)
+            .grant(Permission.R, UserRole.LOCAL_AUTHORITY)
             .fields()
             .mandatory(TecCase::getFileIdentifier)
             .mandatory(TecCase::getBatchIdentifier)
@@ -260,7 +271,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .mandatory(TecCase::getVehicleRegistrationNumber)
             .mandatory(TecCase::getNatureOfOffence)
             .mandatory(TecCase::getDateChargeCertificateServed)
-            .mandatory(TecCase::getAmountDue);
+            .mandatory(TecCase::getAmountDue)
+            .optional(TecCase::getCaseAccessCategory, NEVER_SHOW);
 
         builder.decentralisedEvent("registrationPaymentSucceeded", this::registrationPaymentSucceeded)
             .forStateTransition(

@@ -30,6 +30,9 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
     @Override
     public BatchCase getCase(CaseViewRequest<BatchCaseState> request) {
         BatchCase batchCase = repository.find(request.caseRef());
+        if (batchCase.getLocalAuthority() != null) {
+            batchCase.setCaseAccessCategory(batchCase.getLocalAuthority().getCode());
+        }
         batchCase.setStatusDisplay(statusLabel(request.state()));
         batchCase.setPcnProcessedCountDisplay(pcnProcessedCountDisplay(request.state(), batchCase));
         applyFees(batchCase, request.state());

@@ -40,22 +40,29 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
     }
 
     private void configureAccessProfiles(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
-        for (UserRole role : UserRole.values()) {
-            builder.caseRoleToAccessProfile(role)
-                .accessProfiles(role.getRole())
-                .legacyIdamRole();
-        }
+        builder.caseRoleToAccessProfile(UserRole.SYSTEM)
+            .accessProfiles(UserRole.SYSTEM.getRole())
+            .legacyIdamRole();
+        builder.caseRoleToAccessProfile(UserRole.CLERK)
+            .accessProfiles(UserRole.CLERK.getRole())
+            .legacyIdamRole();
+        builder.caseRoleToAccessProfile(UserRole.LOCAL_AUTHORITY)
+            .accessProfiles(UserRole.LOCAL_AUTHORITY.getRole())
+            .caseAccessCategories(GreaterManchesterLocalAuthorities.accessCategoryCodes())
+            .legacyIdamRole();
     }
 
     private void configureStateAccess(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
         for (BatchCaseState state : BatchCaseState.values()) {
             builder.grant(state, Permission.CRUD, UserRole.SYSTEM);
             builder.grant(state, Set.of(Permission.R, Permission.U), UserRole.CLERK);
+            builder.grant(state, Set.of(Permission.R), UserRole.LOCAL_AUTHORITY);
         }
     }
 
     private void configureCaseView(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
         builder.tab("tasks", "Tasks")
+            .forRoles(UserRole.CLERK, UserRole.SYSTEM)
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 
@@ -119,6 +126,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .grant(Permission.R, UserRole.CLERK)
+            .grant(Permission.R, UserRole.LOCAL_AUTHORITY)
             .fields()
             .mandatory(BatchCase::getBatchIdentifier)
             .mandatory(BatchCase::getPcnCount)
@@ -126,14 +134,15 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .mandatory(BatchCase::getReceivedVia)
             .mandatory(BatchCase::getReceivedAt)
             .mandatory(BatchCase::getLocalAuthority)
-            .optional(BatchCase::getBatchValidationResult);
+            .optional(BatchCase::getBatchValidationResult)
+            .optional(BatchCase::getCaseAccessCategory, NEVER_SHOW);
 
         builder.decentralisedEvent(UPLOAD_BATCH_EVENT_ID, this::uploadBatch)
             .initialState(BatchCaseState.QUEUED_FOR_PROCESSING)
             .name("Upload batch file")
             .showSummary()
             .endButtonLabel("Submit")
-            .grant(Permission.CRUD, UserRole.CLERK, UserRole.SYSTEM)
+            .grant(Permission.CRUD, UserRole.CLERK, UserRole.SYSTEM, UserRole.LOCAL_AUTHORITY)
             .fields()
             .page("selectBatchType")
             .pageLabel("Upload batch file")
@@ -207,7 +216,8 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
                     </p>
                     """.stripIndent().trim()
             )
-            .mandatory(BatchCase::getBatchStatementOfTruth, null, null, "Statement of truth");
+            .mandatory(BatchCase::getBatchStatementOfTruth, null, null, "Statement of truth")
+            .optional(BatchCase::getCaseAccessCategory, NEVER_SHOW);
 
         builder.decentralisedEvent("startBatchProcessing", this::startBatchProcessing)
             .forStateTransition(

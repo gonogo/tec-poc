@@ -40,6 +40,9 @@ public record CreateBatchRequest(
         batchCase.setReceivedVia(receivedVia);
         batchCase.setReceivedAt(receivedAt);
         batchCase.setLocalAuthority(localAuthority);
+        if (localAuthority != null) {
+            batchCase.setCaseAccessCategory(localAuthority.getCode());
+        }
         batchCase.setBatchValidationResult(batchValidationResult);
         return batchCase;
     }
