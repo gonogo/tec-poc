@@ -333,6 +333,13 @@ $bf-exui-light: #ffffff;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+
+  // Empty bars need a touch more air than labelled text lines.
+  &:has(.bf-text:empty),
+  &:has(.bf-task__key:empty),
+  &:has(.bf-folder:empty) {
+    gap: 7px;
+  }
 }
 
 .bf-text {
@@ -341,6 +348,7 @@ $bf-exui-light: #ffffff;
 
   &:empty {
     height: 8px;
+    margin-block: 1px;
     background: $bf-text;
     border-radius: 1px;
   }
@@ -359,7 +367,7 @@ $bf-exui-light: #ffffff;
 
 .bf-text--title {
   &:empty {
-    height: 12px;
+    height: 6px;
     width: 70%;
     background: $bf-text-dark;
   }
@@ -501,6 +509,10 @@ $bf-link-callout: #1a65a6;
     border-top: 0;
     padding-top: 0;
   }
+
+  &:has(> .bf-text:empty) {
+    gap: 5px;
+  }
 }
 
 .bf-task {
@@ -515,6 +527,10 @@ $bf-link-callout: #1a65a6;
     border-top: 0;
     padding-top: 0;
   }
+
+  &:has(.bf-task__key:empty) {
+    gap: 5px;
+  }
 }
 
 .bf-task__row {
@@ -522,6 +538,10 @@ $bf-link-callout: #1a65a6;
   align-items: center;
   gap: 6px;
   min-width: 0;
+
+  &:has(.bf-task__key:empty) {
+    margin-block: 1px;
+  }
 }
 
 .bf-task__key {
@@ -572,6 +592,11 @@ $bf-link-callout: #1a65a6;
   gap: 3px;
   margin-bottom: 4px;
   min-width: 0;
+
+  &:has(.bf-field__label:empty) {
+    gap: 4px;
+    margin-bottom: 5px;
+  }
 }
 
 .bf-field__label {
@@ -590,6 +615,10 @@ $bf-link-callout: #1a65a6;
   display: block;
   margin-bottom: 3px;
   @include bf-bar-or-text($bf-chrome-dark, 8px, 10px, 80%, 400, 90%);
+
+  &:empty {
+    margin-block: 1px;
+  }
 }
 
 .bf-catalogue {
