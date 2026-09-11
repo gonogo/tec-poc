@@ -94,22 +94,58 @@ $bf-exui-light: #ffffff;
   align-items: center;
 }
 
-.bf-exui__brand {
-  display: block;
-  height: 7px;
-  width: 52px; // ~Manage cases
-  background: rgba($bf-exui-light, 0.92);
-  border-radius: 1px;
+// Empty spans stay as bars; spans with text show that copy in the bar colour.
+// Font sizes track the former bar heights (~bar height − 1–2px).
+@mixin bf-bar-or-text($bar-color, $font-size, $bar-height, $bar-width: null, $font-weight: 400, $max-width: 100%) {
   flex-shrink: 0;
+
+  &:empty {
+    display: block;
+    height: $bar-height;
+    @if $bar-width {
+      width: $bar-width;
+    }
+    background: $bar-color;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    display: inline-block;
+    height: auto;
+    width: auto;
+    max-width: $max-width;
+    background: transparent;
+    color: $bar-color;
+    font-size: $font-size;
+    font-weight: $font-weight;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.bf-exui__brand {
+  @include bf-bar-or-text(
+    rgba($bf-exui-light, 0.92),
+    9px,
+    7px,
+    52px,
+    700,
+    55%
+  );
 }
 
 .bf-exui__sign-out {
-  display: block;
-  height: 5px;
-  width: 28px; // ~Sign out
-  background: rgba($bf-exui-light, 0.75);
-  border-radius: 1px;
-  flex-shrink: 0;
+  @include bf-bar-or-text(
+    rgba($bf-exui-light, 0.75),
+    7px,
+    5px,
+    28px,
+    400,
+    30%
+  );
+  text-decoration: underline;
 }
 
 .bf-exui__nav {
@@ -120,18 +156,20 @@ $bf-exui-light: #ffffff;
 }
 
 .bf-exui__nav-link {
-  display: block;
-  height: 5px;
-  background: rgba($bf-exui-light, 0.8);
-  border-radius: 1px;
-  flex-shrink: 0;
+  @include bf-bar-or-text(rgba($bf-exui-light, 0.8), 7px, 5px, null, 400, none);
+  text-decoration: underline;
 
-  &:first-child {
-    width: 36px; // ~Create case
+  &:empty:first-child {
+    width: 36px;
   }
 
-  &:last-child {
-    width: 52px; // ~Upload batch file
+  &:empty:last-child {
+    width: 52px;
+  }
+
+  &:not(:empty):first-child,
+  &:not(:empty):last-child {
+    width: auto;
   }
 }
 
@@ -146,7 +184,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__search-input {
   display: block;
   height: 10px;
-  width: 44px; // ~30% wider than previous compact input
+  width: 44px;
   background: $bf-exui-light;
   border-radius: 1px;
   flex-shrink: 0;
@@ -155,7 +193,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__search-btn {
   display: block;
   height: 10px;
-  width: 16px; // ~Find — GOV.UK secondary
+  width: 16px;
   background: #f3f2f1;
   border-radius: 0;
   box-shadow: 0 1px 0 #929191;
@@ -174,19 +212,19 @@ $bf-exui-light: #ffffff;
 .bf-exui__phase-tag {
   display: block;
   height: 8px;
-  width: 18px; // ~BETA
+  width: 18px;
   background: $bf-exui-beta;
   border-radius: 1px;
   flex-shrink: 0;
 }
 
 .bf-exui__phase-text {
-  display: block;
-  height: 5px;
-  width: 58%; // supporting sentence, not full bleed
-  max-width: 150px;
-  background: $bf-text;
-  border-radius: 1px;
+  @include bf-bar-or-text($bf-text, 6.5px, 5px, null, 400, 70%);
+  white-space: nowrap;
+
+  &:not(:empty) {
+    max-width: 70%;
+  }
 }
 
 .bf-exui__case {
@@ -200,12 +238,7 @@ $bf-exui-light: #ffffff;
 }
 
 .bf-exui__case-number {
-  display: block;
-  height: 8px;
-  width: 96px; // ~Case number: 1788-2660-5799-1856
-  background: $bf-text-dark;
-  border-radius: 1px;
-  flex-shrink: 0;
+  @include bf-bar-or-text($bf-text-dark, 8px, 8px, 96px, 700, 48%);
 }
 
 .bf-exui__next-step {
@@ -219,7 +252,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__next-step-select {
   display: block;
   height: 12px;
-  width: 72px; // ~Validate application form
+  width: 72px;
   background: $bf-exui-light;
   border: 1px solid $bf-exui-black;
   border-radius: 1px;
@@ -229,7 +262,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__go {
   display: block;
   height: 12px;
-  width: 16px; // ~Go
+  width: 16px;
   background: $bf-exui-go;
   border-radius: 1px;
 }
@@ -245,18 +278,31 @@ $bf-exui-light: #ffffff;
 
 .bf-tabs__tab {
   flex: 1;
+  min-width: 0;
   height: 14px;
+  padding: 0 2px;
   background: $bf-chrome;
   border: 1px solid transparent;
   border-bottom: 0;
   border-radius: 2px 2px 0 0;
   margin-bottom: -1px;
+  color: $bf-text-dark;
+  font-size: 6.5px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .bf-tabs__tab--active {
   background: $bf-page-bg;
   border-color: $bf-border;
   border-bottom: 1px solid $bf-page-bg;
+  color: #0b0c0c;
+  font-weight: 700;
   position: relative;
   z-index: 1;
 }
@@ -267,34 +313,84 @@ $bf-exui-light: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .bf-text {
   display: block;
-  height: 8px;
-  background: $bf-text;
-  border-radius: 1px;
+  min-width: 0;
+
+  &:empty {
+    height: 8px;
+    background: $bf-text;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    height: auto;
+    background: transparent;
+    color: $bf-text;
+    font-size: 7px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .bf-text--title {
-  height: 12px;
-  width: 70%;
-  background: $bf-text-dark;
+  &:empty {
+    height: 12px;
+    width: 70%;
+    background: $bf-text-dark;
+  }
+
+  &:not(:empty) {
+    width: auto;
+    max-width: 95%;
+    color: $bf-text-dark;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
 }
 
 .bf-text--line {
-  height: 8px;
-  width: 100%;
+  &:empty {
+    height: 8px;
+    width: 100%;
+  }
+
+  &:not(:empty) {
+    width: 100%;
+    font-size: 7px;
+  }
 }
 
 .bf-text--short {
-  height: 8px;
-  width: 40%;
+  &:empty {
+    height: 8px;
+    width: 40%;
+  }
+
+  &:not(:empty) {
+    width: auto;
+    max-width: 45%;
+    font-size: 7px;
+  }
 }
 
 .bf-text--medium {
-  height: 8px;
-  width: 65%;
+  &:empty {
+    height: 8px;
+    width: 65%;
+  }
+
+  &:not(:empty) {
+    width: auto;
+    max-width: 70%;
+    font-size: 7px;
+  }
 }
 
 .bf-action {
@@ -328,6 +424,7 @@ $bf-exui-light: #ffffff;
   gap: 4px;
   padding: 6px 0;
   border-top: 1px solid $bf-border;
+  min-width: 0;
 
   &:first-child {
     border-top: 0;
@@ -341,6 +438,7 @@ $bf-exui-light: #ffffff;
   gap: 4px;
   padding: 8px 0;
   border-top: 1px solid $bf-border;
+  min-width: 0;
 
   &:first-child {
     border-top: 0;
@@ -352,21 +450,39 @@ $bf-exui-light: #ffffff;
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
 .bf-task__key {
+  @include bf-bar-or-text($bf-text-dark, 6.5px, 6px, null, 700, 32%);
   width: 28%;
-  height: 6px;
-  background: $bf-text-dark;
-  border-radius: 1px;
-  flex-shrink: 0;
+
+  &:not(:empty) {
+    width: 28%;
+    flex-shrink: 0;
+  }
 }
 
 .bf-task__value {
   flex: 1;
-  height: 6px;
-  background: $bf-text;
-  border-radius: 1px;
+  min-width: 0;
+
+  &:empty {
+    height: 6px;
+    background: $bf-text;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    height: auto;
+    background: transparent;
+    color: $bf-text;
+    font-size: 6.5px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .bf-task__links {
@@ -374,6 +490,8 @@ $bf-exui-light: #ffffff;
   flex-wrap: wrap;
   gap: 4px;
   margin-top: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .bf-field {
@@ -381,13 +499,11 @@ $bf-exui-light: #ffffff;
   flex-direction: column;
   gap: 3px;
   margin-bottom: 4px;
+  min-width: 0;
 }
 
 .bf-field__label {
-  height: 6px;
-  width: 35%;
-  background: $bf-text-dark;
-  border-radius: 1px;
+  @include bf-bar-or-text($bf-text-dark, 6.5px, 6px, 35%, 400, 80%);
 }
 
 .bf-field__input {
@@ -399,11 +515,9 @@ $bf-exui-light: #ffffff;
 }
 
 .bf-folder {
-  height: 10px;
-  width: 80%;
-  background: $bf-chrome;
-  border-radius: 1px;
+  display: block;
   margin-bottom: 3px;
+  @include bf-bar-or-text($bf-chrome-dark, 8px, 10px, 80%, 400, 90%);
 }
 
 .bf-catalogue {

@@ -1,9 +1,9 @@
 <%#
-  Single text bar.
+  Single text bar — empty = rectangle; with label = text in the bar colour.
   Locals:
     size  — :title | :line | :short | :medium (default :line)
-    label — hovertext naming the element
+    label — visible text and hovertext
 %>
 <% size = (defined?(size) && size) ? size : :line %>
 <% label = (defined?(label) && label) ? label : nil %>
-<span class="bf-text bf-text--<%= size %>"<% if label %> title="<%= escape_html(label) %>"<% end %>></span>
+<span class="bf-text bf-text--<%= size %>"<% if label %> title="<%= escape_html(label) %>"<% end %>><%= label %></span>

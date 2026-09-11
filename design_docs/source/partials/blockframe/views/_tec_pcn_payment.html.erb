@@ -3,10 +3,10 @@
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Payment History" %>
 <% body = [
-  partial("partials/blockframe/text", locals: { size: :title, label: "Payment History heading" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "CasePaymentHistoryViewer table header" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Payment transaction row" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Payment amount / status" }),
+  partial("partials/blockframe/text", locals: { size: :title, label: "Payment History" }),
+  partial("partials/blockframe/text", locals: { size: :line, label: "Payment transactions" }),
+  partial("partials/blockframe/text", locals: { size: :line, label: "Transaction row" }),
+  partial("partials/blockframe/text", locals: { size: :medium, label: "Amount / status" }),
   partial("partials/blockframe/text", locals: { size: :short, label: "Payment reference" }),
   partial("partials/blockframe/text", locals: { size: :line, label: "Payment date" })
 ].join %>

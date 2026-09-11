@@ -3,13 +3,13 @@
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Case File View" %>
 <% body = [
-  partial("partials/blockframe/text", locals: { size: :title, label: "Case File View heading" }),
-  '<span class="bf-folder" title="Folder: Hearing documents"></span>',
-  '<span class="bf-folder" title="Folder: Orders and notices of hearings"></span>',
-  '<span class="bf-folder" title="Folder: Applications"></span>',
-  '<span class="bf-folder" title="Folder: Correspondence"></span>',
-  '<span class="bf-folder" title="Folder: Uncategorised"></span>',
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Selected document name" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Document viewer / preview" })
+  partial("partials/blockframe/text", locals: { size: :title, label: "Case File View" }),
+  '<span class="bf-folder" title="Folder: Hearing documents">Hearing documents</span>',
+  '<span class="bf-folder" title="Folder: Orders and notices of hearings">Orders and notices of hearings</span>',
+  '<span class="bf-folder" title="Folder: Applications">Applications</span>',
+  '<span class="bf-folder" title="Folder: Correspondence">Correspondence</span>',
+  '<span class="bf-folder" title="Folder: Uncategorised">Uncategorised</span>',
+  partial("partials/blockframe/text", locals: { size: :medium, label: "Selected document" }),
+  partial("partials/blockframe/text", locals: { size: :short, label: "Document preview" })
 ].join %>
 <%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_file, body: body } %>
