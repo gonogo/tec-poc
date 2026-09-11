@@ -385,7 +385,7 @@ $bf-exui-light: #ffffff;
 .bf-text--line {
   &:empty {
     height: 8px;
-    width: 100%;
+    width: 88%;
   }
 
   &:not(:empty) {
@@ -546,20 +546,38 @@ $bf-link-callout: #1a65a6;
 
 .bf-task__key {
   @include bf-bar-or-text($bf-text-dark, 6.5px, 6px, null, 700, 32%);
+  // Fixed label column so keys/values share the Validate-card alignment;
+  // empty bars vary via background-size, not element width.
   width: 28%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+
+  &:empty {
+    width: 28%;
+    background-color: transparent;
+    background-image: linear-gradient($bf-text-dark, $bf-text-dark);
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 75% 100%;
+  }
 
   &:not(:empty) {
     width: 28%;
-    flex-shrink: 0;
   }
 }
 
 .bf-task__value {
   flex: 1;
   min-width: 0;
+  text-align: left;
 
   &:empty {
+    flex: 0 0 auto;
+    align-self: center;
     height: 6px;
+    width: 55%;
+    max-width: 70%;
+    margin-right: auto;
     background: $bf-text;
     border-radius: 1px;
   }
@@ -584,6 +602,31 @@ $bf-link-callout: #1a65a6;
   margin-top: 2px;
   flex: 1;
   min-width: 0;
+}
+
+// Blank task cards: irregular empty-bar widths for wireframe texture.
+// Keys keep a fixed 28% column; only the painted bar length changes.
+.bf-task--blank-a {
+  .bf-task__row:nth-child(2) .bf-task__key:empty { background-size: 55% 100%; }
+  .bf-task__row:nth-child(2) .bf-task__value:empty { width: 30%; }
+  .bf-task__row:nth-child(3) .bf-task__key:empty { background-size: 72% 100%; }
+  .bf-task__row:nth-child(3) .bf-task__value:empty { width: 48%; }
+  .bf-task__row:nth-child(4) .bf-task__key:empty { background-size: 88% 100%; }
+  .bf-task__row:nth-child(4) .bf-task__value:empty { width: 38%; }
+  .bf-task__row:nth-child(5) .bf-task__key:empty { background-size: 48% 100%; }
+  .bf-action--link:empty { width: 36%; }
+}
+
+.bf-task--blank-b {
+  .bf-task__row:nth-child(2) .bf-task__key:empty { background-size: 80% 100%; }
+  .bf-task__row:nth-child(2) .bf-task__value:empty { width: 22%; }
+  .bf-task__row:nth-child(3) .bf-task__key:empty { background-size: 60% 100%; }
+  .bf-task__row:nth-child(3) .bf-task__value:empty { width: 58%; }
+  .bf-task__row:nth-child(4) .bf-task__key:empty { background-size: 68% 100%; }
+  .bf-task__row:nth-child(4) .bf-task__value:empty { width: 44%; }
+  .bf-task__row:nth-child(5) .bf-task__key:empty { background-size: 92% 100%; }
+  .bf-action--link:empty:first-child { width: 44%; }
+  .bf-action--link:empty:last-child { width: 28%; }
 }
 
 .bf-field {

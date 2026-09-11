@@ -4,8 +4,10 @@
     size    — :title | :line | :short | :medium (default :line)
     label   — visible text and hovertext
     callout — true → bf-text--callout (GOV.UK black / white on dark chrome)
+    width   — optional empty-bar width override (e.g. "55%")
 %>
 <% size = (defined?(size) && size) ? size : :line %>
 <% label = (defined?(label) && label) ? label : nil %>
 <% callout = (defined?(callout) && callout) ? callout : false %>
-<span class="bf-text bf-text--<%= size %><%= ' bf-text--callout' if callout %>"<% if label %> title="<%= escape_html(label) %>"<% end %>><%= label %></span>
+<% width = (defined?(width) && width) ? width : nil %>
+<span class="bf-text bf-text--<%= size %><%= ' bf-text--callout' if callout %>"<% if label %> title="<%= escape_html(label) %>"<% end %><% if width && !label %> style="width: <%= escape_html(width) %>"<% end %>><%= label %></span>

@@ -1,11 +1,11 @@
 <%#
   TEC PCN — Tasks tab, Minimal example.
   Only Manage cases, case number, and the Validate application form task card have text.
-  That task card is fully callout-styled.
+  That task card is fully callout-styled. Blank cards use varied empty-bar widths.
 %>
 <% caption = (defined?(caption) && caption) ? caption : "Example — Minimal" %>
 <% body = [
-  partial("partials/blockframe/text", locals: { size: :title, label: nil }),
+  partial("partials/blockframe/text", locals: { size: :title, label: nil, width: "48%" }),
   partial("partials/blockframe/task_card", locals: {
     task_title: "Validate application form",
     priority: "High",
@@ -19,10 +19,12 @@
   }),
   partial("partials/blockframe/task_card", locals: {
     blank: true,
+    blank_variant: :a,
     manage_only: true
   }),
   partial("partials/blockframe/task_card", locals: {
     blank: true,
+    blank_variant: :b,
     next_steps: false
   })
 ].join %>
