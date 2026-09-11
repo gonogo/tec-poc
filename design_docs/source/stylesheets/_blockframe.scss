@@ -91,71 +91,75 @@ $bf-exui-light: #ffffff;
 }
 
 .bf-exui__bar-row--nav {
-  align-items: flex-end;
+  align-items: center;
 }
 
 .bf-exui__brand {
   display: block;
-  height: 8px;
-  width: 42%;
+  height: 7px;
+  width: 52px; // ~Manage cases
   background: rgba($bf-exui-light, 0.92);
   border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .bf-exui__sign-out {
   display: block;
-  height: 6px;
-  width: 18%;
+  height: 5px;
+  width: 28px; // ~Sign out
   background: rgba($bf-exui-light, 0.75);
   border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .bf-exui__nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .bf-exui__nav-link {
   display: block;
   height: 5px;
-  width: 28%;
-  min-width: 18px;
   background: rgba($bf-exui-light, 0.8);
   border-radius: 1px;
+  flex-shrink: 0;
+
+  &:first-child {
+    width: 36px; // ~Create case
+  }
+
+  &:last-child {
+    width: 52px; // ~Upload batch file
+  }
 }
 
 .bf-exui__search {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
-}
-
-.bf-exui__search-label {
-  display: block;
-  height: 4px;
-  width: 28px;
-  background: rgba($bf-exui-light, 0.7);
-  border-radius: 1px;
+  margin-left: auto;
 }
 
 .bf-exui__search-input {
   display: block;
   height: 10px;
-  width: 36px;
+  width: 44px; // ~30% wider than previous compact input
   background: $bf-exui-light;
   border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .bf-exui__search-btn {
   display: block;
   height: 10px;
-  width: 16px;
-  background: $bf-exui-light;
-  border-radius: 1px;
+  width: 16px; // ~Find — GOV.UK secondary
+  background: #f3f2f1;
+  border-radius: 0;
+  box-shadow: 0 1px 0 #929191;
+  flex-shrink: 0;
 }
 
 .bf-exui__phase {
@@ -170,7 +174,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__phase-tag {
   display: block;
   height: 8px;
-  width: 22px;
+  width: 18px; // ~BETA
   background: $bf-exui-beta;
   border-radius: 1px;
   flex-shrink: 0;
@@ -179,14 +183,15 @@ $bf-exui-light: #ffffff;
 .bf-exui__phase-text {
   display: block;
   height: 5px;
-  width: 70%;
+  width: 58%; // supporting sentence, not full bleed
+  max-width: 150px;
   background: $bf-text;
   border-radius: 1px;
 }
 
 .bf-exui__case {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 6px;
   padding: 6px;
@@ -196,40 +201,25 @@ $bf-exui-light: #ffffff;
 
 .bf-exui__case-number {
   display: block;
-  height: 9px;
-  width: 48%;
+  height: 8px;
+  width: 96px; // ~Case number: 1788-2660-5799-1856
   background: $bf-text-dark;
   border-radius: 1px;
   flex-shrink: 0;
-  margin-bottom: 2px;
 }
 
 .bf-exui__next-step {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.bf-exui__next-step-label {
-  display: block;
-  height: 4px;
-  width: 28px;
-  background: $bf-text;
-  border-radius: 1px;
-}
-
-.bf-exui__next-step-controls {
-  display: flex;
   align-items: center;
   gap: 3px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .bf-exui__next-step-select {
   display: block;
   height: 12px;
-  width: 58px;
+  width: 72px; // ~Validate application form
   background: $bf-exui-light;
   border: 1px solid $bf-exui-black;
   border-radius: 1px;
@@ -239,7 +229,7 @@ $bf-exui-light: #ffffff;
 .bf-exui__go {
   display: block;
   height: 12px;
-  width: 18px;
+  width: 16px; // ~Go
   background: $bf-exui-go;
   border-radius: 1px;
 }
@@ -247,7 +237,7 @@ $bf-exui-light: #ffffff;
 .bf-tabs {
   display: flex;
   gap: 2px;
-  padding: 0 6px;
+  padding: 4px 6px 0;
   border-bottom: 1px solid $bf-border;
   background: #e8e8e8;
   flex-shrink: 0;
@@ -255,16 +245,20 @@ $bf-exui-light: #ffffff;
 
 .bf-tabs__tab {
   flex: 1;
-  height: 12px;
+  height: 14px;
   background: $bf-chrome;
+  border: 1px solid transparent;
+  border-bottom: 0;
   border-radius: 2px 2px 0 0;
+  margin-bottom: -1px;
 }
 
 .bf-tabs__tab--active {
-  background: $bf-chrome-dark;
-  height: 14px;
-  margin-bottom: -1px;
-  border-bottom: 2px solid $bf-action;
+  background: $bf-page-bg;
+  border-color: $bf-border;
+  border-bottom: 1px solid $bf-page-bg;
+  position: relative;
+  z-index: 1;
 }
 
 .bf-body {
