@@ -1,10 +1,11 @@
 <%#
   Page shell: ExUI chrome + optional tab strip + body HTML.
-  Locals: body, caption, active, wide, show_tabs, minimal
+  Locals: body, caption, active, wide, show_tabs, minimal, highlight_tab
 %>
 <% wide = (defined?(wide) && !wide.nil?) ? wide : false %>
 <% active = (defined?(active) && active) ? active : nil %>
 <% show_tabs = (defined?(show_tabs) && !show_tabs.nil?) ? show_tabs : !active.nil? %>
 <% caption = (defined?(caption) && caption) ? caption : nil %>
 <% minimal = (defined?(minimal) && minimal) ? minimal : false %>
-<div class="bf-frame<%= ' bf-frame--wide' if wide %>"><% if caption %><div class="bf-frame__label"><%= caption %></div><% end %><div class="bf-frame__page"<% if caption %> title="<%= escape_html(caption) %>"<% end %>><%= partial "partials/blockframe/chrome", locals: { show_case_header: show_tabs, minimal: minimal } %><% if show_tabs %><%= partial "partials/blockframe/tabs", locals: { active: active, minimal: minimal } %><% end %><div class="bf-body"><%= body %></div></div></div>
+<% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>
+<div class="bf-frame<%= ' bf-frame--wide' if wide %>"><% if caption %><div class="bf-frame__label"><%= caption %></div><% end %><div class="bf-frame__page"<% if caption %> title="<%= escape_html(caption) %>"<% end %>><%= partial "partials/blockframe/chrome", locals: { show_case_header: show_tabs, minimal: minimal } %><% if show_tabs %><%= partial "partials/blockframe/tabs", locals: { active: active, minimal: minimal, highlight_tab: highlight_tab } %><% end %><div class="bf-body"><%= body %></div></div></div>

@@ -1,15 +1,22 @@
 <%#
   TEC PCN — Case File View tab.
+  Layout mirrors ExUI CFV: toolbar, left folder tree with documents, right media viewer.
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Case File View" %>
+<% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>
 <% body = [
-  partial("partials/blockframe/text", locals: { size: :title, label: "Case File View" }),
-  '<span class="bf-folder" title="Folder: Hearing documents">Hearing documents</span>',
-  '<span class="bf-folder" title="Folder: Orders and notices of hearings">Orders and notices of hearings</span>',
-  '<span class="bf-folder" title="Folder: Applications">Applications</span>',
-  '<span class="bf-folder" title="Folder: Correspondence">Correspondence</span>',
-  '<span class="bf-folder" title="Folder: Uncategorised">Uncategorised</span>',
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Selected document" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Document preview" })
+  '<div class="bf-cfv" title="Case File View">',
+  '<div class="bf-cfv__toolbar" title="Case File View toolbar"><span class="bf-cfv__toolbar-title" title="Case documents heading">Case documents</span><span class="bf-cfv__toolbar-search" title="Search documents"></span><span class="bf-cfv__toolbar-icon" title="Filter documents"></span><span class="bf-cfv__toolbar-icon" title="Sort documents"></span></div>',
+  '<div class="bf-cfv__split">',
+  '<div class="bf-cfv__tree" title="Document folder tree">',
+  '<div class="bf-cfv__folder" title="Folder: Hearing documents"><span class="bf-cfv__folder-label">Hearing documents</span><div class="bf-cfv__docs"><span class="bf-cfv__doc bf-cfv__doc--selected" title="Document: Notice of hearing.pdf">Notice of hearing.pdf</span><span class="bf-cfv__doc-meta" title="Uploaded date">Uploaded 10 Sep 2026</span></div></div>',
+  '<div class="bf-cfv__folder" title="Folder: Orders and notices of hearings"><span class="bf-cfv__folder-label">Orders and notices of hearings</span></div>',
+  '<div class="bf-cfv__folder bf-cfv__folder--open" title="Folder: Applications (expanded)"><span class="bf-cfv__folder-label">Applications</span><div class="bf-cfv__docs"><span class="bf-cfv__doc" title="Document: TE9 application.pdf">TE9 application.pdf</span><span class="bf-cfv__doc-meta" title="Uploaded date">Uploaded 11 Sep 2026</span><span class="bf-cfv__doc" title="Document: Witness statement - Out of time.pdf">Witness statement - Out of time.pdf</span><span class="bf-cfv__doc-meta" title="Uploaded date">Uploaded 11 Sep 2026</span></div></div>',
+  '<div class="bf-cfv__folder" title="Folder: Correspondence"><span class="bf-cfv__folder-label">Correspondence</span></div>',
+  '<div class="bf-cfv__folder" title="Folder: Uncategorised"><span class="bf-cfv__folder-label">Uncategorised</span></div>',
+  '</div>',
+  '<div class="bf-cfv__viewer" title="Document viewer"><div class="bf-cfv__viewer-toolbar" title="Media viewer toolbar"><span class="bf-cfv__viewer-chip" title="Open document name">Notice of hearing.pdf</span><span class="bf-cfv__toolbar-icon" title="Zoom out"></span><span class="bf-cfv__toolbar-icon" title="Zoom in"></span><span class="bf-cfv__toolbar-icon" title="Download"></span></div><div class="bf-cfv__viewer-page" title="Document preview page"><span class="bf-text bf-text--line" style="width: 88%" title="Preview line"></span><span class="bf-text bf-text--line" style="width: 72%" title="Preview line"></span><span class="bf-text bf-text--medium" style="width: 60%" title="Preview line"></span><span class="bf-text bf-text--short" style="width: 40%" title="Preview line"></span><span class="bf-text bf-text--line" style="width: 80%" title="Preview line"></span></div></div>',
+  '</div>',
+  '</div>'
 ].join %>
-<%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_file, body: body } %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_file, wide: true, body: body, highlight_tab: highlight_tab } %>

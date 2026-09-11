@@ -7,7 +7,7 @@ $bf-chrome-dark: #b1b4b6;
 $bf-text: #c8ccd0;
 $bf-text-dark: #9ea3a7;
 $bf-action: #6f777b;
-$bf-page-bg: #f3f2f1;
+$bf-page-bg: #ffffff;
 $bf-highlight: #ffdd00;
 $bf-callout-on-light: #0b0c0c; // GOV.UK text black
 $bf-callout-on-dark: #ffffff;
@@ -67,7 +67,6 @@ $bf-callout-on-dark: #ffffff;
 
 // ExUI Manage Cases chrome (above tabs), scaled to match live layout.
 $bf-exui-black: #0b0c0c;
-$bf-exui-beta: #1d70b8;
 $bf-exui-go: #00703c;
 $bf-exui-light: #ffffff;
 
@@ -202,33 +201,6 @@ $bf-exui-light: #ffffff;
   flex-shrink: 0;
 }
 
-.bf-exui__phase {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  border-bottom: 1px solid $bf-border;
-  background: $bf-exui-light;
-}
-
-.bf-exui__phase-tag {
-  display: block;
-  height: 8px;
-  width: 18px;
-  background: $bf-exui-beta;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
-
-.bf-exui__phase-text {
-  @include bf-bar-or-text($bf-text, 6.5px, 5px, null, 400, 70%);
-  white-space: nowrap;
-
-  &:not(:empty) {
-    max-width: 70%;
-  }
-}
-
 .bf-exui__case {
   display: flex;
   align-items: center;
@@ -291,7 +263,7 @@ $bf-exui-light: #ffffff;
   gap: 2px;
   padding: 4px 6px 0;
   border-bottom: 1px solid $bf-border;
-  background: #e8e8e8;
+  background: $bf-page-bg;
   flex-shrink: 0;
 }
 
@@ -324,6 +296,12 @@ $bf-exui-light: #ffffff;
   font-weight: 700;
   position: relative;
   z-index: 1;
+}
+
+.bf-tabs__tab--highlight {
+  outline: 2px solid $bf-highlight;
+  outline-offset: 1px;
+  z-index: 2;
 }
 
 .bf-body {
@@ -431,6 +409,68 @@ $bf-exui-light: #ffffff;
 
 .bf-action--full {
   width: 100%;
+}
+
+.bf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  width: 100%;
+  max-width: 100%;
+}
+
+// GOV.UK button shapes: optional label text; empty = solid bar.
+.bf-action--secondary,
+.bf-action--primary {
+  margin-top: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 0;
+
+  &:empty {
+    display: block;
+    height: 14px;
+  }
+
+  &:not(:empty) {
+    display: inline-block;
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    padding: 2px 5px;
+    font-size: 6.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}
+
+.bf-action--secondary {
+  background: #f3f2f1;
+  box-shadow: 0 1px 0 #929191;
+
+  &:empty {
+    width: 36%;
+  }
+
+  &:not(:empty) {
+    color: #0b0c0c;
+  }
+}
+
+.bf-action--primary {
+  background: $bf-exui-go;
+  box-shadow: 0 1px 0 #002d18;
+
+  &:empty {
+    width: 40%;
+  }
+
+  &:not(:empty) {
+    color: #fff;
+  }
 }
 
 // Link actions (Manage / Next steps): muted blue by default; callout → stronger blue.
@@ -654,6 +694,39 @@ $bf-link-callout: #1a65a6;
   border-radius: 1px;
 }
 
+// Event form column (Validate application form): half the page, compact fields.
+.bf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 50%;
+  max-width: 50%;
+  min-width: 0;
+
+  .bf-field {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .bf-field__label {
+    max-width: 100%;
+
+    &:empty {
+      height: 3px;
+    }
+
+    &:not(:empty) {
+      max-width: 100%;
+    }
+  }
+
+  .bf-field__input {
+    height: 8px;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 .bf-folder {
   display: block;
   margin-bottom: 3px;
@@ -662,6 +735,201 @@ $bf-link-callout: #1a65a6;
   &:empty {
     margin-block: 1px;
   }
+}
+
+// ExUI Case File View: toolbar + folder tree + media viewer.
+.bf-body:has(.bf-cfv) {
+  padding: 0;
+  gap: 0;
+}
+
+.bf-cfv {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 220px;
+  min-width: 0;
+}
+
+.bf-cfv__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-bottom: 1px solid $bf-border;
+  background: $bf-page-bg;
+  flex-shrink: 0;
+}
+
+.bf-cfv__toolbar-title {
+  @include bf-bar-or-text($bf-text-dark, 7px, 6px, 48%, 700, 55%);
+  margin-right: auto;
+}
+
+.bf-cfv__toolbar-search {
+  display: block;
+  height: 8px;
+  width: 36px;
+  background: #fff;
+  border: 1px solid $bf-border;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bf-cfv__toolbar-icon {
+  display: block;
+  height: 6px;
+  width: 6px;
+  background: $bf-chrome-dark;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bf-cfv__split {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.bf-cfv__tree {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 44%;
+  flex-shrink: 0;
+  padding: 5px 4px;
+  border-right: 1px solid $bf-border;
+  background: $bf-page-bg;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bf-cfv__folder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bf-cfv__folder-label {
+  display: block;
+  position: relative;
+  padding-left: 8px;
+  min-width: 0;
+  box-sizing: border-box;
+
+  // Folder expand chevron (wireframe).
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-top: 2.5px solid transparent;
+    border-bottom: 2.5px solid transparent;
+    border-left: 3.5px solid $bf-chrome-dark;
+    transform: translateY(-50%);
+  }
+
+  &:empty {
+    height: 6px;
+    width: 78%;
+    margin-block: 1px;
+    background: $bf-text-dark;
+    background-clip: content-box;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    color: $bf-text-dark;
+    font-size: 6.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.bf-cfv__folder--open .bf-cfv__folder-label::before {
+  border-left: 2.5px solid transparent;
+  border-right: 2.5px solid transparent;
+  border-top: 3.5px solid $bf-chrome-dark;
+  border-bottom: 0;
+  transform: translateY(-35%);
+}
+
+.bf-cfv__docs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 10px;
+  min-width: 0;
+}
+
+.bf-cfv__doc {
+  display: block;
+  color: $bf-link;
+  font-size: 6px;
+  line-height: 1.15;
+  text-decoration: underline;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bf-cfv__doc--selected {
+  color: $bf-link-callout;
+  font-weight: 700;
+}
+
+.bf-cfv__doc-meta {
+  display: block;
+  color: $bf-text;
+  font-size: 5px;
+  line-height: 1.1;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bf-cfv__viewer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: #e8e8e8;
+}
+
+.bf-cfv__viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 4px;
+  background: $bf-chrome;
+  border-bottom: 1px solid $bf-border;
+  flex-shrink: 0;
+}
+
+.bf-cfv__viewer-chip {
+  @include bf-bar-or-text($bf-text-dark, 5.5px, 5px, 55%, 400, 70%);
+  margin-right: auto;
+}
+
+.bf-cfv__viewer-page {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  margin: 6px;
+  padding: 8px 6px;
+  background: #fff;
+  border: 1px solid $bf-border;
+  min-height: 120px;
+  box-sizing: border-box;
 }
 
 .bf-catalogue {

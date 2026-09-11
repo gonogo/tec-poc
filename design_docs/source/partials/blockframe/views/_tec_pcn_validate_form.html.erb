@@ -1,12 +1,15 @@
 <%#
   TEC PCN — Validate application form event (no case tabs).
+  Form column is half the page; field controls are sized for that column.
 %>
 <% caption = (defined?(caption) && caption) ? caption : "Event — Validate application form" %>
 <% body = [
+  '<div class="bf-form">',
   partial("partials/blockframe/text", locals: { size: :title, label: "Validate application form" }),
   partial("partials/blockframe/text", locals: { size: :medium, label: "Confirm the form validation result for this application." }),
   '<div class="bf-field" title="Form validation result field"><span class="bf-field__label" title="Form validation result (label)">Form validation result</span><span class="bf-field__input" title="Form validation result (input)"></span></div>',
   '<div class="bf-field" title="Form validation comment field"><span class="bf-field__label" title="Form validation comment (label)">Form validation comment</span><span class="bf-field__input" title="Form validation comment (input)"></span></div>',
-  '<span class="bf-action" title="Submit"></span>'
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  '</div>'
 ].join %>
 <%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, body: body } %>

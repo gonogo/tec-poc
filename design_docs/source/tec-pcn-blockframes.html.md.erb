@@ -35,7 +35,7 @@ Yellow outline (`highlight`) and link-blue (`callout`) mark the Next steps contr
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Validate application form" } %></div>
-<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
 </div>
 
@@ -47,8 +47,18 @@ Same Tasks entry point; Next steps opens a form-specific edit event (TE9 / PE3 /
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_edit_application", locals: { caption: "2. Event — Edit TE9 application" } %></div>
-<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+</div>
+
+## Journey: Tasks to Case File View
+
+Clerk moves from the **Tasks** tab to **Case File View** to open case documents. Yellow outline marks the Case File View tab on the starting screen. The destination shows the ExUI-style split: folder tree (`CaseFileCategory`) with sample documents, and a media viewer for the selected file.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight_tab: :case_file } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Case File View</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_file", locals: { caption: "2. TEC PCN — Case File View" } %></div>
 </div>
 
 ## Examples
