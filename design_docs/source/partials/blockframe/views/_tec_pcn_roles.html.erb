@@ -1,0 +1,12 @@
+<%#
+  TEC PCN — Roles and access tab (CCD shell placeholder).
+%>
+<% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Roles and access" %>
+<% body = [
+  partial("partials/blockframe/text", locals: { size: :title, label: "Roles and access heading" }),
+  partial("partials/blockframe/text", locals: { size: :line, label: "Placeholder role assignment copy" }),
+  partial("partials/blockframe/text", locals: { size: :medium, label: "Allocated users list" }),
+  partial("partials/blockframe/text", locals: { size: :short, label: "Access category note" }),
+  '<span class="bf-action" title="Allocate access (placeholder)"></span>'
+].join %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, active: :roles, body: body } %>

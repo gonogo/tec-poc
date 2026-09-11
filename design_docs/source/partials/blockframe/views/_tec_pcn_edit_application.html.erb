@@ -1,0 +1,15 @@
+<%#
+  TEC PCN — Edit application event (TE9 / PE3 / TE7 / PE2 shape).
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — Edit application" %>
+<% body = [
+  partial("partials/blockframe/text", locals: { size: :title, label: "Page heading: Edit application" }),
+  partial("partials/blockframe/text", locals: { size: :short, label: "Event description" }),
+  '<div class="bf-field" title="Date received field"><span class="bf-field__label" title="Date received (label)"></span><span class="bf-field__input" title="Date received (input)"></span></div>',
+  '<div class="bf-field" title="Application type field"><span class="bf-field__label" title="Application type (label)"></span><span class="bf-field__input" title="Application type (input)"></span></div>',
+  '<div class="bf-field" title="Applicant / full name field"><span class="bf-field__label" title="Applicant name (label)"></span><span class="bf-field__input" title="Applicant name (input)"></span></div>',
+  '<div class="bf-field" title="Address field"><span class="bf-field__label" title="Address (label)"></span><span class="bf-field__input" title="Address (input)"></span></div>',
+  '<div class="bf-field" title="Declaration / reasons field"><span class="bf-field__label" title="Declaration or reasons (label)"></span><span class="bf-field__input" title="Declaration or reasons (input)"></span></div>',
+  '<span class="bf-action bf-action--full" title="Submit"></span>'
+].join %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, body: body } %>

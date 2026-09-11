@@ -1,0 +1,459 @@
+// Blockframe wireframe primitives for journey boards.
+// Namespaced under .bf- to avoid clashing with govuk_tech_docs.
+
+$bf-border: #b1b4b6;
+$bf-chrome: #d0d3d5;
+$bf-chrome-dark: #b1b4b6;
+$bf-text: #c8ccd0;
+$bf-text-dark: #9ea3a7;
+$bf-action: #6f777b;
+$bf-page-bg: #f3f2f1;
+$bf-highlight: #ffdd00;
+
+.bf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  margin: 1rem 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid $bf-border;
+  background: #fff;
+}
+
+.bf-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.bf-frame {
+  display: inline-flex;
+  flex-direction: column;
+  width: 280px;
+  flex-shrink: 0;
+  vertical-align: top;
+}
+
+.bf-frame--wide {
+  width: 320px;
+}
+
+.bf-frame__page {
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+  border: 1px solid $bf-border;
+  background: $bf-page-bg;
+  overflow: hidden;
+}
+
+.bf-frame__label {
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0b0c0c;
+  text-align: left;
+}
+
+// Hovertext is provided via title= on blocks; show help cursor.
+.bf-frame [title],
+.bf-legend [title] {
+  cursor: help;
+}
+
+// ExUI Manage Cases chrome (above tabs), scaled to match live layout.
+$bf-exui-black: #0b0c0c;
+$bf-exui-beta: #1d70b8;
+$bf-exui-go: #00703c;
+$bf-exui-light: #ffffff;
+
+.bf-exui {
+  flex-shrink: 0;
+  background: $bf-exui-light;
+}
+
+.bf-exui__bar {
+  background: $bf-exui-black;
+  padding: 4px 6px 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bf-exui__bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 10px;
+}
+
+.bf-exui__bar-row--nav {
+  align-items: flex-end;
+}
+
+.bf-exui__brand {
+  display: block;
+  height: 8px;
+  width: 42%;
+  background: rgba($bf-exui-light, 0.92);
+  border-radius: 1px;
+}
+
+.bf-exui__sign-out {
+  display: block;
+  height: 6px;
+  width: 18%;
+  background: rgba($bf-exui-light, 0.75);
+  border-radius: 1px;
+}
+
+.bf-exui__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bf-exui__nav-link {
+  display: block;
+  height: 5px;
+  width: 28%;
+  min-width: 18px;
+  background: rgba($bf-exui-light, 0.8);
+  border-radius: 1px;
+}
+
+.bf-exui__search {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.bf-exui__search-label {
+  display: block;
+  height: 4px;
+  width: 28px;
+  background: rgba($bf-exui-light, 0.7);
+  border-radius: 1px;
+}
+
+.bf-exui__search-input {
+  display: block;
+  height: 10px;
+  width: 36px;
+  background: $bf-exui-light;
+  border-radius: 1px;
+}
+
+.bf-exui__search-btn {
+  display: block;
+  height: 10px;
+  width: 16px;
+  background: $bf-exui-light;
+  border-radius: 1px;
+}
+
+.bf-exui__phase {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-bottom: 1px solid $bf-border;
+  background: $bf-exui-light;
+}
+
+.bf-exui__phase-tag {
+  display: block;
+  height: 8px;
+  width: 22px;
+  background: $bf-exui-beta;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bf-exui__phase-text {
+  display: block;
+  height: 5px;
+  width: 70%;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-exui__case {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px;
+  background: $bf-exui-light;
+  border-bottom: 1px solid $bf-border;
+}
+
+.bf-exui__case-number {
+  display: block;
+  height: 9px;
+  width: 48%;
+  background: $bf-text-dark;
+  border-radius: 1px;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.bf-exui__next-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.bf-exui__next-step-label {
+  display: block;
+  height: 4px;
+  width: 28px;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-exui__next-step-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.bf-exui__next-step-select {
+  display: block;
+  height: 12px;
+  width: 58px;
+  background: $bf-exui-light;
+  border: 1px solid $bf-exui-black;
+  border-radius: 1px;
+  box-sizing: border-box;
+}
+
+.bf-exui__go {
+  display: block;
+  height: 12px;
+  width: 18px;
+  background: $bf-exui-go;
+  border-radius: 1px;
+}
+
+.bf-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 6px;
+  border-bottom: 1px solid $bf-border;
+  background: #e8e8e8;
+  flex-shrink: 0;
+}
+
+.bf-tabs__tab {
+  flex: 1;
+  height: 12px;
+  background: $bf-chrome;
+  border-radius: 2px 2px 0 0;
+}
+
+.bf-tabs__tab--active {
+  background: $bf-chrome-dark;
+  height: 14px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid $bf-action;
+}
+
+.bf-body {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bf-text {
+  display: block;
+  height: 8px;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-text--title {
+  height: 12px;
+  width: 70%;
+  background: $bf-text-dark;
+}
+
+.bf-text--line {
+  height: 8px;
+  width: 100%;
+}
+
+.bf-text--short {
+  height: 8px;
+  width: 40%;
+}
+
+.bf-text--medium {
+  height: 8px;
+  width: 65%;
+}
+
+.bf-action {
+  display: block;
+  height: 14px;
+  width: 45%;
+  background: $bf-action;
+  border-radius: 1px;
+  margin-top: 4px;
+}
+
+.bf-action--full {
+  width: 100%;
+}
+
+.bf-action--link {
+  height: 8px;
+  width: 55%;
+  background: $bf-action;
+  opacity: 0.85;
+}
+
+.bf-action--highlight {
+  outline: 2px solid $bf-highlight;
+  outline-offset: 2px;
+}
+
+.bf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 0;
+  border-top: 1px solid $bf-border;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.bf-task {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-top: 1px solid $bf-border;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.bf-task__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bf-task__key {
+  width: 28%;
+  height: 6px;
+  background: $bf-text-dark;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bf-task__value {
+  flex: 1;
+  height: 6px;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-task__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.bf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.bf-field__label {
+  height: 6px;
+  width: 35%;
+  background: $bf-text-dark;
+  border-radius: 1px;
+}
+
+.bf-field__input {
+  height: 16px;
+  width: 100%;
+  background: #fff;
+  border: 1px solid $bf-border;
+  border-radius: 1px;
+}
+
+.bf-folder {
+  height: 10px;
+  width: 80%;
+  background: $bf-chrome;
+  border-radius: 1px;
+  margin-bottom: 3px;
+}
+
+.bf-catalogue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 1rem 0 2rem;
+}
+
+.bf-journey {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.bf-journey__step {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.bf-journey__arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 72px;
+  min-height: 160px;
+  flex-shrink: 0;
+  color: #505a5f;
+  font-size: 1.5rem;
+  line-height: 1;
+  user-select: none;
+  text-align: center;
+}
+
+.bf-journey__arrow-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 4.5rem;
+}

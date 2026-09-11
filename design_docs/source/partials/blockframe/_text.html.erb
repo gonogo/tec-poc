@@ -1,0 +1,9 @@
+<%#
+  Single text bar.
+  Locals:
+    size  — :title | :line | :short | :medium (default :line)
+    label — hovertext naming the element
+%>
+<% size = (defined?(size) && size) ? size : :line %>
+<% label = (defined?(label) && label) ? label : nil %>
+<span class="bf-text bf-text--<%= size %>"<% if label %> title="<%= escape_html(label) %>"<% end %>></span>
