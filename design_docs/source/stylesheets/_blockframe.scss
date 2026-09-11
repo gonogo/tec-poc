@@ -253,12 +253,29 @@ $bf-exui-light: #ffffff;
 
 .bf-exui__next-step-select {
   display: block;
+  position: relative;
   height: 12px;
   width: 72px;
   background: $bf-exui-light;
   border: 1px solid $bf-exui-black;
   border-radius: 1px;
   box-sizing: border-box;
+
+  // Grey down-pointing triangle caret on the right, like a select.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    width: 0;
+    height: 0;
+    background: transparent;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid #b1b4b6;
+    transform: translateY(-35%);
+    pointer-events: none;
+  }
 }
 
 .bf-exui__go {
