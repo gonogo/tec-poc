@@ -1,29 +1,37 @@
 <%#
   TEC PCN — Case details tab (Registration / Application / Time extension).
+  Field keys show labels; values are empty bars of varying width.
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Case details" %>
 <% body = [
   '<div class="bf-section" title="Registration section">',
   partial("partials/blockframe/text", locals: { size: :title, label: "Registration" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "File identifier / Batch identifier" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Penalty charge number" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Local authority / Respondent details" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Vehicle registration" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Payment status / Registration document" }),
+  '<div class="bf-kv" title="File identifier"><span class="bf-kv__key">File identifier</span><span class="bf-kv__value" style="width: 48%"></span></div>',
+  '<div class="bf-kv" title="Batch identifier"><span class="bf-kv__key">Batch identifier</span><span class="bf-kv__value" style="width: 36%"></span></div>',
+  '<div class="bf-kv" title="Penalty charge number"><span class="bf-kv__key">Penalty charge number</span><span class="bf-kv__value" style="width: 28%"></span></div>',
+  '<div class="bf-kv" title="Local authority"><span class="bf-kv__key">Local authority</span><span class="bf-kv__value" style="width: 58%"></span></div>',
+  '<div class="bf-kv" title="Respondent details"><span class="bf-kv__key">Respondent details</span><span class="bf-kv__value" style="width: 72%"></span></div>',
+  '<div class="bf-kv" title="Vehicle registration"><span class="bf-kv__key">Vehicle registration</span><span class="bf-kv__value" style="width: 22%"></span></div>',
+  '<div class="bf-kv" title="Payment status"><span class="bf-kv__key">Payment status</span><span class="bf-kv__value" style="width: 30%"></span></div>',
+  '<div class="bf-kv" title="Registration document"><span class="bf-kv__key">Registration document</span><span class="bf-kv__value" style="width: 52%"></span></div>',
   "</div>",
   '<div class="bf-section" title="Application section">',
   partial("partials/blockframe/text", locals: { size: :title, label: "Witness statement — In time" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Form validation result" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Date received / Application type" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Applicant / address" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Declaration / conditional fields" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "PCN / VRN" }),
+  '<div class="bf-kv" title="Form validation result"><span class="bf-kv__key">Form validation result</span><span class="bf-kv__value" style="width: 34%"></span></div>',
+  '<div class="bf-kv" title="Date received"><span class="bf-kv__key">Date received</span><span class="bf-kv__value" style="width: 40%"></span></div>',
+  '<div class="bf-kv" title="Application type"><span class="bf-kv__key">Application type</span><span class="bf-kv__value" style="width: 26%"></span></div>',
+  '<div class="bf-kv" title="Applicant"><span class="bf-kv__key">Applicant</span><span class="bf-kv__value" style="width: 55%"></span></div>',
+  '<div class="bf-kv" title="Address"><span class="bf-kv__key">Address</span><span class="bf-kv__value" style="width: 68%"></span></div>',
+  '<div class="bf-kv" title="Declaration"><span class="bf-kv__key">Declaration</span><span class="bf-kv__value" style="width: 44%"></span></div>',
+  '<div class="bf-kv" title="PCN"><span class="bf-kv__key">PCN</span><span class="bf-kv__value" style="width: 32%"></span></div>',
+  '<div class="bf-kv" title="VRN"><span class="bf-kv__key">VRN</span><span class="bf-kv__value" style="width: 24%"></span></div>',
   "</div>",
   '<div class="bf-section" title="Time extension section">',
   partial("partials/blockframe/text", locals: { size: :title, label: "Application to file out of time" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Form validation result" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Permission sought / reasons" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Signed and dated" }),
+  '<div class="bf-kv" title="Form validation result"><span class="bf-kv__key">Form validation result</span><span class="bf-kv__value" style="width: 38%"></span></div>',
+  '<div class="bf-kv" title="Permission sought"><span class="bf-kv__key">Permission sought</span><span class="bf-kv__value" style="width: 50%"></span></div>',
+  '<div class="bf-kv" title="Reasons"><span class="bf-kv__key">Reasons</span><span class="bf-kv__value" style="width: 76%"></span></div>',
+  '<div class="bf-kv" title="Signed and dated"><span class="bf-kv__key">Signed and dated</span><span class="bf-kv__value" style="width: 42%"></span></div>',
   "</div>"
 ].join %>
 <%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_details, body: body } %>

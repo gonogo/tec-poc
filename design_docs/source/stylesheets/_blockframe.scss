@@ -32,7 +32,7 @@ $bf-callout-on-dark: #ffffff;
 .bf-frame {
   display: inline-flex;
   flex-direction: column;
-  width: 280px;
+  width: 320px;
   flex-shrink: 0;
   vertical-align: top;
 }
@@ -59,10 +59,10 @@ $bf-callout-on-dark: #ffffff;
   text-align: left;
 }
 
-// Hovertext is provided via title= on blocks; show help cursor.
+// Hovertext is provided via title= on blocks.
 .bf-frame [title],
 .bf-legend [title] {
-  cursor: help;
+  cursor: default;
 }
 
 // ExUI Manage Cases chrome (above tabs), scaled to match live layout.
@@ -550,9 +550,122 @@ $bf-link-callout: #1a65a6;
     padding-top: 0;
   }
 
-  &:has(> .bf-text:empty) {
+  &:has(> .bf-text:empty),
+  &:has(> .bf-kv__key:empty) {
     gap: 5px;
   }
+}
+
+// Case details field rows: labelled key + empty value bar.
+.bf-kv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bf-kv__key {
+  @include bf-bar-or-text($bf-text-dark, 6.5px, 6px, null, 400, 40%);
+  width: 38%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+
+  &:empty {
+    width: 38%;
+    background-color: transparent;
+    background-image: linear-gradient($bf-text-dark, $bf-text-dark);
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 70% 100%;
+  }
+
+  &:not(:empty) {
+    width: 38%;
+  }
+}
+
+.bf-kv__value {
+  flex: 0 0 auto;
+  min-width: 0;
+  text-align: left;
+
+  &:empty {
+    height: 6px;
+    width: 45%;
+    max-width: 62%;
+    background: $bf-text;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    height: auto;
+    width: auto;
+    max-width: 62%;
+    background: transparent;
+    color: $bf-text;
+    font-size: 6.5px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Payment History / CasePaymentHistoryViewer-style table.
+.bf-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  background: $bf-page-bg;
+}
+
+.bf-table__head,
+.bf-table__row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  border-bottom: 1px solid $bf-border;
+  background: $bf-page-bg;
+}
+
+.bf-table__cell {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 3px;
+  box-sizing: border-box;
+}
+
+.bf-table__cell--wide {
+  flex: 1.4 1 0;
+}
+
+.bf-table__cell--head {
+  color: $bf-text-dark;
+  font-size: 6px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:empty {
+    height: 5px;
+    background: $bf-text-dark;
+    border-radius: 1px;
+  }
+}
+
+.bf-table__bar {
+  display: block;
+  height: 5px;
+  width: 70%;
+  max-width: 100%;
+  background: $bf-text;
+  border-radius: 1px;
 }
 
 .bf-task {

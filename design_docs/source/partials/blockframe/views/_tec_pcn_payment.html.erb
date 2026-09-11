@@ -1,13 +1,15 @@
 <%#
   TEC PCN — Payment History tab.
+  Mirrors ExUI CasePaymentHistoryViewer: table of payments received.
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Payment History" %>
 <% body = [
-  partial("partials/blockframe/text", locals: { size: :title, label: "Payment History" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Payment transactions" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Transaction row" }),
-  partial("partials/blockframe/text", locals: { size: :medium, label: "Amount / status" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Payment reference" }),
-  partial("partials/blockframe/text", locals: { size: :line, label: "Payment date" })
+  partial("partials/blockframe/text", locals: { size: :title, label: "Payments" }),
+  '<div class="bf-table" title="Payments received table">',
+  '<div class="bf-table__head" title="Table header"><span class="bf-table__cell bf-table__cell--head" title="Status (column)">Status</span><span class="bf-table__cell bf-table__cell--head" title="Amount (column)">Amount</span><span class="bf-table__cell bf-table__cell--head" title="Date (column)">Date</span><span class="bf-table__cell bf-table__cell--head bf-table__cell--wide" title="Payment reference (column)">Payment reference</span></div>',
+  '<div class="bf-table__row" title="Payment row"><span class="bf-table__cell"><span class="bf-table__bar" style="width: 72%" title="Status value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 55%" title="Amount value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 80%" title="Date value"></span></span><span class="bf-table__cell bf-table__cell--wide"><span class="bf-table__bar" style="width: 88%" title="Payment reference value"></span></span></div>',
+  '<div class="bf-table__row" title="Payment row"><span class="bf-table__cell"><span class="bf-table__bar" style="width: 58%" title="Status value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 48%" title="Amount value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 70%" title="Date value"></span></span><span class="bf-table__cell bf-table__cell--wide"><span class="bf-table__bar" style="width: 64%" title="Payment reference value"></span></span></div>',
+  '<div class="bf-table__row" title="Payment row"><span class="bf-table__cell"><span class="bf-table__bar" style="width: 65%" title="Status value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 42%" title="Amount value"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 76%" title="Date value"></span></span><span class="bf-table__cell bf-table__cell--wide"><span class="bf-table__bar" style="width: 92%" title="Payment reference value"></span></span></div>',
+  '</div>'
 ].join %>
 <%= partial "partials/blockframe/page", locals: { caption: caption, active: :payment, body: body } %>
