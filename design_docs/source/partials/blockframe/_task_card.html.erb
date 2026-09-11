@@ -1,15 +1,26 @@
 <%#
   Prototype Tasks card (Manage / Next steps).
-  Heading / summary labels and values are text; Manage and Next steps actions stay as bars.
+  Locals:
+    blank           — empty bars only (no text content)
+    callout_section — callout all text + links in this card
+    highlight / callout — modifiers on primary Next steps link
 %>
+<% blank = (defined?(blank) && blank) ? blank : false %>
+<% callout_section = (defined?(callout_section) && callout_section) ? callout_section : false %>
 <% task_title = (defined?(task_title) && task_title) ? task_title : "Task name" %>
 <% priority = (defined?(priority) && priority) ? priority : "High" %>
 <% due_date = (defined?(due_date) && due_date) ? due_date : "Due date" %>
 <% assignee = (defined?(assignee) && assignee) ? assignee : "Unassigned" %>
 <% next_steps = (defined?(next_steps) && next_steps) ? next_steps : false %>
 <% highlight = (defined?(highlight) && highlight) ? highlight : false %>
+<% callout = (defined?(callout) && callout) ? callout : false %>
 <% manage_only = (defined?(manage_only) && manage_only) ? manage_only : false %>
 <% extra_next_steps = (defined?(extra_next_steps) && extra_next_steps) ? extra_next_steps : false %>
-<% next_step_label = (defined?(next_step_label) && next_step_label) ? next_step_label : "Next steps" %>
-<% next_step_label_2 = (defined?(next_step_label_2) && next_step_label_2) ? next_step_label_2 : "Next steps" %>
-<div class="bf-task" title="Task card: <%= escape_html(task_title) %>"><%= partial "partials/blockframe/text", locals: { size: :title, label: task_title } %><div class="bf-task__row"><span class="bf-task__key" title="Priority (label)">Priority</span><span class="bf-task__value" title="Priority value"><%= escape_html(priority) %></span></div><div class="bf-task__row"><span class="bf-task__key" title="Due date (label)">Due date</span><span class="bf-task__value" title="Due date value"><%= escape_html(due_date) %></span></div><div class="bf-task__row"><span class="bf-task__key" title="Assigned to (label)">Assigned to</span><span class="bf-task__value" title="Assignee"><%= escape_html(assignee) %></span></div><div class="bf-task__row"><span class="bf-task__key" title="Manage (label)">Manage</span><div class="bf-task__links"><% if manage_only %><span class="bf-action bf-action--link" title="Manage: Assign to me"></span><% else %><span class="bf-action bf-action--link" title="Manage: Reassign"></span><span class="bf-action bf-action--link" title="Manage: Unassign"></span><% end %></div></div><% if next_steps %><div class="bf-task__row"><span class="bf-task__key" title="Next steps (label)">Next steps</span><div class="bf-task__links"><span class="bf-action bf-action--link<%= ' bf-action--highlight' if highlight %>" title="<%= escape_html(next_step_label) %>"></span><% if extra_next_steps %><span class="bf-action bf-action--link" title="<%= escape_html(next_step_label_2) %>"></span><% end %></div></div><% end %></div>
+<% next_step_label = (defined?(next_step_label) && next_step_label) ? next_step_label : "Validate application form" %>
+<% next_step_label_2 = (defined?(next_step_label_2) && next_step_label_2) ? next_step_label_2 : "Edit application" %>
+<% text_callout = callout_section ? " bf-callout" : "" %>
+<% link_mods = " bf-action--link" %>
+<% link_mods += " bf-action--highlight" if highlight %>
+<% link_mods += " bf-action--callout" if callout || callout_section %>
+<% show = !blank %>
+<div class="bf-task" title="Task card: <%= escape_html(task_title) %>"><%= partial "partials/blockframe/text", locals: { size: :title, label: (show ? task_title : nil), callout: callout_section } %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Priority (label)"><%= "Priority" if show %></span><span class="bf-task__value<%= text_callout %>" title="Priority value"><%= escape_html(priority) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Due date (label)"><%= "Due date" if show %></span><span class="bf-task__value<%= text_callout %>" title="Due date value"><%= escape_html(due_date) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Assigned to (label)"><%= "Assigned to" if show %></span><span class="bf-task__value<%= text_callout %>" title="Assignee"><%= escape_html(assignee) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Manage (label)"><%= "Manage" if show %></span><div class="bf-task__links"><% if manage_only %><span class="bf-action<%= link_mods %>" title="Manage: Assign to me"><%= "Assign to me" if show %></span><% else %><span class="bf-action<%= link_mods %>" title="Manage: Reassign"><%= "Reassign" if show %></span><span class="bf-action<%= link_mods %>" title="Manage: Unassign"><%= "Unassign" if show %></span><% end %></div></div><% if next_steps %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Next steps (label)"><%= "Next steps" if show %></span><div class="bf-task__links"><span class="bf-action<%= link_mods %>" title="Next steps: <%= escape_html(next_step_label) %>"><%= escape_html(next_step_label) if show %></span><% if extra_next_steps %><span class="bf-action<%= link_mods %>" title="Next steps: <%= escape_html(next_step_label_2) %>"><%= escape_html(next_step_label_2) if show %></span><% end %></div></div><% end %></div>

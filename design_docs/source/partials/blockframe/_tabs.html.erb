@@ -1,6 +1,8 @@
 <%#
   Tab strip for TEC PCN case view.
-  Locals: active — :tasks | :roles | :case_details | :case_file | :payment
+  Locals:
+    active  — :tasks | :roles | :case_details | :case_file | :payment
+    minimal — empty tab bars (no labels)
 %>
 <% tabs = [
   [:tasks, "Tasks"],
@@ -9,4 +11,5 @@
   [:case_file, "Case File View"],
   [:payment, "Payment History"]
 ] %>
-<div class="bf-tabs"><% tabs.each do |key, label| %><% state = active == key ? " (active)" : "" %><div class="bf-tabs__tab<%= ' bf-tabs__tab--active' if active == key %>" title="<%= label %> tab<%= state %>"><%= label %></div><% end %></div>
+<% minimal = (defined?(minimal) && minimal) ? minimal : false %>
+<div class="bf-tabs"><% tabs.each do |key, label| %><% state = active == key ? " (active)" : "" %><div class="bf-tabs__tab<%= ' bf-tabs__tab--active' if active == key %>" title="<%= label %> tab<%= state %>"><%= label unless minimal %></div><% end %></div>

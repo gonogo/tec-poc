@@ -9,6 +9,8 @@ $bf-text-dark: #9ea3a7;
 $bf-action: #6f777b;
 $bf-page-bg: #f3f2f1;
 $bf-highlight: #ffdd00;
+$bf-callout-on-light: #0b0c0c; // GOV.UK text black
+$bf-callout-on-dark: #ffffff;
 
 .bf-legend {
   display: flex;
@@ -406,16 +408,68 @@ $bf-exui-light: #ffffff;
   width: 100%;
 }
 
+// Link actions (Manage / Next steps): muted blue by default; callout → stronger blue.
+$bf-link: #91c2ee;
+$bf-link-callout: #1a65a6;
+
 .bf-action--link {
-  height: 8px;
-  width: 55%;
-  background: $bf-action;
-  opacity: 0.85;
+  margin-top: 0;
+  flex-shrink: 0;
+  align-self: center;
+
+  &:empty {
+    display: block;
+    height: 4px;
+    width: 55%;
+    background: $bf-link;
+    border-radius: 1px;
+    opacity: 1;
+  }
+
+  &:not(:empty) {
+    display: inline-block;
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    background: transparent;
+    color: $bf-link;
+    font-size: 6.5px;
+    font-weight: 400;
+    line-height: 1.2;
+    text-decoration: underline;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .bf-action--highlight {
   outline: 2px solid $bf-highlight;
   outline-offset: 2px;
+}
+
+// Callout on actions/links → stronger link blue for text and empty bars.
+.bf-action--callout {
+  &:empty {
+    background: $bf-link-callout;
+    opacity: 1;
+  }
+
+  &:not(:empty) {
+    color: $bf-link-callout;
+    background: transparent;
+  }
+}
+
+// Callout on text/headings → GOV.UK black on light; white on dark ExUI chrome.
+.bf-frame .bf-text--callout:not(:empty),
+.bf-frame .bf-callout:not(:empty) {
+  color: $bf-callout-on-light;
+}
+
+.bf-exui__bar .bf-text--callout:not(:empty),
+.bf-exui__bar .bf-callout:not(:empty) {
+  color: $bf-callout-on-dark;
 }
 
 .bf-section {
@@ -488,6 +542,7 @@ $bf-exui-light: #ffffff;
 .bf-task__links {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
   margin-top: 2px;
   flex: 1;

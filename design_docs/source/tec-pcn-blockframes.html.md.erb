@@ -7,11 +7,11 @@ weight: 45
 
 Low-fidelity **blockframes** for the TEC PCN (`TEC`) case view: grey page frames and text bars for journey boards. Not screenshots and not Mermaid — page-shaped wireframes that stay editable in git.
 
-Each frame is labelled with the screen or view name. Hover any grey block for the element it represents. Reuse the primitives when adding Batch or Exception journeys later.
+Each frame is labelled with the screen or view name. Hover any grey block for the element it represents. Use `bf-text--callout` (or `callout: true` on text partials) for GOV.UK black heading/copy, and `bf-action--callout` on links/actions for GOV.UK link blue. Reuse the primitives when adding Batch or Exception journeys later.
 
 ## Primitives
 
-<div class="bf-legend"><div class="bf-legend__item"><span class="bf-text bf-text--title" style="width: 4rem;" title="Title text"></span> Title</div><div class="bf-legend__item"><span class="bf-text bf-text--line" style="width: 5rem;" title="Text line"></span> Text line</div><div class="bf-legend__item"><span class="bf-text bf-text--short" style="width: 2.5rem;" title="Short text line"></span> Short line</div><div class="bf-legend__item"><span class="bf-action" style="width: 3rem; margin: 0;" title="Action / link"></span> Action / link</div><div class="bf-legend__item"><span class="bf-tabs__tab bf-tabs__tab--active" style="width: 2.5rem; display: inline-block;" title="Active tab"></span> Active tab</div></div>
+<div class="bf-legend"><div class="bf-legend__item"><span class="bf-text bf-text--title" style="width: 4rem;" title="Title text"></span> Title</div><div class="bf-legend__item"><span class="bf-text bf-text--line" style="width: 5rem;" title="Text line"></span> Text line</div><div class="bf-legend__item"><span class="bf-text bf-text--short" style="width: 2.5rem;" title="Short text line"></span> Short line</div><div class="bf-legend__item"><span class="bf-text bf-text--title bf-text--callout" title="Text callout">Callout</span> Text callout</div><div class="bf-legend__item"><span class="bf-action bf-action--link bf-action--callout" style="width: auto; margin: 0;" title="Action callout">Link callout</span> Action callout</div><div class="bf-legend__item"><span class="bf-action" style="width: 3rem; margin: 0;" title="Action / link"></span> Action</div><div class="bf-legend__item"><span class="bf-action bf-action--highlight" style="width: 3rem; margin: 0;" title="Highlight"></span> Highlight</div><div class="bf-legend__item"><span class="bf-tabs__tab bf-tabs__tab--active" style="width: 2.5rem; display: inline-block;" title="Active tab"></span> Active tab</div></div>
 
 ## Case shell catalogue
 
@@ -29,10 +29,10 @@ Five application tabs from `TecCaseConfiguration` (plus CCD History, not shown).
 
 Clerk opens a case, uses **Next steps** on an assigned task, completes **Validate application form**, then returns to Case details.
 
-Yellow outline marks the Next steps control that starts the journey. Hover blocks for element names.
+Yellow outline (`highlight`) and link-blue (`callout`) mark the Next steps control that starts the journey. Hover blocks for element names.
 
 <div class="bf-journey">
-<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true } %></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Validate application form" } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
@@ -44,11 +44,21 @@ Yellow outline marks the Next steps control that starts the journey. Hover block
 Same Tasks entry point; Next steps opens a form-specific edit event (TE9 / PE3 / TE7 / PE2 share one blockframe shape). After submit, Case details shows the updated sections.
 
 <div class="bf-journey">
-<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true } %></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_edit_application", locals: { caption: "2. Event — Edit TE9 application" } %></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
 <div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+</div>
+
+## Examples
+
+### Minimal
+
+Same Tasks shell as the catalogue, but only **Manage cases**, the **case number**, and the **Validate application form** task card have visible text. Everything else is empty bars. All elements in that task card use callout styling.
+
+<div class="bf-catalogue">
+<%= partial "partials/blockframe/views/tec_pcn_tasks_minimal" %>
 </div>
 
 ## Related
