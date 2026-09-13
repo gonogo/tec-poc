@@ -1063,8 +1063,20 @@ $bf-link-callout: #1a65a6;
 
 .bf-journey__step {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
   flex-shrink: 0;
+  max-width: 320px;
+}
+
+.bf-journey__note {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  max-width: 100%;
+  color: #505a5f;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .bf-journey__arrow {

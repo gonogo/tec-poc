@@ -44,11 +44,11 @@ Yellow outline (`highlight`) and link-blue (`callout`) mark the Next steps contr
 Same Tasks entry point; Next steps opens a form-specific edit event (TE9 / PE3 / TE7 / PE2 share one blockframe shape). After submit, Case details shows the updated sections.
 
 <div class="bf-journey">
-<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %><p class="bf-journey__note">Clerk opens the Tasks tab and chooses <strong>Edit application</strong> from Next steps on the assigned Validate application form task.</p></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
-<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_edit_application", locals: { caption: "2. Event — Edit TE9 application" } %></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_edit_application", locals: { caption: "2. Event — Edit TE9 application" } %><p class="bf-journey__note">The edit event opens without case tabs. The clerk updates TE9 fields (date received, applicant, address, and related values), then continues.</p></div>
 <div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
-<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %><p class="bf-journey__note">After continue, the clerk returns to Case details. The Application section shows the updated TE9 values.</p></div>
 </div>
 
 ## Journey: Tasks to Case File View
