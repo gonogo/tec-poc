@@ -8,5 +8,7 @@ gem 'wdm', '~> 0.1.0', platforms: [:mswin, :mingw, :x64_mingw]
 # Windows does not come with time zone data
 gem 'tzinfo-data', platforms: [:mswin, :mingw, :x64_mingw, :jruby]
 
-# Include the tech docs gem
-gem 'govuk_tech_docs', '~> 6.0'
+# Include the tech docs gem (sticky TOC + footer scroll fix)
+gem 'govuk_tech_docs',
+    github: 'gonogo/tech-docs-gem',
+    branch: 'fix/sticky-toc-scroll-with-footer'
