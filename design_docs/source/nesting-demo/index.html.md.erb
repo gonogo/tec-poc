@@ -1,0 +1,41 @@
+---
+title: Nesting demonstration
+weight: 80
+---
+
+# Nesting demonstration
+
+This section is a **living example** of how the GOV.UK Tech Docs Template builds a multi-level sidebar from nested folders. It is not product documentation — use it to try the left-hand navigation and to copy the folder pattern when adding deeper sections.
+
+`multipage_nav` and `collapsible_nav` are already enabled in `config/tech-docs.yml`. Nesting comes from directories under `design_docs/source/`, each containing an `index.html.md.erb` with a `weight` in the frontmatter.
+
+## How this tree is laid out on disk
+
+```text
+design_docs/source/nesting-demo/
+├── index.html.md.erb                 ← this page (weight 80)
+├── first-level/
+│   ├── index.html.md.erb             ← weight 81
+│   └── second-level/
+│       ├── index.html.md.erb         ← weight 82
+│       └── third-level/
+│           └── index.html.md.erb     ← weight 83
+└── sibling-branch/
+    └── index.html.md.erb             ← weight 84
+```
+
+## Rules of thumb
+
+- One folder = one page in the sidebar; put content in that folder’s `index.html.md.erb`.
+- Nested folders become nested nav items (with collapsible expand/collapse when `collapsible_nav` is on).
+- Lower `weight` values appear higher; “heavier pages sink to the bottom”.
+- Child weights must sit between their parent and the next sibling at the parent’s level so order stays coherent.
+
+## Try the nest
+
+Open the pages below (or use the sidebar):
+
+1. [First level](/nesting-demo/first-level/)
+2. [Second level](/nesting-demo/first-level/second-level/)
+3. [Third level](/nesting-demo/first-level/second-level/third-level/)
+4. [Sibling branch](/nesting-demo/sibling-branch/) — same depth as “First level”, not under it

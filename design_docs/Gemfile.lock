@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/gonogo/tech-docs-gem.git
-  revision: 92b395cb2b8d75ff1cb48b9e11a33540c642bae8
-  branch: fix/sticky-toc-scroll-with-footer
+  revision: 47686fe7591ffa766eece2a839d01276e0759cd5
+  branch: main
   specs:
     govuk_tech_docs (6.4.0.beta)
       autoprefixer-rails
