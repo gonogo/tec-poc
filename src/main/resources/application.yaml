@@ -36,6 +36,9 @@ spring:
       connection-timeout: 30000
   flyway:
     enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
 
 idam:
   api:

@@ -161,6 +161,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.17'
@@ -200,11 +201,15 @@ tasks.withType(CftlibExec).configureEach {
   environment 'IDAM_API_URL', 'http://localhost:5062'
   environment 'IDAM_S2S_AUTH_URL', 'http://localhost:8489'
   environment 'CCD_DATA_STORE_URL', 'http://localhost:4452'
+  environment 'CCD_DOCUMENT_URL_PATTERN',
+    'https?://(?:dm-store:8080|localhost:4506)/documents/[A-Za-z0-9-]+(?:/binary)?'
   environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC', 'http://localhost:4013'
   environment 'DATA_STORE_S2S_AUTHORISED_SERVICES', 'ccd_data,ccd_gw,tec_api'
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
+  environment 'XUI_DOCUMENTS_API', 'http://host.docker.internal:4455'
+  environment 'XUI_DOCUMENTS_API_V2', 'http://host.docker.internal:4455'
   environment 'SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING', 'true'
 }
 

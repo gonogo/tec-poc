@@ -1,0 +1,99 @@
+{
+  "34af746f-4ff3-47df-81ce-befa9b310049": {
+    "originalDocumentName": "test.txt",
+    "mimeType": "text/plain",
+    "size": 22,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC",
+      "case_id": "1788427509656394"
+    }
+  },
+  "94f71b73-072a-4677-88b9-65f11262a491": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH"
+    }
+  },
+  "3dbeb039-c475-40e0-b720-499e3ed5d8f5": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE"
+    }
+  },
+  "525742ca-d51c-41ac-910b-9cb3f488827e": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE"
+    }
+  },
+  "8a196f9c-3ff8-4bb8-a14f-9f56a39e48d2": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789483952178708"
+    }
+  },
+  "6efba62f-8a10-425b-945a-18a29d5d6a0e": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789569508425526"
+    }
+  },
+  "374cd443-95fd-4e25-a9ec-8b3fd831d8a0": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789570620401387"
+    }
+  },
+  "0f9ce07b-b1e0-4340-a034-fa695a14a1ca": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789572878885725"
+    }
+  },
+  "0f94b448-1b78-4b3f-a831-6f2665a7b250": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789574211617450"
+    }
+  },
+  "e76d8005-b14a-424d-8022-fdc855a6b816": {
+    "originalDocumentName": "RLR00126",
+    "mimeType": "application/octet-stream",
+    "size": 1260,
+    "metadata": {
+      "jurisdiction": "TEC",
+      "case_type_id": "TEC_BATCH_DATAFILE",
+      "case_id": "1789574517386305"
+    }
+  }
+}

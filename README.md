@@ -36,6 +36,8 @@ The local services are:
 - TEC API and decentralised callback runtime: http://localhost:4013
 - Manage Case (XUI): http://localhost:3000
 - CCD Data Store: http://localhost:4452
+- CCD Case Document AM API: http://localhost:4455
+- Document Store: http://localhost:4506
 - IDAM simulator: http://localhost:5062
 - S2S simulator: http://localhost:8489
 - Shared PostgreSQL: `localhost:6432` (the TEC database is `tec`)
@@ -49,7 +51,7 @@ CFTLib starts the Manage Case web application in Docker.
 Open http://localhost:3000 and sign in with the configured local clerk account:
 
 ```text
-Username: tec-demo@test.com
+Username: tec-clerk@test.com
 Password: password
 ```
 

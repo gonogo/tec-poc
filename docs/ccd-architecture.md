@@ -28,7 +28,7 @@ CFTLib makes the integration runnable locally.
 The relevant application classes are:
 
 - `TecCase`: the CCD-facing data model.
-- `CaseState`: the four states generated into the CCD definition.
+- `TecCaseState`: the four states generated into the CCD definition.
 - `UserRole`: the system and clerk access profiles.
 - `TecCaseConfiguration`: the case type, access, tabs, search/work-basket fields, events and Java event handlers.
 - `TecCaseRepository`: persistence of TEC-owned business data in `public.tec_case`.
@@ -208,7 +208,7 @@ CFTLib itself is not deployed.
 
 | Concern | Source of truth |
 | --- | --- |
-| Case type, fields, states, events, tabs and permissions | `TecCaseConfiguration`, `CaseState`, `UserRole` and `TecCase` |
+| Case type, fields, states, events, tabs and permissions | `TecCaseConfiguration`, `TecCaseState`, `UserRole` and `TecCase` |
 | Definition used by the local CCD stack | Generated `build/ccd-definition/TEC` imported by `TecCftLibConfiguration` |
 | PCN business data | `tec.public.tec_case` |
 | Decentralised lifecycle metadata and event history | SDK-managed `tec.ccd` schema |
