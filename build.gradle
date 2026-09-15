@@ -206,11 +206,17 @@ tasks.withType(CftlibExec).configureEach {
         commandLine navProxyStarter.absolutePath
       }
     }
-    // GOV.UK Tech Docs (Middleman) preview; soft-fails if Ruby/Bundler are missing.
+    // GOV.UK Tech Docs (Middleman) previews; soft-fails if Ruby/Bundler are missing.
     def designDocsStarter = file("${rootDir}/bin/start-design-docs.sh")
     if (designDocsStarter.exists()) {
       exec {
         commandLine designDocsStarter.absolutePath
+      }
+    }
+    def techDocsStarter = file("${rootDir}/bin/start-tech-docs.sh")
+    if (techDocsStarter.exists()) {
+      exec {
+        commandLine techDocsStarter.absolutePath
       }
     }
   }

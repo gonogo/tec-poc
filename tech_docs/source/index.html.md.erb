@@ -1,0 +1,27 @@
+---
+title: TEC API POC
+weight: 10
+---
+
+# TEC API POC
+
+This is the technical documentation for the TEC API proof of concept: a local sandbox for experimenting with CCD configuration and its effect on Manage Cases.
+
+Use these pages for architecture, database ownership, and the ExUI Upload batch file navigation work.
+
+## Contents
+
+- [TEC decentralised CCD architecture](/ccd-architecture.html) — components, case types, create/read flows, and local CFTLib topology
+- [CFTLib database layout](/cftlib-shared-database.html) — `datastore` vs `tec.ccd` vs TEC business tables
+- [ExUI primary navigation — Upload batch file](/exui-navigation.html) — local nav proxy and how to verify Upload batch file
+- [ExUI Upload batch file proposal](/exui-manage-batches-plan.html) — architect proposal and acceptance criteria
+
+## Run locally
+
+Start the application and documentation sites together:
+
+```bash
+./gradlew bootWithCCD
+```
+
+Tech docs preview: [http://localhost:4568](http://localhost:4568). Design docs (blockframes and nesting demo) run separately on [http://localhost:4567](http://localhost:4567). See the repository README for the full local service list and clerk login.

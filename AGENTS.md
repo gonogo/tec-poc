@@ -2,18 +2,24 @@
 
 ## Canonical technical documentation
 
-Prefer these files over inventing CCD / ExUI topology. They are the GOV.UK Tech Docs sources under `design_docs/source/`:
+Prefer these files over inventing CCD / ExUI topology. They are the GOV.UK Tech Docs sources under `tech_docs/source/`:
 
 | Topic | Path |
 | --- | --- |
-| Decentralised CCD architecture | [`design_docs/source/ccd-architecture.html.md.erb`](design_docs/source/ccd-architecture.html.md.erb) |
-| CFTLib / database ownership | [`design_docs/source/cftlib-shared-database.html.md.erb`](design_docs/source/cftlib-shared-database.html.md.erb) |
-| ExUI Upload batch file nav (local proxy) | [`design_docs/source/exui-navigation.html.md.erb`](design_docs/source/exui-navigation.html.md.erb) |
-| ExUI Upload batch file architect proposal | [`design_docs/source/exui-manage-batches-plan.html.md.erb`](design_docs/source/exui-manage-batches-plan.html.md.erb) |
-| Example menuConfigs JSON | [`design_docs/source/exui-header-config.example.json`](design_docs/source/exui-header-config.example.json) |
+| Decentralised CCD architecture | [`tech_docs/source/ccd-architecture.html.md.erb`](tech_docs/source/ccd-architecture.html.md.erb) |
+| CFTLib / database ownership | [`tech_docs/source/cftlib-shared-database.html.md.erb`](tech_docs/source/cftlib-shared-database.html.md.erb) |
+| ExUI Upload batch file nav (local proxy) | [`tech_docs/source/exui-navigation.html.md.erb`](tech_docs/source/exui-navigation.html.md.erb) |
+| ExUI Upload batch file architect proposal | [`tech_docs/source/exui-manage-batches-plan.html.md.erb`](tech_docs/source/exui-manage-batches-plan.html.md.erb) |
+| Example menuConfigs JSON | [`tech_docs/source/exui-header-config.example.json`](tech_docs/source/exui-header-config.example.json) |
 
-Site overview: [`design_docs/source/index.html.md.erb`](design_docs/source/index.html.md.erb).
+Tech docs overview: [`tech_docs/source/index.html.md.erb`](tech_docs/source/index.html.md.erb).
+Design docs (blockframes / nesting demo): [`design_docs/source/index.html.md.erb`](design_docs/source/index.html.md.erb).
 
 ## Local preview
 
-`./gradlew bootWithCCD` starts Middleman via `bin/start-design-docs.sh` at **http://localhost:4567** (soft-fails if Ruby/Bundler are missing). Or run `./bin/start-design-docs.sh` alone.
+`./gradlew bootWithCCD` starts both Middleman sites (soft-fails if Ruby/Bundler are missing):
+
+- Design docs: `bin/start-design-docs.sh` → **http://localhost:4567**
+- Tech docs: `bin/start-tech-docs.sh` → **http://localhost:4568**
+
+Or run either start script alone.

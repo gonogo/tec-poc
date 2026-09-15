@@ -14,6 +14,7 @@ readonly CFTLIB_PORTS=(
   4455   # CCD Case Document AM API
   4506   # Local dm-store stub (bin/start-local-dm-store.sh)
   4567   # Design docs Middleman server (bin/start-design-docs.sh)
+  4568   # Tech docs Middleman server (bin/start-tech-docs.sh)
   5062   # IDAM simulator
   6432   # Shared PostgreSQL
   8087   # WA Task Management API
@@ -24,6 +25,7 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly NAV_PROXY_PID_FILE="${SCRIPT_DIR}/.xui-manage-batches-proxy.pid"
 readonly DM_STORE_PID_FILE="${SCRIPT_DIR}/.local-dm-store-stub.pid"
 readonly DESIGN_DOCS_PID_FILE="${SCRIPT_DIR}/.design-docs.pid"
+readonly TECH_DOCS_PID_FILE="${SCRIPT_DIR}/.tech-docs.pid"
 
 STOP_ALL_DOCKER=false
 
@@ -36,7 +38,7 @@ Stop leftover bootWithCCD / CFTLib processes and Docker containers so a fresh
 
 By default this script:
   1. Stops any running bootWithCCD / CFTLib Java processes
-  2. Stops the local dm-store stub, Create batch nav proxy, and design docs server if running
+  2. Stops the local dm-store stub, Create batch nav proxy, and design/tech docs servers if running
   3. Stops Docker containers whose names contain "cftlib"
   4. Checks that required local ports are free
 
@@ -138,6 +140,7 @@ stop_boot_with_ccd_processes() {
   stop_local_dm_store_stub
   stop_xui_manage_batches_proxy
   stop_design_docs_server
+  stop_tech_docs_server
 }
 
 stop_pid_file() {
@@ -171,6 +174,10 @@ stop_xui_manage_batches_proxy() {
 
 stop_design_docs_server() {
   stop_pid_file "design docs server" "${DESIGN_DOCS_PID_FILE}"
+}
+
+stop_tech_docs_server() {
+  stop_pid_file "tech docs server" "${TECH_DOCS_PID_FILE}"
 }
 
 port_pattern() {

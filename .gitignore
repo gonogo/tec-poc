@@ -30,5 +30,7 @@ bin/.xui-manage-batches-proxy.pid
 bin/.xui-manage-batches-proxy.log
 bin/.design-docs.pid
 bin/.design-docs.log
+bin/.tech-docs.pid
+bin/.tech-docs.log
 bin/.venv-generate-application/
 __pycache__/

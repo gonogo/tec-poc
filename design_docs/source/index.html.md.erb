@@ -1,29 +1,25 @@
 ---
-title: TEC API POC
+title: TEC Design Docs
 weight: 10
 ---
 
-# TEC API POC
+# TEC Design Docs
 
-This is the technical documentation for the TEC API proof of concept: a local sandbox for experimenting with CCD configuration and its effect on Manage Cases.
+Design and UX reference material for the TEC API proof of concept: grey-box blockframes and a nested-navigation demo for the GOV.UK Tech Docs sidebar.
 
-Use these pages for architecture, database ownership, and the ExUI Upload batch file navigation work. Content is the same material that previously lived under `docs/` in the repository.
+Technical architecture documentation lives on a separate Tech Docs site: [http://localhost:4568](http://localhost:4568).
 
 ## Contents
 
-- [TEC decentralised CCD architecture](/ccd-architecture.html) — components, case types, create/read flows, and local CFTLib topology
-- [CFTLib database layout](/cftlib-shared-database.html) — `datastore` vs `tec.ccd` vs TEC business tables
 - [TEC PCN blockframes](/tec-pcn-blockframes.html) — grey-box wireframes for case tabs and Next steps journeys
-- [ExUI primary navigation — Upload batch file](/exui-navigation.html) — local nav proxy and how to verify Upload batch file
-- [ExUI Upload batch file proposal](/exui-manage-batches-plan.html) — architect proposal and acceptance criteria
 - [Nesting demonstration](/nesting-demo/) — example multi-level sidebar from nested folders
 
 ## Run locally
 
-Start the application and this documentation site together:
+Start the application and documentation sites together:
 
 ```bash
 ./gradlew bootWithCCD
 ```
 
-Design docs preview: [http://localhost:4567](http://localhost:4567). See the repository README for the full local service list and clerk login.
+Design docs preview: [http://localhost:4567](http://localhost:4567). Tech docs: [http://localhost:4568](http://localhost:4568). See the repository README for the full local service list and clerk login.

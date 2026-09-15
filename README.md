@@ -4,10 +4,10 @@ This codebase is a local sandbox for experimentation around CCD config and its e
 
 Functionality is underpinned by runtime supplied by [rse-cft-lib](https://github.com/hmcts/rse-cft-lib). See
 (AI-generated) doc
-[TEC decentralised CCD architecture](design_docs/source/ccd-architecture.html.md.erb) for the build-time and local runtime architecture, and
-[CFTLib Shared Database](design_docs/source/cftlib-shared-database.html.md.erb) for a description of the decentralised CCD datamodel.
-Rendered versions are on the design docs site at http://localhost:4567 (for example
-[/ccd-architecture.html](http://localhost:4567/ccd-architecture.html)).
+[TEC decentralised CCD architecture](tech_docs/source/ccd-architecture.html.md.erb) for the build-time and local runtime architecture, and
+[CFTLib Shared Database](tech_docs/source/cftlib-shared-database.html.md.erb) for a description of the decentralised CCD datamodel.
+Rendered versions are on the tech docs site at http://localhost:4568 (for example
+[/ccd-architecture.html](http://localhost:4568/ccd-architecture.html)).
 
 All CCD config including states, events, roles and case types are for illustration only.
 
@@ -17,7 +17,7 @@ All CCD config including states, events, roles and case types are for illustrati
 - Docker
 - An authenticated HMCTS Azure Container Registry session (`az acr login --name hmctsprod`)
 - `jq` for the command-line example below
-- Ruby 3.3 and Bundler (optional; needed for the design docs preview started with `bootWithCCD`)
+- Ruby 3.3 and Bundler (optional; needed for the design/tech docs previews started with `bootWithCCD`)
 
 Gradle is provided by the checked-in `./gradlew` wrapper.
 
@@ -39,21 +39,23 @@ The local services are:
 - TEC API and decentralised callback runtime: http://localhost:4013
 - Manage Case (XUI): http://localhost:3000 (nav-injection proxy; real container on :3002)
 - Design docs (GOV.UK Tech Docs / Middleman): http://localhost:4567
+- Tech docs (GOV.UK Tech Docs / Middleman): http://localhost:4568
 - CCD Data Store: http://localhost:4452
 - IDAM simulator: http://localhost:5062
 - S2S simulator: http://localhost:8489
 - Shared PostgreSQL: `localhost:6432` (the TEC database is `tec`)
 
-`bootWithCCD` starts the design docs preview via `bin/start-design-docs.sh` (first run may run
-`bundle install` under `design_docs/`). If Ruby/Bundler are missing, the stack still starts and the
-docs server is skipped; install Ruby 3.3 and re-run, or start `./bin/start-design-docs.sh` alone.
+`bootWithCCD` starts both docs previews via `bin/start-design-docs.sh` (:4567) and
+`bin/start-tech-docs.sh` (:4568) (first run may run `bundle install` under each site). If
+Ruby/Bundler are missing, the stack still starts and the docs servers are skipped; install
+Ruby 3.3 and re-run, or start either script alone.
 
-The same site publishes to GitHub Pages from `.github/workflows/deploy-pages.yml` when `design_docs/`
+Design docs publish to GitHub Pages from `.github/workflows/deploy-pages.yml` when `design_docs/`
 changes on `main`. Enable **Settings → Pages → Source: GitHub Actions**, and keep `host` /
 `github_repo` in `design_docs/config/tech-docs.yml` aligned with the Pages URL.
 
 Stop the Java stack with `Ctrl-C`. The Docker containers will continue to run; to tear everything down
-(Java processes, local stubs/proxies, design docs server, and CFTLib containers) and free the required ports:
+(Java processes, local stubs/proxies, design/tech docs servers, and CFTLib containers) and free the required ports:
 
 ```bash
 ./bin/stop-boot-with-ccd.sh
@@ -69,8 +71,8 @@ To stop and start again in one step:
 
 CFTLib starts the Manage Case web application in Docker on port **3002**. A local proxy on
 **http://localhost:3000** injects a TEC **Upload batch file** primary-nav item (see
-[design_docs/source/exui-navigation.html.md.erb](design_docs/source/exui-navigation.html.md.erb)
-or http://localhost:4567/exui-navigation.html).
+[tech_docs/source/exui-navigation.html.md.erb](tech_docs/source/exui-navigation.html.md.erb)
+or http://localhost:4568/exui-navigation.html).
 
 Open http://localhost:3000 and sign in with a configured local account:
 
@@ -99,8 +101,8 @@ Seed scripts leave `localAuthority` as-is; `CaseAccessCategory` is derived serve
 cases, override when seeding, e.g. `LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-case.sh`.
 Re-seed or recreate cases after this change so categories are populated.
 
-Journey detail: [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
-(or http://localhost:4567/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
+Journey detail: [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
+(or http://localhost:4568/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
 
 ## Create a PCN case
 
@@ -182,8 +184,8 @@ Completed batches get sample Inputs/Outputs documents attached for Batch details
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
 and Batch details (Inputs/Outputs links at the bottom of Batch details). Registration batches also
 show **Fees due** while queued and **Fees paid** when processing is complete (`PCN count × £11`).
-See [design_docs/source/ccd-architecture.html.md.erb](design_docs/source/ccd-architecture.html.md.erb#batch-details-presentation)
-(or http://localhost:4567/ccd-architecture.html#batch-details-presentation).
+See [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#batch-details-presentation)
+(or http://localhost:4568/ccd-architecture.html#batch-details-presentation).
 
 ## Create an exception case
 
