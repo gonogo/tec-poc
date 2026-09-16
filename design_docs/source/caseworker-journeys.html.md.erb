@@ -1,0 +1,63 @@
+---
+title: Caseworker journeys
+weight: 50
+---
+
+# Caseworker journeys
+
+Journey stubs for TEC caseworker review work. Each board uses the same blockframe pattern as [Validate from Tasks](/tec-pcn-blockframes.html#journey-validate-from-tasks): Tasks → event → Case details. Frames reuse the TEC PCN primitives as placeholders until the screens are designed in detail.
+
+Yellow outline (`highlight`) and link-blue (`callout`) mark the Next steps control that starts each journey. Hover blocks for element names.
+
+## Journey: Review an out-of-time validation failure
+
+Caseworker opens a case with an out-of-time validation failure, uses **Next steps** on an assigned task, completes the review event, then returns to Case details.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Review out-of-time validation failure" } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+</div>
+
+## Journey: Review an in-time application validation failure
+
+Caseworker opens a case with an in-time application validation failure, uses **Next steps** on an assigned task, completes the review event, then returns to Case details.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Review in-time validation failure" } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+</div>
+
+## Journey: Review an exception case
+
+Caseworker opens an exception case, uses **Next steps** on an assigned task, completes the review event, then returns to Case details.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC Exception — Tasks", highlight: true, callout: true } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Review exception case" } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC Exception — Case details" } %></div>
+</div>
+
+## Journey: Review a N244 application validation failure
+
+Caseworker opens a case with an N244 application validation failure, uses **Next steps** on an assigned task, completes the review event, then returns to Case details.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_tasks", locals: { caption: "1. TEC PCN — Tasks", highlight: true, callout: true } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next steps</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_validate_form", locals: { caption: "2. Event — Review N244 validation failure" } %></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "3. TEC PCN — Case details" } %></div>
+</div>
+
+## Related
+
+- Blockframe primitives and catalogue: [TEC PCN blockframes](/tec-pcn-blockframes.html)
+- Tab and event behaviour: [TEC decentralised CCD architecture](/ccd-architecture.html#case-presentation-and-search)
