@@ -1,7 +1,7 @@
 <%#
   Tab strip for TEC PCN case view.
   Locals:
-    active        — :tasks | :roles | :case_details | :case_file | :payment
+    active        — :tasks | :roles | :case_details | :case_file | :payment | :history
     minimal       — empty tab bars (no labels)
     highlight_tab — tab key to yellow-outline (journey focus)
 %>
@@ -12,6 +12,10 @@
   [:case_file, "Case File View"],
   [:payment, "Payment History"]
 ] %>
+<%# CCD History is omitted from the usual shell; show it when that tab is active. %>
+<% if active == :history %>
+<% tabs << [:history, "History"] %>
+<% end %>
 <% minimal = (defined?(minimal) && minimal) ? minimal : false %>
 <% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>
 <div class="bf-tabs"><% tabs.each do |key, label| %><% state = active == key ? " (active)" : "" %><div class="bf-tabs__tab<%= ' bf-tabs__tab--active' if active == key %><%= ' bf-tabs__tab--highlight' if highlight_tab == key %>" title="<%= label %> tab<%= state %>"><%= label unless minimal %></div><% end %></div>

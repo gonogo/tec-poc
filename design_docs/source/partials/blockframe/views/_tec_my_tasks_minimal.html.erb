@@ -1,0 +1,79 @@
+<%#
+  ExUI My work → My tasks, Minimal example.
+  Matches live ExUI layout: My work heading, intro, HMCTS sub-nav
+  (My tasks | Available tasks), then task table
+  (Case reference, Case name, Case category, Location, Task, Date, Manage).
+  Locals:
+    compact         — true → standard 320px frame, 4-column table
+                      (default: wide frame, full columns)
+    caption         — frame label
+    highlight_case  — yellow outline + callout on the first case reference link
+%>
+<% compact = (defined?(compact) && compact) ? compact : false %>
+<% caption = (defined?(caption) && caption) ? caption : (compact ? "Example — My work (compact)" : "Example — My work") %>
+<% highlight_case = (defined?(highlight_case) && highlight_case) ? highlight_case : false %>
+<% mywork_class = compact ? "bf-mywork bf-mywork--compact" : "bf-mywork" %>
+<% case_ref_mods = "bf-action bf-action--link bf-mywork__case-ref" %>
+<% case_ref_mods += " bf-action--highlight bf-action--callout" if highlight_case %>
+<%
+  if compact
+    head_cells = [
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Case reference (column)">Case reference</span>',
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Task (column)">Task</span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Date (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 45%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--manage" title="Manage (column)"></span>'
+    ]
+  else
+    head_cells = [
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Case reference (column)">Case reference</span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Case name (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 55%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Case category (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 70%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Location (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 50%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Task (column)">Task</span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Date (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 35%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head bf-table__cell--manage" title="Manage (column)"></span>'
+    ]
+  end
+
+  manage_cell = '<span class="bf-table__cell bf-table__cell--manage"><span class="bf-action bf-action--link bf-mywork__manage" title="Manage">Manage</span><span class="bf-mywork__manage-icon" title="Expand" aria-hidden="true"></span></span>'
+
+  if compact
+    rows_html = [
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="#{case_ref_mods}" title="Case reference">1788-2660-5799-1856</span></span><span class="bf-table__cell"><span class="bf-table__value bf-table__value--callout" title="Task">Validate application form</span></span><span class="bf-table__cell"><span class="bf-table__value bf-table__value--callout" title="Date: TODAY">TODAY</span></span>#{manage_cell}</div>),
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="bf-action bf-action--link bf-mywork__case-ref" title="Case reference" style="width: 92%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 78%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 45%"></span></span>#{manage_cell}</div>),
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="bf-action bf-action--link bf-mywork__case-ref" title="Case reference" style="width: 88%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 65%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 40%"></span></span>#{manage_cell}</div>)
+    ].join
+  else
+    rows_html = [
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="#{case_ref_mods}" title="Case reference">1788-2660-5799-1856</span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 70%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 55%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 60%"></span></span><span class="bf-table__cell"><span class="bf-table__value bf-table__value--callout" title="Task">Validate application form</span></span><span class="bf-table__cell"><span class="bf-table__value bf-table__value--callout" title="Date: TODAY">TODAY</span></span>#{manage_cell}</div>),
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="bf-action bf-action--link bf-mywork__case-ref" title="Case reference" style="width: 95%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 55%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 50%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 58%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 82%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 40%"></span></span>#{manage_cell}</div>),
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="bf-action bf-action--link bf-mywork__case-ref" title="Case reference" style="width: 90%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 65%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 45%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 70%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 70%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 35%"></span></span>#{manage_cell}</div>),
+      %(<div class="bf-table__row" title="Task row"><span class="bf-table__cell"><span class="bf-action bf-action--link bf-mywork__case-ref" title="Case reference" style="width: 88%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 48%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 60%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 52%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 85%"></span></span><span class="bf-table__cell"><span class="bf-table__bar" style="width: 50%"></span></span>#{manage_cell}</div>)
+    ].join
+  end
+%>
+<% body = [
+  %(<div class="#{mywork_class}" title="My work — My tasks">),
+  '<span class="bf-text bf-text--title bf-text--callout" title="My work">My work</span>',
+  '<span class="bf-text bf-text--line bf-mywork__intro" title="See your tasks and view tasks available for you to pick up."></span>',
+  '<div class="bf-subnav" title="Sub navigation">',
+  '<span class="bf-subnav__link bf-subnav__link--active bf-subnav__link--callout" title="My tasks (active)">My tasks</span>',
+  '<span class="bf-subnav__link" title="Available tasks" style="width: 24%"></span>',
+  '</div>',
+  '<div class="bf-mywork__results" title="My tasks results">',
+  '<div class="bf-table bf-table--tasks" title="Task list table">',
+  '<div class="bf-table__head" title="Table header">',
+  head_cells.join,
+  '</div>',
+  rows_html,
+  '</div>',
+  '</div>',
+  '</div>'
+].join %>
+<%= partial "partials/blockframe/page", locals: {
+  caption: caption,
+  show_tabs: false,
+  minimal: true,
+  frame: (compact ? nil : :mywork),
+  body: body
+} %>

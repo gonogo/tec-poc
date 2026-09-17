@@ -4,7 +4,9 @@
     blank           — empty bars only (no text content)
     blank_variant   — :a | :b — different empty-bar width patterns when blank
     callout_section — callout all text + links in this card
-    highlight / callout — modifiers on primary Next steps link
+    highlight / callout — modifiers on Next steps links
+    highlight_step  — :validate | :edit | :all — which Next steps link gets yellow outline
+                      (default :all when highlight is true)
 %>
 <% blank = (defined?(blank) && blank) ? blank : false %>
 <% blank_variant = (defined?(blank_variant) && blank_variant) ? blank_variant : :a %>
@@ -20,10 +22,18 @@
 <% extra_next_steps = (defined?(extra_next_steps) && extra_next_steps) ? extra_next_steps : false %>
 <% next_step_label = (defined?(next_step_label) && next_step_label) ? next_step_label : "Validate application form" %>
 <% next_step_label_2 = (defined?(next_step_label_2) && next_step_label_2) ? next_step_label_2 : "Edit application" %>
+<% highlight_step = (defined?(highlight_step) && highlight_step) ? highlight_step.to_sym : (highlight ? :all : nil) %>
 <% text_callout = callout_section ? " bf-callout" : "" %>
-<% link_mods = " bf-action--link" %>
-<% link_mods += " bf-action--highlight" if highlight %>
-<% link_mods += " bf-action--callout" if callout || callout_section %>
+<% manage_mods = " bf-action--link" %>
+<% manage_mods += " bf-action--callout" if callout || callout_section %>
+<% validate_mods = manage_mods.dup %>
+<% edit_mods = manage_mods.dup %>
+<% if highlight && (highlight_step == :all || highlight_step == :validate) %>
+<% validate_mods += " bf-action--highlight bf-action--callout" %>
+<% end %>
+<% if highlight && (highlight_step == :all || highlight_step == :edit) %>
+<% edit_mods += " bf-action--highlight bf-action--callout" %>
+<% end %>
 <% show = !blank %>
 <% title_width = blank ? (blank_variant == :b ? "58%" : "42%") : nil %>
-<div class="bf-task<%= ' bf-task--blank' if blank %><%= " bf-task--blank-#{blank_variant}" if blank %>" title="Task card: <%= escape_html(task_title) %>"><%= partial "partials/blockframe/text", locals: { size: :title, label: (show ? task_title : nil), callout: callout_section, width: title_width } %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Priority (label)"><%= "Priority" if show %></span><span class="bf-task__value<%= text_callout %>" title="Priority value"><%= escape_html(priority) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Due date (label)"><%= "Due date" if show %></span><span class="bf-task__value<%= text_callout %>" title="Due date value"><%= escape_html(due_date) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Assigned to (label)"><%= "Assigned to" if show %></span><span class="bf-task__value<%= text_callout %>" title="Assignee"><%= escape_html(assignee) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Manage (label)"><%= "Manage" if show %></span><div class="bf-task__links"><% if manage_only %><span class="bf-action<%= link_mods %>" title="Manage: Assign to me"><%= "Assign to me" if show %></span><% else %><span class="bf-action<%= link_mods %>" title="Manage: Reassign"><%= "Reassign" if show %></span><span class="bf-action<%= link_mods %>" title="Manage: Unassign"><%= "Unassign" if show %></span><% end %></div></div><% if next_steps %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Next steps (label)"><%= "Next steps" if show %></span><div class="bf-task__links"><span class="bf-action<%= link_mods %>" title="Next steps: <%= escape_html(next_step_label) %>"><%= escape_html(next_step_label) if show %></span><% if extra_next_steps %><span class="bf-action<%= link_mods %>" title="Next steps: <%= escape_html(next_step_label_2) %>"><%= escape_html(next_step_label_2) if show %></span><% end %></div></div><% end %></div>
+<div class="bf-task<%= ' bf-task--blank' if blank %><%= " bf-task--blank-#{blank_variant}" if blank %>" title="Task card: <%= escape_html(task_title) %>"><%= partial "partials/blockframe/text", locals: { size: :title, label: (show ? task_title : nil), callout: callout_section, width: title_width } %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Priority (label)"><%= "Priority" if show %></span><span class="bf-task__value<%= text_callout %>" title="Priority value"><%= escape_html(priority) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Due date (label)"><%= "Due date" if show %></span><span class="bf-task__value<%= text_callout %>" title="Due date value"><%= escape_html(due_date) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Assigned to (label)"><%= "Assigned to" if show %></span><span class="bf-task__value<%= text_callout %>" title="Assignee"><%= escape_html(assignee) if show %></span></div><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Manage (label)"><%= "Manage" if show %></span><div class="bf-task__links"><% if manage_only %><span class="bf-action<%= manage_mods %>" title="Manage: Assign to me"><%= "Assign to me" if show %></span><% else %><span class="bf-action<%= manage_mods %>" title="Manage: Reassign"><%= "Reassign" if show %></span><span class="bf-action<%= manage_mods %>" title="Manage: Unassign"><%= "Unassign" if show %></span><% end %></div></div><% if next_steps %><div class="bf-task__row"><span class="bf-task__key<%= text_callout %>" title="Next steps (label)"><%= "Next steps" if show %></span><div class="bf-task__links"><span class="bf-action<%= validate_mods %>" title="Next steps: <%= escape_html(next_step_label) %>"><%= escape_html(next_step_label) if show %></span><% if extra_next_steps %><span class="bf-action<%= edit_mods %>" title="Next steps: <%= escape_html(next_step_label_2) %>"><%= escape_html(next_step_label_2) if show %></span><% end %></div></div><% end %></div>

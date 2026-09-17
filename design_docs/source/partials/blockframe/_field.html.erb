@@ -1,0 +1,109 @@
+<%#
+  Wireframe field control for CCD / ExUI field types.
+  Locals:
+    type     — symbol/string field type (text, textarea, number, money, date, datetime,
+               fixed_list, fixed_radio_list, multi_select, document, label, yes_or_no,
+               email, phone, address, case_link, case_location, order_summary, collection,
+               schedule, dynamic_list, dynamic_radio_list, dynamic_multi_select,
+               case_payment_history, flags, flag_launcher, flag_type, flag_detail,
+               component_launcher, search_criteria, ttl)
+    label    — optional visible field label (omit for control-only / isolated tiles)
+    title    — optional hover title (defaults from type + label)
+    options  — optional array of option label strings (radio / multi-select)
+    selected — index of selected option (default 0); use -1 for none
+    callout  — when true, option labels use callout text colour
+%>
+<% type = (defined?(type) && type) ? type.to_s : "text" %>
+<% label = (defined?(label) && label) ? label : nil %>
+<% title = (defined?(title) && title) ? title : ([label, type.tr("_", " ")].compact.join(" — ")) %>
+<% type_title = type.tr("_", " ") %>
+<% options = (defined?(options) && options) ? Array(options) : nil %>
+<% selected = (defined?(selected) && !selected.nil?) ? selected.to_i : 0 %>
+<% callout = (defined?(callout) && callout) ? callout : false %>
+<% option_text_class = callout ? " bf-callout" : "" %>
+<div class="bf-field" title="<%= escape_html(title) %>">
+<% if label %><span class="bf-field__label" title="<%= escape_html(label) %> (label)"><%= label %></span><% end %>
+<% case type
+when "textarea" %>
+  <span class="bf-field__input bf-field__input--textarea" title="<%= escape_html(type_title) %> (input)"></span>
+<% when "number" %>
+  <span class="bf-field__input bf-field__input--narrow" title="<%= escape_html(type_title) %> (input)"></span>
+<% when "money", "moneygbp" %>
+  <span class="bf-field__input bf-field__input--money" title="<%= escape_html(type_title) %> (input)"></span>
+<% when "email", "phone", "phoneuk" %>
+  <span class="bf-field__input bf-field__input--narrow" title="<%= escape_html(type_title) %> (input)"></span>
+<% when "date" %>
+  <div class="bf-field__date" title="<%= escape_html(type_title) %> (day month year)">
+    <div class="bf-field__date-part bf-field__date-part--day"><span class="bf-field__date-label" title="Day">Day</span><span class="bf-field__input" title="Day"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--month"><span class="bf-field__date-label" title="Month">Month</span><span class="bf-field__input" title="Month"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--year"><span class="bf-field__date-label" title="Year">Year</span><span class="bf-field__input" title="Year"></span></div>
+  </div>
+<% when "datetime" %>
+  <div class="bf-field__date bf-field__date--datetime" title="<%= escape_html(type_title) %> (day month year hour minute second)">
+    <div class="bf-field__date-part bf-field__date-part--day"><span class="bf-field__date-label" title="Day">Day</span><span class="bf-field__input" title="Day"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--month"><span class="bf-field__date-label" title="Month">Month</span><span class="bf-field__input" title="Month"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--year"><span class="bf-field__date-label" title="Year">Year</span><span class="bf-field__input" title="Year"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--hour"><span class="bf-field__date-label" title="Hour">Hour</span><span class="bf-field__input" title="Hour"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--minute"><span class="bf-field__date-label" title="Minute">Minute</span><span class="bf-field__input" title="Minute"></span></div>
+    <div class="bf-field__date-part bf-field__date-part--second"><span class="bf-field__date-label" title="Second">Second</span><span class="bf-field__input" title="Second"></span></div>
+  </div>
+<% when "fixed_list", "dynamic_list" %>
+  <span class="bf-field__input bf-field__input--select" title="<%= escape_html(type_title) %> (input)"></span>
+<% when "fixed_radio_list", "yes_or_no", "dynamic_radio_list" %>
+  <div class="bf-field__options" title="<%= escape_html(type_title) %> (options)">
+<% if options %>
+<% options.each_with_index do |option_label, index| %>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--radio<%= ' bf-field__option-mark--on' if index == selected %>" title="<%= index == selected ? 'Selected option' : 'Option' %>"></span><span class="bf-field__option-text<%= option_text_class %>" title="<%= escape_html(option_label) %>"><%= escape_html(option_label) %></span></div>
+<% end %>
+<% else %>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--radio<%= ' bf-field__option-mark--on' if selected == 0 %>" title="<%= selected == 0 ? 'Selected option' : 'Option' %>"></span><span class="bf-field__option-text" title="Option label"></span></div>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--radio<%= ' bf-field__option-mark--on' if selected == 1 %>" title="<%= selected == 1 ? 'Selected option' : 'Option' %>"></span><span class="bf-field__option-text" title="Option label" style="width: 38%;"></span></div>
+<% if type != "yes_or_no" %>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--radio<%= ' bf-field__option-mark--on' if selected == 2 %>" title="<%= selected == 2 ? 'Selected option' : 'Option' %>"></span><span class="bf-field__option-text" title="Option label" style="width: 52%;"></span></div>
+<% end %>
+<% end %>
+  </div>
+<% when "multi_select", "dynamic_multi_select" %>
+  <div class="bf-field__options" title="<%= escape_html(type_title) %> (options)">
+<% if options %>
+<% options.each_with_index do |option_label, index| %>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--check<%= ' bf-field__option-mark--on' if index == selected %>" title="<%= index == selected ? 'Selected option' : 'Option' %>"></span><span class="bf-field__option-text<%= option_text_class %>" title="<%= escape_html(option_label) %>"><%= escape_html(option_label) %></span></div>
+<% end %>
+<% else %>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--check bf-field__option-mark--on" title="Selected option"></span><span class="bf-field__option-text" title="Option label"></span></div>
+    <div class="bf-field__option"><span class="bf-field__option-mark bf-field__option-mark--check" title="Option"></span><span class="bf-field__option-text" title="Option label" style="width: 42%;"></span></div>
+<% end %>
+  </div>
+<% when "document" %>
+  <div class="bf-field__document" title="<%= escape_html(type_title) %> (upload)">
+    <span class="bf-field__document-btn" title="Choose file"></span>
+    <span class="bf-field__document-name" title="Filename"></span>
+  </div>
+<% when "label" %>
+  <div class="bf-field__label-block" title="<%= escape_html(type_title) %> (display)">
+    <span class="bf-field__label-block-title" title="Label heading"></span>
+    <span class="bf-field__label-block-line" title="Label body"></span>
+  </div>
+<% when "address" %>
+  <div class="bf-field__address" title="<%= escape_html(type_title) %> (address)">
+    <span class="bf-field__input" title="Address line 1"></span>
+    <span class="bf-field__input" title="Address line 2"></span>
+    <span class="bf-field__input" title="Town or city"></span>
+    <span class="bf-field__input bf-field__input--narrow" title="Postcode"></span>
+  </div>
+<% when "collection" %>
+  <div class="bf-field__collection" title="<%= escape_html(type_title) %> (collection)">
+    <span class="bf-field__collection-row" title="Collection item"></span>
+    <span class="bf-field__collection-row" title="Collection item"></span>
+    <span class="bf-field__collection-add" title="Add item"></span>
+  </div>
+<% when "case_link", "case_location", "order_summary", "schedule", "case_payment_history", "flags", "flag_launcher", "flag_type", "flag_detail", "component_launcher", "search_criteria", "ttl" %>
+  <div class="bf-field__panel" title="<%= escape_html(type_title) %> (panel)">
+    <span class="bf-field__panel-line" title="Panel content"></span>
+    <span class="bf-field__panel-line" title="Panel content"></span>
+    <span class="bf-field__panel-line" title="Panel content"></span>
+  </div>
+<% else %>
+  <span class="bf-field__input" title="<%= escape_html(type_title) %> (input)"></span>
+<% end %>
+</div>

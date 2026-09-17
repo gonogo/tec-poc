@@ -41,6 +41,15 @@ $bf-callout-on-dark: #ffffff;
   width: 320px;
 }
 
+.bf-frame--cases,
+.bf-frame--mywork {
+  width: 460px;
+}
+
+.bf-frame--mywork .bf-frame__page {
+  min-height: 300px;
+}
+
 .bf-frame__page {
   display: flex;
   flex-direction: column;
@@ -474,7 +483,7 @@ $bf-exui-light: #ffffff;
 }
 
 // Link actions (Manage / Next steps): muted blue by default; callout → stronger blue.
-$bf-link: #91c2ee;
+$bf-link: #619dd1;
 $bf-link-callout: #1a65a6;
 
 .bf-action--link {
@@ -609,6 +618,10 @@ $bf-link-callout: #1a65a6;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  &.bf-callout:not(:empty) {
+    color: $bf-callout-on-light;
+  }
 }
 
 // Payment History / CasePaymentHistoryViewer-style table.
@@ -666,6 +679,31 @@ $bf-link-callout: #1a65a6;
   max-width: 100%;
   background: $bf-text;
   border-radius: 1px;
+}
+
+.bf-table__bar--head {
+  height: 4px;
+  background: $bf-text-dark;
+}
+
+.bf-table__cell--callout {
+  color: $bf-callout-on-light;
+}
+
+.bf-table__value {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  color: $bf-text;
+  font-size: 5.5px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bf-table__value--callout {
+  color: $bf-callout-on-light;
 }
 
 .bf-task {
@@ -800,11 +838,255 @@ $bf-link-callout: #1a65a6;
 }
 
 .bf-field__input {
+  display: block;
+  position: relative;
   height: 16px;
   width: 100%;
   background: #fff;
   border: 1px solid $bf-border;
   border-radius: 1px;
+  box-sizing: border-box;
+}
+
+.bf-field__input--textarea {
+  height: 36px;
+}
+
+.bf-field__input--narrow {
+  width: 55%;
+}
+
+// ExUI cut-date-input: Day / Month / Year (+ Hour / Minute / Second for DateTime).
+.bf-field__date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+}
+
+.bf-field__date-part {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bf-field__date-part--day,
+.bf-field__date-part--month,
+.bf-field__date-part--hour,
+.bf-field__date-part--minute,
+.bf-field__date-part--second {
+  width: 22px;
+
+  .bf-field__input {
+    width: 100%;
+  }
+}
+
+.bf-field__date-part--year {
+  width: 36px;
+
+  .bf-field__input {
+    width: 100%;
+  }
+}
+
+.bf-field__date-label {
+  @include bf-bar-or-text($bf-text-dark, 5.5px, 4px, 70%, 400, 100%);
+  max-width: 100%;
+}
+
+.bf-field__input--money {
+  width: 42%;
+
+  &::before {
+    content: "£";
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 7px;
+    line-height: 1;
+    color: $bf-text-dark;
+    pointer-events: none;
+  }
+}
+
+.bf-field__input--select {
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 3px;
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid $bf-text-dark;
+    transform: translateY(-35%);
+    pointer-events: none;
+  }
+}
+
+.bf-field__options {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.bf-field__option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bf-field__option-mark {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border: 1px solid $bf-border;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.bf-field__option-mark--radio {
+  border-radius: 50%;
+}
+
+.bf-field__option-mark--check {
+  border-radius: 1px;
+}
+
+.bf-field__option-mark--on {
+  background: $bf-text-dark;
+  border-color: $bf-text-dark;
+}
+
+.bf-field__option-text {
+  @include bf-bar-or-text($bf-text, 6px, 5px, 48%, 400, 70%);
+  flex: 1;
+  min-width: 0;
+
+  &.bf-callout:not(:empty) {
+    color: $bf-callout-on-light;
+  }
+}
+
+.bf-field__document {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.bf-field__document-btn {
+  flex-shrink: 0;
+  height: 14px;
+  width: 42px;
+  background: #f3f2f1;
+  box-shadow: 0 1px 0 #929191;
+  border-radius: 0;
+}
+
+.bf-field__document-name {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  max-width: 55%;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-field__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 5px 4px;
+  border: 1px solid $bf-border;
+  background: #f8f8f8;
+  box-sizing: border-box;
+}
+
+.bf-field__panel-line {
+  display: block;
+  height: 5px;
+  width: 70%;
+  background: $bf-text;
+  border-radius: 1px;
+
+  &:nth-child(2) {
+    width: 48%;
+  }
+
+  &:nth-child(3) {
+    width: 58%;
+  }
+}
+
+.bf-field__address {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+
+  .bf-field__input {
+    width: 100%;
+
+    &:nth-child(2),
+    &:nth-child(3) {
+      width: 78%;
+    }
+
+    &:nth-child(4) {
+      width: 42%;
+    }
+  }
+}
+
+.bf-field__collection {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 4px;
+  border: 1px dashed $bf-border;
+  box-sizing: border-box;
+}
+
+.bf-field__collection-row {
+  height: 8px;
+  width: 100%;
+  background: #fff;
+  border: 1px solid $bf-border;
+  border-radius: 1px;
+}
+
+.bf-field__collection-add {
+  height: 8px;
+  width: 36%;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-field__label-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.bf-field__label-block-title {
+  @include bf-bar-or-text($bf-text-dark, 7px, 7px, 72%, 700, 90%);
+}
+
+.bf-field__label-block-line {
+  @include bf-bar-or-text($bf-text, 6px, 5px, 90%, 400, 100%);
 }
 
 // Event form column (Validate application form): half the page, compact fields.
@@ -838,6 +1120,129 @@ $bf-link-callout: #1a65a6;
     width: 100%;
     max-width: 100%;
   }
+
+  .bf-field__input--textarea {
+    height: 20px;
+  }
+
+  .bf-field__input--narrow {
+    width: 55%;
+  }
+
+  .bf-field__input--money {
+    width: 42%;
+  }
+
+  .bf-field__date {
+    gap: 3px;
+  }
+
+  .bf-field__date-part--day,
+  .bf-field__date-part--month,
+  .bf-field__date-part--hour,
+  .bf-field__date-part--minute,
+  .bf-field__date-part--second {
+    width: 14px;
+  }
+
+  .bf-field__date-part--year {
+    width: 24px;
+  }
+
+  .bf-field__date-label {
+    &:empty {
+      height: 3px;
+    }
+
+    &:not(:empty) {
+      font-size: 4.5px;
+      line-height: 1.1;
+    }
+  }
+
+  .bf-field__option-mark {
+    width: 6px;
+    height: 6px;
+  }
+
+  .bf-field__document-btn {
+    height: 10px;
+    width: 34px;
+  }
+
+  .bf-field__document-name {
+    height: 4px;
+  }
+
+  .bf-field__panel {
+    padding: 3px;
+  }
+
+  .bf-field__panel-line {
+    height: 3px;
+  }
+
+  .bf-field__collection-row {
+    height: 6px;
+  }
+
+  .bf-field__collection-add {
+    height: 5px;
+  }
+}
+
+.bf-form--showcase {
+  width: 72%;
+  max-width: 72%;
+}
+
+// Isolated ExUI field-type tiles (no event chrome).
+.bf-elements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  margin: 1rem 0 2rem;
+}
+
+.bf-element {
+  display: flex;
+  flex-direction: column;
+  width: 148px;
+  flex-shrink: 0;
+
+  &:has(.bf-field__date--datetime) {
+    width: 220px;
+  }
+
+  &:has(.bf-field__date:not(.bf-field__date--datetime)) {
+    width: 168px;
+  }
+}
+
+.bf-element__label {
+  margin-bottom: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0b0c0c;
+}
+
+.bf-element__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px;
+  border: 1px solid $bf-border;
+  background: $bf-page-bg;
+  box-sizing: border-box;
+}
+
+.bf-element__note {
+  margin: 0.25rem 0 0;
+  color: #505a5f;
+  font-size: 0.75rem;
+  line-height: 1.3;
 }
 
 .bf-folder {
@@ -847,6 +1252,397 @@ $bf-link-callout: #1a65a6;
 
   &:empty {
     margin-block: 1px;
+  }
+}
+
+// ExUI Case list (/cases): heading, Hide Filter, left filters + right results.
+.bf-body:has(.bf-cases) {
+  padding: 6px;
+  gap: 5px;
+}
+
+.bf-cases {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+  min-height: 240px;
+  min-width: 0;
+}
+
+.bf-cases__hide-filter,
+.bf-cases__hide-filter:empty {
+  width: 48px;
+  height: 12px;
+  margin-top: 0;
+  flex-shrink: 0;
+  // Match ExUI Find / GOV.UK secondary button: light fill + bottom edge.
+  background: #f3f2f1;
+  box-shadow: 0 1px 0 #929191;
+  border: 0;
+  border-radius: 0;
+}
+
+.bf-cases__split {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-height: 0;
+  min-width: 0;
+  background: $bf-page-bg;
+}
+
+.bf-cases__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 30%;
+  flex-shrink: 0;
+  padding: 5px 4px;
+  border: 1px solid #f3f2f1;
+  background: $bf-page-bg;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bf-cases__filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  min-width: 0;
+  margin-bottom: 1px;
+
+  .bf-text--title {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.bf-cases__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+}
+
+.bf-cases__filter-label {
+  @include bf-bar-or-text($bf-text-dark, 5.5px, 4px, 55%, 700, 90%);
+}
+
+.bf-cases__filter-label--callout:not(:empty) {
+  color: $bf-callout-on-light;
+}
+
+.bf-cases__filter-control {
+  display: block;
+  position: relative;
+  height: 10px;
+  width: 100%;
+  max-width: 100%;
+  background: $bf-page-bg;
+  border: 1px solid $bf-border;
+  border-radius: 1px;
+  box-sizing: border-box;
+
+  // Select caret (wireframe).
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    width: 0;
+    height: 0;
+    border-left: 2.5px solid transparent;
+    border-right: 2.5px solid transparent;
+    border-top: 3.5px solid $bf-chrome-dark;
+    transform: translateY(-35%);
+    pointer-events: none;
+  }
+
+  &:not(:empty) {
+    height: auto;
+    padding: 1px 10px 1px 3px;
+    color: $bf-text-dark;
+    font-size: 5px;
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.bf-cases__filter-control--callout:not(:empty) {
+  color: $bf-callout-on-light;
+}
+
+.bf-cases__filter-control--input::after {
+  display: none;
+}
+
+.bf-cases__actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.bf-cases__actions .bf-action {
+  margin-top: 0;
+  flex-shrink: 0;
+  height: 10px;
+}
+
+.bf-cases__actions .bf-action--secondary:empty {
+  border: 0;
+  box-shadow: 0 1px 0 #929191;
+}
+
+.bf-cases__back-top,
+.bf-cases__back-top:empty {
+  margin-top: 2px;
+  width: 22px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.bf-cases__results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bf-cases__meta {
+  display: block;
+  height: 5px;
+  max-width: 100%;
+  background: $bf-text;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.bf-table--cases {
+  .bf-table__cell {
+    flex: 1 1 0;
+    padding: 3px 1px;
+  }
+
+  .bf-table__cell--head {
+    font-size: 4.5px;
+  }
+
+  .bf-table__value {
+    font-size: 4.5px;
+  }
+
+  .bf-table__bar {
+    height: 4px;
+  }
+}
+
+.bf-cases__pagination {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+  min-width: 0;
+}
+
+// ExUI My work → My tasks: heading, intro, My tasks / Available tasks, table.
+.bf-body:has(.bf-mywork) {
+  padding: 8px 6px 6px;
+  gap: 5px;
+}
+
+.bf-mywork {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+  min-height: 200px;
+  min-width: 0;
+}
+
+.bf-mywork__intro,
+.bf-mywork__intro:empty {
+  width: 36%;
+  height: 4px;
+  max-width: 36%;
+}
+
+.bf-subnav {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 4px 0 0;
+  border-bottom: 1px solid $bf-border;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.bf-subnav__link {
+  @include bf-bar-or-text($bf-link, 5.5px, 5.5px, 18%, 400, none);
+  padding-bottom: 4px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+
+  &:empty {
+    // Blue link block; thinner border + larger bottom margin for alignment.
+    height: 2.5px;
+    padding-bottom: 0;
+    border-bottom-width: 1px;
+    margin-bottom: 8px;
+    background: $bf-link;
+    border-radius: 1px;
+  }
+
+  &:not(:empty) {
+    color: $bf-link;
+    text-decoration: underline;
+  }
+}
+
+.bf-subnav__link--active {
+  border-bottom-color: $bf-callout-on-light;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:not(:empty) {
+    color: $bf-text-dark;
+    text-decoration: none;
+  }
+
+  &:empty {
+    background: $bf-text-dark;
+  }
+}
+
+.bf-subnav__link--callout:not(:empty) {
+  color: $bf-callout-on-light;
+  text-decoration: none;
+}
+
+.bf-mywork__results {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bf-table--tasks {
+  .bf-table__cell {
+    flex: 1 1 0;
+    padding: 4px 2px;
+  }
+
+  .bf-table__cell--manage {
+    flex: 0 0 36px;
+    max-width: 42px;
+    gap: 2px;
+    justify-content: flex-end;
+
+    &.bf-table__cell--head:empty {
+      height: auto;
+      min-height: 0;
+      background: transparent;
+    }
+  }
+
+  .bf-table__head {
+    align-items: center;
+    min-height: 14px;
+  }
+
+  .bf-table__cell--head {
+    align-items: center;
+    min-height: 10px;
+    font-size: 4.5px;
+    // Regular empty bars stay grey; callout text → black.
+    color: $bf-text-dark;
+
+    &.bf-table__cell--callout {
+      color: $bf-callout-on-light;
+    }
+  }
+
+  .bf-table__bar--head {
+    height: 4px;
+    background: $bf-text-dark;
+  }
+
+  .bf-table__value {
+    font-size: 4.5px;
+  }
+
+  .bf-table__bar {
+    height: 4px;
+  }
+
+  .bf-table__row {
+    min-height: 14px;
+  }
+
+  .bf-action--link {
+    margin-top: 0;
+  }
+}
+
+.bf-mywork__manage {
+  margin-top: 0;
+  font-size: 4.5px;
+  align-self: center;
+}
+
+.bf-mywork__case-ref {
+  margin-top: 0;
+  font-size: 4.5px;
+  max-width: 100%;
+
+  &:empty {
+    height: 4px;
+    width: 90%;
+  }
+}
+
+.bf-mywork__manage-icon {
+  display: block;
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  position: relative;
+  align-self: center;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    background: $bf-callout-on-light;
+  }
+
+  &::before {
+    top: 2px;
+    left: 0;
+    width: 5px;
+    height: 1px;
+  }
+
+  &::after {
+    top: 0;
+    left: 2px;
+    width: 1px;
+    height: 5px;
   }
 }
 
@@ -1081,17 +1877,21 @@ $bf-link-callout: #1a65a6;
 }
 
 .bf-journey__step {
+  // Size to the frame; note fills that width without expanding past it.
   display: flex;
   flex-direction: column;
   align-items: stretch;
   flex-shrink: 0;
-  max-width: 320px;
+  width: fit-content;
+  max-width: none;
 }
 
 .bf-journey__note {
   margin: 0.6rem 0 0;
   padding: 0;
-  max-width: 100%;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
   color: #505a5f;
   font-size: 0.875rem;
   font-weight: 400;
