@@ -28,15 +28,11 @@ Usage: ${0} <batch-case-reference> <output-file-1> <output-file-2>
 
 Complete processing for a TEC batch case:
   - verify the case is a batch (TEC_BATCH)
-  - attach the two files as Outputs (shown on Batch details)
-  - set Batch validation result to
-      "<valid> PCNs valid, <removed> PCNs removed, see exception report"
-    where <removed> is a random 5–20% of the batch's Number of PCNs in batch, and
-    <valid> is the remainder
+  - attach the two files as Outputs (Case File View)
   - move the case to PROCESSING_COMPLETE
 
 Optional environment variables:
-  CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION, SEED
+  CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION
 EOF
 }
 
@@ -93,39 +89,12 @@ if [[ "${case_type}" != "TEC_BATCH" ]]; then
   exit 1
 fi
 
-pcn_count="$(jq --raw-output '.data.pcnCount // empty' <<<"${case_response}")"
-if [[ -z "${pcn_count}" || ! "${pcn_count}" =~ ^[0-9]+$ || "${pcn_count}" -lt 1 ]]; then
-  echo "Batch case ${CASE_REFERENCE} has no usable Number of PCNs in batch (pcnCount)" >&2
-  echo "${case_response}" | jq '.data' >&2 || true
-  exit 1
-fi
-
 current_state="$(jq --raw-output '.state // empty' <<<"${case_response}")"
 if [[ -z "${current_state}" ]]; then
   echo "CCD response for case ${CASE_REFERENCE} did not contain state" >&2
   echo "${case_response}" >&2
   exit 1
 fi
-
-if [[ -n "${SEED:-}" ]]; then
-  RANDOM="${SEED}"
-fi
-
-removed_percent=$((5 + RANDOM % 16)) # 5–20 inclusive
-removed=$((pcn_count * removed_percent / 100))
-if (( removed < 1 )); then
-  removed=1
-fi
-if (( removed >= pcn_count )); then
-  removed=$((pcn_count - 1))
-fi
-if (( removed < 1 )); then
-  removed=0
-fi
-valid=$((pcn_count - removed))
-validation_display="${valid} PCNs valid, ${removed} PCNs removed, see exception report"
-
-echo "Batch has ${pcn_count} PCNs → validation result: ${validation_display}" >&2
 
 to_cdam_document_url() {
   local url="$1"
@@ -286,11 +255,8 @@ if [[ "${current_state}" == "QUEUED_FOR_PROCESSING" ]]; then
 fi
 
 if [[ "${current_state}" == "PROCESSING_STARTED" || "${current_state}" == "PROCESSING_COMPLETE" ]]; then
-  echo "Completing batch processing and recording validation result..." >&2
-  complete_response="$(submit_ccd_event "completeBatchProcessing" "Batch processing complete" \
-    "$(jq --null-input --compact-output \
-      --arg validationDisplay "${validation_display}" \
-      '{ batchValidationResultDisplay: $validationDisplay }')")"
+  echo "Completing batch processing..." >&2
+  complete_response="$(submit_ccd_event "completeBatchProcessing" "Batch processing complete" '{}')"
 else
   echo "Unexpected batch state '${current_state}'; expected QUEUED_FOR_PROCESSING, PROCESSING_STARTED, or PROCESSING_COMPLETE" >&2
   exit 1
@@ -301,5 +267,4 @@ echo "${complete_response}" | jq .
 final_state="$(jq --raw-output '.state // empty' <<<"${complete_response}")"
 echo >&2
 echo "Batch ${CASE_REFERENCE} is now ${final_state:-PROCESSING_COMPLETE}." >&2
-echo "Validation result: ${validation_display}" >&2
 echo "Attached outputs: $(basename -- "${FILE_ONE}"), $(basename -- "${FILE_TWO}")" >&2

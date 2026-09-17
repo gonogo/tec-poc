@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import uk.gov.hmcts.ccd.sdk.api.CCD;
+import uk.gov.hmcts.ccd.sdk.type.ComponentLauncher;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.FieldType;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
@@ -18,8 +19,14 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchCase {
 
+    @CCD(label = "File identifier")
+    private String fileIdentifier;
+
     @CCD(label = "Batch identifier")
     private String batchIdentifier;
+
+    @CCD(label = "Submitter email", typeOverride = FieldType.Email)
+    private String submitterEmail;
 
     @CCD(label = "Number of PCNs in batch")
     private Integer pcnCount;
@@ -98,21 +105,6 @@ public class BatchCase {
     @CCD(label = "Status")
     private String statusDisplay;
 
-    @CCD(
-        label = "Batch validation result",
-        typeOverride = FieldType.FixedList,
-        typeParameterOverride = "BatchValidationResult"
-    )
-    private BatchValidationResult batchValidationResult;
-
-    /**
-     * Case-view display for validation. Always populated so ExUI shows the row even when
-     * {@link #batchValidationResult} is unset ({@code @JsonInclude(NON_NULL)} would otherwise omit it).
-     * Unset results display as {@code Not yet validated}.
-     */
-    @CCD(label = "Batch validation result")
-    private String batchValidationResultDisplay;
-
     /**
      * PCNs excluded from the batch after placeholder validation (Upload batch file journey).
      */
@@ -133,23 +125,10 @@ public class BatchCase {
     private List<BatchStatementOfTruthAgreement> batchStatementOfTruth;
 
     /**
-     * Input documents for Case details (media viewer). Populated by {@link BatchCaseView}.
+     * Case File View source documents. Populated by {@link BatchCaseView}; not shown on Batch details.
      */
-    @CCD(label = "Inputs", searchable = false)
-    private List<ListValue<Document>> inputDocuments;
-
-    /**
-     * Output documents for Case details (media viewer). Populated by {@link BatchCaseView}
-     * when the batch has outputs; otherwise {@link #outputsDisplay} is used.
-     */
-    @CCD(label = "Outputs", searchable = false)
-    private List<ListValue<Document>> outputDocuments;
-
-    /**
-     * Shown as Outputs when there are no output documents ({@code -}).
-     */
-    @CCD(label = "Outputs", searchable = false)
-    private String outputsDisplay;
+    @CCD(label = "All documents", searchable = false)
+    private List<ListValue<Document>> allDocuments;
 
     /**
      * Event-only field used by {@code attachBatchDocument} and {@code uploadBatch}.
@@ -157,6 +136,15 @@ public class BatchCase {
     @CCD(label = "Batch file", searchable = false)
     private Document batchFileDocument;
 
+    @CCD(label = "Case file view")
+    private ComponentLauncher caseFileView;
+
     @CCD(label = "Tasks", searchable = false)
     private String tasksMarkdown;
+
+    /**
+     * CCD shell for the ExUI Roles and access tab. Not the real Work Allocation / CAA UI.
+     */
+    @CCD(label = "Roles and access", searchable = false)
+    private String rolesAndAccessMarkdown;
 }

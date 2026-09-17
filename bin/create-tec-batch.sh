@@ -14,14 +14,17 @@ done
 
 batch_seed=$(($(date +%s) ^ $$ ^ RANDOM))
 batch_number="$(printf '%06d' "$(((batch_seed * 37) % 1000000))")"
+file_number="$(printf '%05d' "$(((batch_seed * 37) % 100000))")"
 authority_code="${AUTHORITY_CODE:-AB}"
 batch_identifier="${BATCH_IDENTIFIER:-R${authority_code}${batch_number}}"
+file_identifier="${FILE_IDENTIFIER:-R${authority_code}${file_number}}"
 pcn_count="${PCN_COUNT:-$((200 + batch_seed % 1801))}"
 operation="${OPERATION:-registration}"
 received_via="${RECEIVED_VIA:-upload}"
 local_authority="${LOCAL_AUTHORITY:-westminster}"
 target_state="${TARGET_STATE:-QUEUED_FOR_PROCESSING}"
 received_at="${RECEIVED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%S")}"
+submitter_email="${SUBMITTER_EMAIL:-la.submitter@example.com}"
 
 documents_json='[]'
 if [[ "${target_state}" == "PROCESSING_COMPLETE" || "${ATTACH_SAMPLE_DOCUMENTS:-}" == "true" ]]; then
@@ -66,21 +69,25 @@ if [[ "${target_state}" == "PROCESSING_COMPLETE" || "${ATTACH_SAMPLE_DOCUMENTS:-
 fi
 
 batch_data="$(jq --null-input --compact-output \
+  --arg fileIdentifier "${file_identifier}" \
   --arg batchIdentifier "${batch_identifier}" \
   --argjson pcnCount "${pcn_count}" \
   --arg operation "${operation}" \
   --arg receivedVia "${received_via}" \
   --arg receivedAt "${received_at}" \
   --arg localAuthority "${local_authority}" \
+  --arg submitterEmail "${submitter_email}" \
   --arg targetState "${target_state}" \
   --argjson documents "${documents_json}" \
   '{
+    fileIdentifier: $fileIdentifier,
     batchIdentifier: $batchIdentifier,
     pcnCount: $pcnCount,
     operation: $operation,
     receivedVia: $receivedVia,
     receivedAt: $receivedAt,
     localAuthority: $localAuthority,
+    submitterEmail: $submitterEmail,
     targetState: $targetState,
     documents: $documents
   }')"

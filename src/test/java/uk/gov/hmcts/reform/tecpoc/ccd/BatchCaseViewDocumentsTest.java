@@ -107,14 +107,11 @@ class BatchCaseViewDocumentsTest {
     }
 
     @Test
-    void shouldMapInputDocumentsByCategory() {
-        List<ListValue<Document>> inputs = BatchCaseView.toDocuments(
-            DOCUMENTS,
-            BatchFileCategory.INPUTS.getId()
-        );
+    void shouldMapDocumentsForCaseFileView() {
+        List<ListValue<Document>> allDocuments = BatchCaseView.toAllDocuments(DOCUMENTS);
 
-        assertThat(inputs).hasSize(1);
-        Document input = inputs.get(0).getValue();
+        assertThat(allDocuments).hasSize(2);
+        Document input = allDocuments.get(0).getValue();
         assertThat(input.getCategoryId()).isEqualTo("inputs");
         assertThat(input.getFilename()).isEqualTo("batch-input.csv");
         assertThat(input.getUrl())
@@ -123,40 +120,11 @@ class BatchCaseViewDocumentsTest {
             .isEqualTo(
                 "http://localhost:4455/cases/documents/11111111-1111-1111-1111-111111111111/binary"
             );
-    }
 
-    @Test
-    void shouldMapOutputDocumentsByCategory() {
-        List<ListValue<Document>> outputs = BatchCaseView.toDocuments(
-            DOCUMENTS,
-            BatchFileCategory.OUTPUTS.getId()
-        );
-
-        assertThat(outputs).hasSize(1);
-        Document output = outputs.get(0).getValue();
+        Document output = allDocuments.get(1).getValue();
         assertThat(output.getCategoryId()).isEqualTo("outputs");
         assertThat(output.getFilename()).isEqualTo("exception-report.csv");
-    }
-
-    @Test
-    void shouldShowDashWhenOutputsEmpty() {
-        BatchCase batchCase = new BatchCase();
-        BatchCaseView.applyOutputs(batchCase, List.of());
-
-        assertThat(batchCase.getOutputDocuments()).isNull();
-        assertThat(batchCase.getOutputsDisplay()).isEqualTo("-");
-    }
-
-    @Test
-    void shouldShowDocumentsWhenOutputsPresent() {
-        BatchCase batchCase = new BatchCase();
-        List<ListValue<Document>> outputs = BatchCaseView.toDocuments(
-            DOCUMENTS,
-            BatchFileCategory.OUTPUTS.getId()
-        );
-        BatchCaseView.applyOutputs(batchCase, outputs);
-
-        assertThat(batchCase.getOutputDocuments()).isEqualTo(outputs);
-        assertThat(batchCase.getOutputsDisplay()).isNull();
+        assertThat(output.getUrl())
+            .isEqualTo("http://localhost:4455/cases/documents/22222222-2222-2222-2222-222222222222");
     }
 }

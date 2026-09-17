@@ -11,6 +11,7 @@ import uk.gov.hmcts.ccd.sdk.api.callback.AboutToStartOrSubmitResponse;
 import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -36,7 +37,21 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         configureAccessProfiles(builder);
         configureStateAccess(builder);
         configureCaseView(builder);
+        configureCaseFileCategories(builder);
         configureEvents(builder);
+    }
+
+    private void configureCaseFileCategories(
+        DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder
+    ) {
+        for (BatchFileCategory category : BatchFileCategory.values()) {
+            for (UserRole role : List.of(UserRole.CLERK, UserRole.LOCAL_AUTHORITY)) {
+                builder.categories(role)
+                    .categoryID(category.getId())
+                    .categoryLabel(category.getLabel())
+                    .displayOrder(category.getDisplayOrder());
+            }
+        }
     }
 
     private void configureAccessProfiles(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {
@@ -66,11 +81,17 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .label("tasksMarkdownLabel", null, "${tasksMarkdown}")
             .field("tasksMarkdown", NEVER_SHOW);
 
+        // CCD shell only — real ExUI Roles and access is prepended when WA is enabled for the jurisdiction.
+        builder.tab("rolesAndAccess", "Roles and access")
+            .label("rolesAndAccessLabel", null, "${rolesAndAccessMarkdown}")
+            .field("rolesAndAccessMarkdown", NEVER_SHOW);
+
         builder.tab("caseDetails", "Batch details")
             .field(BatchCase::getStatusDisplay)
-            .field(BatchCase::getBatchValidationResultDisplay)
+            .field(BatchCase::getFileIdentifier)
             .field(BatchCase::getBatchIdentifier)
             .field(BatchCase::getLocalAuthority)
+            .field(BatchCase::getSubmitterEmail)
             .field(BatchCase::getOperation)
             .field(BatchCase::getPcnCount)
             .field(BatchCase::getPcnProcessedCountDisplay)
@@ -84,35 +105,43 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             )
             .field(BatchCase::getReceivedVia)
             .field(BatchCase::getReceivedAt, "receivedVia=\"email\"");
-            .field(BatchCase::getInputDocuments)
-            .field(BatchCase::getOutputDocuments)
-            .field(BatchCase::getOutputsDisplay);
+
+        builder.tab("caseFileView", "Case File View")
+            .field(BatchCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
+            .field(BatchCase::getAllDocuments, NEVER_SHOW);
 
         builder.searchInputFields()
+            .field(BatchCase::getFileIdentifier, "File identifier")
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
+            .field(BatchCase::getSubmitterEmail, "Submitter email")
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getReceivedVia, "Received via");
 
         builder.searchResultFields()
             .caseReferenceField()
-            .field(BatchCase::getBatchIdentifier, "Batch identifier")
+            .field("[STATE]", "State")
+            .field(BatchCase::getFileIdentifier, "File identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
+            .field(BatchCase::getSubmitterEmail, "Submitter email")
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
             .field(BatchCase::getReceivedAt, "Email received at");
 
         builder.workBasketInputFields()
+            .field(BatchCase::getFileIdentifier, "File identifier")
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
+            .field(BatchCase::getSubmitterEmail, "Submitter email")
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getReceivedVia, "Received via");
 
         builder.workBasketResultFields()
             .caseReferenceField()
-            .field(BatchCase::getBatchIdentifier, "Batch identifier")
+            .field(BatchCase::getFileIdentifier, "File identifier")
             .field(BatchCase::getLocalAuthority, "Local authority")
+            .field(BatchCase::getSubmitterEmail, "Submitter email")
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
@@ -128,13 +157,14 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .grant(Permission.R, UserRole.CLERK)
             .grant(Permission.R, UserRole.LOCAL_AUTHORITY)
             .fields()
+            .mandatory(BatchCase::getFileIdentifier)
             .mandatory(BatchCase::getBatchIdentifier)
             .mandatory(BatchCase::getPcnCount)
             .mandatory(BatchCase::getOperation)
             .mandatory(BatchCase::getReceivedVia)
             .mandatory(BatchCase::getReceivedAt)
             .mandatory(BatchCase::getLocalAuthority)
-            .optional(BatchCase::getBatchValidationResult)
+            .mandatory(BatchCase::getSubmitterEmail)
             .optional(BatchCase::getCaseAccessCategory, NEVER_SHOW);
 
         builder.decentralisedEvent(UPLOAD_BATCH_EVENT_ID, this::uploadBatch)
@@ -232,9 +262,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .forStates(BatchCaseState.PROCESSING_STARTED, BatchCaseState.PROCESSING_COMPLETE)
             .name("Batch processing complete")
             .showCondition(NEVER_SHOW)
-            .grant(Permission.CRUD, UserRole.SYSTEM)
-            .fields()
-            .optional(BatchCase::getBatchValidationResultDisplay);
+            .grant(Permission.CRUD, UserRole.SYSTEM);
 
         builder.decentralisedEvent("attachBatchDocument", this::attachBatchDocument)
             .forStates(BatchCaseState.values())
@@ -299,13 +327,6 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
     private SubmitResponse<BatchCaseState> completeBatchProcessing(
         EventPayload<BatchCase, BatchCaseState> event
     ) {
-        BatchCase data = event.caseData();
-        if (data != null) {
-            String validationDisplay = data.getBatchValidationResultDisplay();
-            if (validationDisplay != null && !validationDisplay.isBlank()) {
-                repository.updateValidationResultDisplay(event.caseReference(), validationDisplay.trim());
-            }
-        }
         return response(BatchCaseState.PROCESSING_COMPLETE);
     }
 

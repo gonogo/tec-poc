@@ -38,7 +38,6 @@ class BatchUploadJourneyTest {
         BatchUploadJourney.applyValidationPlaceholder(data);
 
         assertThat(data.getExcludedPcnCount()).isEqualTo(23);
-        assertThat(data.getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -53,7 +52,6 @@ class BatchUploadJourneyTest {
             configuration.populateValidationPlaceholder(details, null);
 
         assertThat(response.getData().getExcludedPcnCount()).isEqualTo(23);
-        assertThat(response.getData().getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -82,9 +80,10 @@ class BatchUploadJourneyTest {
         assertThat(data.getReceivedAt()).isNotNull();
         assertThat(data.getLocalAuthority()).isEqualTo(LocalAuthority.MANCHESTER_CITY_COUNCIL);
         assertThat(data.getCaseAccessCategory()).isEqualTo("manchesterCityCouncil");
+        assertThat(data.getSubmitterEmail()).isEqualTo("la.submitter@example.com");
         assertThat(data.getPcnCount()).isEqualTo(200);
+        assertThat(data.getFileIdentifier()).isEqualTo("RUP00042");
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000042");
-        assertThat(data.getBatchValidationResult()).isNull();
     }
 
     @Test
@@ -126,15 +125,15 @@ class BatchUploadJourneyTest {
             .doesNotContain("Manage cases");
         assertThat(data.getOperation()).isEqualTo(BatchOperation.WARRANT_AUTH_REQUESTS);
         assertThat(data.getBatchTypeSelection()).isNull();
+        assertThat(data.getFileIdentifier()).isEqualTo("RUP00099");
         assertThat(data.getBatchIdentifier()).isEqualTo("RUP000099");
+        assertThat(data.getSubmitterEmail()).isEqualTo("la.submitter@example.com");
         assertThat(data.getReceivedVia()).isEqualTo(BatchReceivedVia.UPLOAD);
-        assertThat(data.getBatchValidationResult()).isNull();
     }
 
     @Test
-    void completeBatchProcessingPersistsValidationDisplayAndCompletes() {
+    void completeBatchProcessingCompletes() {
         BatchCase data = new BatchCase();
-        data.setBatchValidationResultDisplay("180 PCNs valid, 20 PCNs removed, see exception report");
 
         @SuppressWarnings("unchecked")
         SubmitResponse<BatchCaseState> response =
@@ -144,10 +143,7 @@ class BatchUploadJourneyTest {
                 eventPayload(55L, data)
             );
 
-        verify(repository).updateValidationResultDisplay(
-            55L,
-            "180 PCNs valid, 20 PCNs removed, see exception report"
-        );
+        verify(repository, never()).create(anyLong(), org.mockito.ArgumentMatchers.any());
         assertThat(response.getState()).isEqualTo(BatchCaseState.PROCESSING_COMPLETE);
     }
 

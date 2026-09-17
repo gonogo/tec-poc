@@ -12,6 +12,7 @@ final class BatchUploadJourney {
     static final int PLACEHOLDER_EXCLUDED_PCN_COUNT = 23;
     static final int PLACEHOLDER_PCN_COUNT = 200;
     static final LocalAuthority PLACEHOLDER_LOCAL_AUTHORITY = LocalAuthority.MANCHESTER_CITY_COUNCIL;
+    static final String PLACEHOLDER_SUBMITTER_EMAIL = "la.submitter@example.com";
 
     private BatchUploadJourney() {
     }
@@ -33,17 +34,21 @@ final class BatchUploadJourney {
         if (data.getLocalAuthority() != null) {
             data.setCaseAccessCategory(data.getLocalAuthority().getCode());
         }
+        if (data.getSubmitterEmail() == null || data.getSubmitterEmail().isBlank()) {
+            data.setSubmitterEmail(PLACEHOLDER_SUBMITTER_EMAIL);
+        }
         if (data.getPcnCount() == null) {
             data.setPcnCount(PLACEHOLDER_PCN_COUNT);
         }
         if (data.getBatchIdentifier() == null || data.getBatchIdentifier().isBlank()) {
             data.setBatchIdentifier(placeholderBatchIdentifier(caseReference));
         }
+        if (data.getFileIdentifier() == null || data.getFileIdentifier().isBlank()) {
+            data.setFileIdentifier(placeholderFileIdentifier(caseReference));
+        }
         if (data.getExcludedPcnCount() == null) {
             data.setExcludedPcnCount(PLACEHOLDER_EXCLUDED_PCN_COUNT);
         }
-        // Validation outcome is recorded later; new batches stay unset → "Not yet validated".
-        data.setBatchValidationResult(null);
     }
 
     static boolean hasAcceptedStatementOfTruth(BatchCase data) {
@@ -54,6 +59,11 @@ final class BatchUploadJourney {
     static String placeholderBatchIdentifier(long caseReference) {
         long number = Math.floorMod(caseReference, 1_000_000L);
         return "RUP" + String.format("%06d", number);
+    }
+
+    static String placeholderFileIdentifier(long caseReference) {
+        long number = Math.floorMod(caseReference, 100_000L);
+        return "RUP" + String.format("%05d", number);
     }
 
     static String confirmationHeader(BatchCase data) {

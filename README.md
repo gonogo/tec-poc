@@ -177,13 +177,17 @@ above). That creates a real batch case through CCD.
 ./bin/create-tec-batches.sh 6
 ```
 
-Optional overrides: `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `LOCAL_AUTHORITY`,
-`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
-Completed batches get sample Inputs/Outputs documents attached for Batch details demos.
+Optional overrides: `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `LOCAL_AUTHORITY`,
+`SUBMITTER_EMAIL`, `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
+Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
 
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
-and Batch details (Inputs/Outputs links at the bottom of Batch details). Registration batches also
-show **Fees due** while queued and **Fees paid** when processing is complete (`PCN count × £11`).
+Batch details, and Case File View. Batch details shows file identifier, batch identifier, local
+authority, **Submitter email**, and batch type (and no longer shows batch validation result).
+Registration batches also show **Fees due** while queued and **Fees paid** when processing is
+complete (`PCN count × £11`).
+Filter by **File identifier**, **Submitter email**, and optionally batch identifier; case list results
+show file identifier and submitter email rather than batch identifier.
 See [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#batch-details-presentation)
 (or http://localhost:4568/ccd-architecture.html#batch-details-presentation).
 

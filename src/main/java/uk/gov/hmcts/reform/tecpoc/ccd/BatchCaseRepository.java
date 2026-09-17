@@ -18,23 +18,24 @@ public class BatchCaseRepository {
     public void create(long caseReference, BatchCase batchCase) {
         database.update("""
             insert into tec_batch (
-                case_reference, batch_identifier, pcn_count, operation, received_via,
-                received_at, local_authority, batch_validation_result
+                case_reference, file_identifier, batch_identifier, pcn_count, operation,
+                received_via, received_at, local_authority, submitter_email
             ) values (
-                :caseReference, :batchIdentifier, :pcnCount, :operation, :receivedVia,
-                :receivedAt, :localAuthority, :batchValidationResult
+                :caseReference, :fileIdentifier, :batchIdentifier, :pcnCount, :operation,
+                :receivedVia, :receivedAt, :localAuthority, :submitterEmail
             )
             """, parameters(caseReference, batchCase));
     }
 
     public BatchCase find(long caseReference) {
         return database.queryForObject("""
-            select batch_identifier, pcn_count, operation, received_via, received_at,
-                   local_authority, batch_validation_result, batch_validation_result_display
+            select file_identifier, batch_identifier, pcn_count, operation, received_via,
+                   received_at, local_authority, submitter_email
               from tec_batch
              where case_reference = :caseReference
             """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
                 BatchCase result = new BatchCase();
+                result.setFileIdentifier(resultSet.getString("file_identifier"));
                 result.setBatchIdentifier(resultSet.getString("batch_identifier"));
                 result.setPcnCount(resultSet.getInt("pcn_count"));
                 result.setOperation(BatchOperation.valueOf(resultSet.getString("operation")));
@@ -44,25 +45,9 @@ public class BatchCaseRepository {
                     result.setReceivedAt(receivedAt.toLocalDateTime());
                 }
                 result.setLocalAuthority(LocalAuthority.valueOf(resultSet.getString("local_authority")));
-                String validationResult = resultSet.getString("batch_validation_result");
-                if (validationResult != null) {
-                    result.setBatchValidationResult(BatchValidationResult.valueOf(validationResult));
-                }
-                result.setBatchValidationResultDisplay(
-                    resultSet.getString("batch_validation_result_display")
-                );
+                result.setSubmitterEmail(resultSet.getString("submitter_email"));
                 return result;
             });
-    }
-
-    public void updateValidationResultDisplay(long caseReference, String validationResultDisplay) {
-        database.update("""
-            update tec_batch
-               set batch_validation_result_display = :validationResultDisplay
-             where case_reference = :caseReference
-            """, new MapSqlParameterSource()
-            .addValue("caseReference", caseReference)
-            .addValue("validationResultDisplay", validationResultDisplay));
     }
 
     public UUID insertDocument(
@@ -109,18 +94,15 @@ public class BatchCaseRepository {
     }
 
     private MapSqlParameterSource parameters(long caseReference, BatchCase batchCase) {
-        BatchValidationResult validationResult = batchCase.getBatchValidationResult();
         return new MapSqlParameterSource()
             .addValue("caseReference", caseReference)
+            .addValue("fileIdentifier", batchCase.getFileIdentifier())
             .addValue("batchIdentifier", batchCase.getBatchIdentifier())
             .addValue("pcnCount", batchCase.getPcnCount())
             .addValue("operation", batchCase.getOperation().name())
             .addValue("receivedVia", batchCase.getReceivedVia().name())
             .addValue("receivedAt", batchCase.getReceivedAt())
             .addValue("localAuthority", batchCase.getLocalAuthority().name())
-            .addValue(
-                "batchValidationResult",
-                validationResult == null ? null : validationResult.name()
-            );
+            .addValue("submitterEmail", batchCase.getSubmitterEmail());
     }
 }

@@ -14,8 +14,6 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 @RequiredArgsConstructor
 public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
 
-    private static final String VALIDATION_NOT_RECORDED = "Not yet validated";
-    private static final String OUTPUTS_EMPTY_DISPLAY = "-";
     private static final String PCN_PROCESSED_NOT_YET = "—";
     /** Registration fee per PCN in pence (£11.00). */
     static final int FEE_PENCE_PER_PCN = 1_100;
@@ -39,16 +37,11 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
         batchCase.setTasksMarkdown(
             BatchPrototypeTasks.markdownFor(request.caseRef(), request.state(), batchCase)
         );
-        String persistedValidationDisplay = batchCase.getBatchValidationResultDisplay();
-        if (persistedValidationDisplay == null || persistedValidationDisplay.isBlank()) {
-            BatchValidationResult validationResult = batchCase.getBatchValidationResult();
-            batchCase.setBatchValidationResultDisplay(
-                validationResult == null ? VALIDATION_NOT_RECORDED : validationResult.getLabel()
-            );
-        }
-        List<BatchCaseDocument> documents = repository.findDocuments(request.caseRef());
-        batchCase.setInputDocuments(toDocuments(documents, BatchFileCategory.INPUTS.getId()));
-        applyOutputs(batchCase, toDocuments(documents, BatchFileCategory.OUTPUTS.getId()));
+        batchCase.setRolesAndAccessMarkdown(
+            "<p class=\"govuk-body\">Roles and access (CCD shell). "
+                + "The Manage Case Work Allocation tab is not wired for TEC in this PoC.</p>"
+        );
+        batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return batchCase;
     }
 
@@ -90,19 +83,8 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
         }
     }
 
-    static void applyOutputs(BatchCase batchCase, List<ListValue<Document>> outputs) {
-        if (outputs.isEmpty()) {
-            batchCase.setOutputDocuments(null);
-            batchCase.setOutputsDisplay(OUTPUTS_EMPTY_DISPLAY);
-        } else {
-            batchCase.setOutputDocuments(outputs);
-            batchCase.setOutputsDisplay(null);
-        }
-    }
-
-    static List<ListValue<Document>> toDocuments(List<BatchCaseDocument> documents, String categoryId) {
+    static List<ListValue<Document>> toAllDocuments(List<BatchCaseDocument> documents) {
         return documents.stream()
-            .filter(document -> categoryId.equalsIgnoreCase(document.categoryId()))
             .map(BatchCaseView::toListValue)
             .toList();
     }
