@@ -83,7 +83,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
                 "operation=\"registration\" AND [STATE]=\"QUEUED_FOR_PROCESSING\""
             )
             .field(BatchCase::getReceivedVia)
-            .field(BatchCase::getReceivedAt)
+            .field(BatchCase::getReceivedAt, "receivedVia=\"email\"");
             .field(BatchCase::getInputDocuments)
             .field(BatchCase::getOutputDocuments)
             .field(BatchCase::getOutputsDisplay);
@@ -101,7 +101,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
-            .field(BatchCase::getReceivedAt, "Received at");
+            .field(BatchCase::getReceivedAt, "Email received at");
 
         builder.workBasketInputFields()
             .field(BatchCase::getBatchIdentifier, "Batch identifier")
@@ -116,7 +116,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs in batch")
             .field(BatchCase::getReceivedVia, "Received via")
-            .field(BatchCase::getReceivedAt, "Received at");
+            .field(BatchCase::getReceivedAt, "Email received at");
     }
 
     private void configureEvents(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {

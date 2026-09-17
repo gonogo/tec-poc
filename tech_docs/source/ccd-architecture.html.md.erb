@@ -238,7 +238,8 @@ Fields appear in this order:
 | Number of PCNs processed | Em dash while queued; otherwise the batch PCN count |
 | Fees due | `MoneyGBP`; **registration** batches in `QUEUED_FOR_PROCESSING` only — `pcnCount × £11` |
 | Fees paid | `MoneyGBP`; **registration** batches in `PROCESSING_COMPLETE` only — processed PCN count × £11 |
-| Received via, Received at | Persisted receipt metadata |
+| Received via | Persisted receipt channel (`email` / `upload`) |
+| Email received at | Persisted; shown only when Received via is Email |
 | Inputs / Outputs | Document links from `tec_batch_document` (Outputs shows `-` when empty) |
 
 Fees are not stored on `tec_batch`. `BatchCaseView.applyFees` sets MoneyGBP pence

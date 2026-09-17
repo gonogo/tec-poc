@@ -73,7 +73,7 @@ public class BatchCase {
     )
     private BatchReceivedVia receivedVia;
 
-    @CCD(label = "Received at")
+    @CCD(label = "Email received at")
     private LocalDateTime receivedAt;
 
     @CCD(
