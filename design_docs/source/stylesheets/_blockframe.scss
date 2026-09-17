@@ -1059,6 +1059,25 @@ $bf-link-callout: #1a65a6;
   overflow-x: auto;
   padding: 0.5rem 0 1.5rem;
   margin-bottom: 1.5rem;
+
+  // Soft right-edge cast shadow over wireframes; sticky on the scrollport.
+  &::after {
+    content: "";
+    position: sticky;
+    right: 0;
+    align-self: stretch;
+    flex-shrink: 0;
+    width: 20px;
+    margin-left: -20px;
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba($bf-border, 0.08) 40%,
+      rgba($bf-border, 0.35) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
 }
 
 .bf-journey__step {
