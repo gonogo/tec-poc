@@ -19,4 +19,5 @@ public class BatchDatafileCase {
 
     @CCD(label = "Submission type")
     private SubmissionType submissionType;
+
 }
