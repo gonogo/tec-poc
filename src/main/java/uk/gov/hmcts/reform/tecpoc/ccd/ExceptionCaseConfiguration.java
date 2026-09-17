@@ -88,6 +88,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
 
         builder.searchResultFields()
             .caseReferenceField()
+            .field("[STATE]", "State")
             .field(ExceptionCase::getPenaltyChargeNumber, "PCN");
 
         builder.workBasketInputFields()

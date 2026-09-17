@@ -228,6 +228,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
         builder.searchResultFields()
             .caseReferenceField()
+            .field("[STATE]", "State")
             .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
             .field(TecCase::getLocalAuthority, "Local authority")
             .field(TecCase::getRespondentDetails1, "Respondent details 1")
