@@ -20,7 +20,7 @@ Hover a control for the element name. For how these appear on TEC events in this
 
 ## Numbers, money and dates
 
-`Number` and `DateTime` are not SDK enum values; the generator infers them from Java types (`Integer` / `Long`, `LocalDateTime`). They are shown here because ExUI renders them as distinct controls and this POC uses both on events.
+`Number` and `DateTime` are not SDK enum values; the generator infers them from Java types (`Integer` / `Long`, `LocalDateTime`). They are shown here because ExUI renders them as distinct controls and this POC uses both on events. Batch cases also use `Email` (**Submitter email**) and label the batch datetime **Email received at** (shown on Batch details only when Received via is Email).
 
 **Date** and **DateTime** use ExUI’s `cut-date-input`: separate Day / Month / Year boxes. DateTime also shows Hour / Minute / Second. (If a field sets `dateTimeEntryFormat`, ExUI switches to a Material datetime picker instead — none of the TEC fields do.)
 

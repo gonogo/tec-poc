@@ -148,6 +148,8 @@ automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
 ### Case presentation and search
 
 Blockframe wireframes of the case tabs and Next steps journeys: [TEC PCN blockframes](/tec-pcn-blockframes.html).
+Caseworker review boards (including the expanded out-of-time validation failure journey):
+[Caseworker journeys](/caseworker-journeys.html). Field-type catalogue: [ExUI form elements](/exui-form-elements.html).
 
 `TecCaseConfiguration` generates five application tabs in addition to CCD's case-history tab:
 
@@ -176,8 +178,9 @@ Blockframe wireframes of the case tabs and Next steps journeys: [TEC PCN blockfr
   transactions UI). Local content depends on Payments being wired for TEC.
 
 Search and work-basket inputs are penalty charge number and local authority (CCD `FixedList` of the 2023
-England councils — ExUI has no generic autosuggest for this control). Results include the case reference,
-penalty charge number, local authority, respondent lines 1–3 and vehicle registration number.
+England councils — ExUI has no generic autosuggest for this control). **Search** results include the case
+reference, **State**, penalty charge number, local authority, respondent lines 1–3 and vehicle registration
+number. Work-basket (Case list) result columns omit State and otherwise match those fields.
 
 The tab configuration is static CCD metadata. `TecCaseView` supplies the current values at runtime by loading the row
 whose `case_reference` matches the CCD reference. ExUI and API clients call CCD; they do not call `TecCaseView`
@@ -217,7 +220,9 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
-| Search / work basket | File identifier, batch identifier, local authority, **Submitter email**, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
+| Search / work basket inputs | File identifier, batch identifier, local authority, **Submitter email**, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
+| Search results | Case reference, **State**, file identifier, local authority, submitter email, batch type, PCN count, received via, **Email received at** |
+| Work-basket results | Same as search results except State is omitted |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Upload batch file | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
@@ -243,9 +248,9 @@ Fields appear in this order:
 | Fees due | `MoneyGBP`; **registration** batches in `QUEUED_FOR_PROCESSING` only — `pcnCount × £11` |
 | Fees paid | `MoneyGBP`; **registration** batches in `PROCESSING_COMPLETE` only — processed PCN count × £11 |
 | Received via | Persisted receipt channel (`email` / `upload`) |
-| Email received at | Persisted; shown only when Received via is Email |
+| Email received at | Persisted (`received_at`); CCD label **Email received at**; shown only when Received via is Email |
 
-Batch validation result is no longer on the case schema or this tab.
+There is no batch validation result field on the schema, tab, or `tec_batch` table (removed in Flyway `V16`).
 
 Fees are not stored on `tec_batch`. `BatchCaseView.applyFees` sets MoneyGBP pence
 (`£11.00` = `1100` per PCN) when the batch type and state match; otherwise the fields are omitted.
@@ -279,7 +284,9 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 | Persistence | `public.tec_exception_case` |
 | Case details | Form validation result `—`, Associated TEC case `—`, PCN (placeholders set in `ExceptionCaseView`) |
 | Case File View | Same folder categories as PCN (`ExceptionCaseFileCategory`); empty until documents are attached |
-| Search / work basket | PCN |
+| Search / work basket inputs | PCN |
+| Search results | Case reference, **State**, PCN |
+| Work-basket results | Case reference, PCN (State omitted, same pattern as `TEC` / `TEC_BATCH`) |
 | Create API | `POST /exception-cases` (`bin/create-tec-exception-case.sh`) via hidden `createExceptionCase` |
 | Clerk events | `rejectItem` (mandatory radio + optional comment → History description), `editPcn` |
 

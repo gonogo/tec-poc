@@ -65,7 +65,7 @@ Clerk moves from the **Tasks** tab to **Case File View** to open case documents.
 
 Event screens without case tabs. The short line under the form title shows the case number.
 
-The showcase frame below includes one control for each CCD field type used on events in this POC (`Text`, `TextArea`, `Number`, `MoneyGBP`, `Date`, `DateTime`, `FixedList`, `FixedRadioList`, `MultiSelectList`, `Document`, `Label`). Labels match real event fields where practical. The full SDK catalogue (including types not used here) is on [ExUI form elements](/exui-form-elements.html).
+The showcase frame below includes one control for each CCD field type used on events in this POC (`Text`, `TextArea`, `Email`, `Number`, `MoneyGBP`, `Date`, `DateTime`, `FixedList`, `FixedRadioList`, `MultiSelectList`, `Document`, `Label`). Labels match real event fields where practical (`Email` → **Submitter email**; `DateTime` → **Email received at**). The full SDK catalogue (including types not used here) is on [ExUI form elements](/exui-form-elements.html).
 
 <div class="bf-catalogue">
 <%= partial "partials/blockframe/views/tec_pcn_edit_application", locals: { caption: "Event — Edit TE9 application", short_label: "Case number: 1788-2660-5799-1856" } %>
@@ -78,7 +78,7 @@ The showcase frame below includes one control for each CCD field type used on ev
 
 Same Tasks shell as the catalogue, but only **Manage cases**, the **case number**, and the **Validate application form** task card have visible text. Everything else is empty bars with varied widths. All elements in that task card use callout styling.
 
-The Case list frame mirrors ExUI `/cases`: **Case list** heading, **Hide Filter**, then a split with work-basket **filters** (heading + Apply/Reset, full-width fields, Back to top) on the left and **Your cases** (result count + table) on the right. The wide version uses a 7-column table; the compact version below matches the standard frame width with a 4-column table. Callouts: Manage cases, Case list, Filters, Case type (`TEC PCN`), Your cases, and Case Number (column + one row).
+The Case list frame mirrors ExUI `/cases`: **Case list** heading, **Hide Filter**, then a split with work-basket **filters** (heading + Apply/Reset, full-width fields, Back to top) on the left and **Your cases** (result count + table) on the right. The wide version uses a 7-column table; the compact version below matches the standard frame width with a 4-column table. Callouts: Manage cases, Case list, Filters, Case type (`TEC PCN`), Your cases, and Case Number (column + one row). Find case **search** results (not shown here) also include a **State** column after Case Number for `TEC`, `TEC_BATCH`, and `TEC_EXCEPTION`.
 
 <div class="bf-catalogue">
 <%= partial "partials/blockframe/views/tec_pcn_tasks_minimal" %>
