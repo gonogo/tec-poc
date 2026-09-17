@@ -1,0 +1,23 @@
+<%#
+  TEC event wireframe showing each CCD field type used on events in this POC.
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — POC field types" %>
+<% body = [
+  '<div class="bf-form bf-form--showcase">',
+  partial("partials/blockframe/text", locals: { size: :title, label: "POC field types" }),
+  partial("partials/blockframe/text", locals: { size: :short, label: "Case number: 1788-2660-5799-1856" }),
+  partial("partials/blockframe/field", locals: { type: :label, label: nil, title: "Label — statement of truth warning" }),
+  partial("partials/blockframe/field", locals: { type: :text, label: "Penalty charge number" }),
+  partial("partials/blockframe/field", locals: { type: :textarea, label: "Form validation comment" }),
+  partial("partials/blockframe/field", locals: { type: :number, label: "Number of PCNs in batch" }),
+  partial("partials/blockframe/field", locals: { type: :money, label: "Amount due" }),
+  partial("partials/blockframe/field", locals: { type: :date, label: "Date received" }),
+  partial("partials/blockframe/field", locals: { type: :datetime, label: "Received at" }),
+  partial("partials/blockframe/field", locals: { type: :fixed_list, label: "Local authority" }),
+  partial("partials/blockframe/field", locals: { type: :fixed_radio_list, label: "Form validation result" }),
+  partial("partials/blockframe/field", locals: { type: :multi_select, label: "Statement of truth" }),
+  partial("partials/blockframe/field", locals: { type: :document, label: "Batch file" }),
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  '</div>'
+].join %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, body: body } %>

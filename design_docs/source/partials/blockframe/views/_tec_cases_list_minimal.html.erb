@@ -1,0 +1,98 @@
+<%#
+  ExUI Case list (/cases), Minimal example.
+  Mirrors live layout: Case list heading, Hide Filter, then filters column
+  (Filters + Apply/Reset, full-width fields, Back to top) and results
+  (Your cases, result count, table).
+  Locals:
+    compact — true → standard 320px frame, 4-column table
+              (default: wide frame, 7 columns)
+    caption — frame label
+%>
+<% compact = (defined?(compact) && compact) ? compact : false %>
+<% caption = (defined?(caption) && caption) ? caption : (compact ? "Example — Case list (compact)" : "Example — Case list") %>
+<% cases_class = compact ? "bf-cases bf-cases--compact" : "bf-cases" %>
+<%
+  head_cells = [
+    '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Case Number (column)">Case Number</span>',
+    '<span class="bf-table__cell bf-table__cell--head" title="Penalty charge number (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 90%"></span></span>',
+    '<span class="bf-table__cell bf-table__cell--head" title="Local authority (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 70%"></span></span>',
+    '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 1 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 80%"></span></span>'
+  ]
+  unless compact
+    head_cells += [
+      '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 2 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 65%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 3 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 55%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Vehicle registration number (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 75%"></span></span>'
+    ]
+  end
+
+  row_bars = ->(widths) {
+    widths.map { |w|
+      %(<span class="bf-table__cell"><span class="bf-table__bar" style="width: #{w}%"></span></span>)
+    }.join
+  }
+
+  # Remaining columns after Case Number: 3 compact, 6 full.
+  row_widths = if compact
+    [
+      [85, 70, 60],
+      [70, 55, 80],
+      [60, 75, 50],
+      [45, 80, 70]
+    ]
+  else
+    [
+      [85, 70, 60, 90, 45, 55],
+      [70, 55, 80, 65, 50, 40],
+      [60, 75, 50, 85, 35, 70],
+      [45, 80, 70, 55, 60, 50]
+    ]
+  end
+
+  first_row_first = '<span class="bf-table__cell"><span class="bf-table__value bf-table__value--callout" title="Case Number">1788-2660-5799-1856</span></span>'
+  other_first = [
+    '<span class="bf-table__cell"><span class="bf-table__bar" style="width: 95%"></span></span>',
+    '<span class="bf-table__cell"><span class="bf-table__bar" style="width: 88%"></span></span>',
+    '<span class="bf-table__cell"><span class="bf-table__bar" style="width: 92%"></span></span>'
+  ]
+
+  rows_html = row_widths.each_with_index.map { |widths, idx|
+    first = idx.zero? ? first_row_first : other_first[idx - 1]
+    %(<div class="bf-table__row" title="Case row">#{first}#{row_bars.call(widths)}</div>)
+  }.join
+%>
+<% body = [
+  %(<div class="#{cases_class}" title="Case list">),
+  '<span class="bf-text bf-text--title bf-text--callout" title="Case list">Case list</span>',
+  '<span class="bf-action bf-action--secondary bf-cases__hide-filter" title="Hide Filter"></span>',
+  '<div class="bf-cases__split">',
+  '<div class="bf-cases__filters" title="Work basket filters">',
+  '<div class="bf-cases__filters-head" title="Filters heading and actions"><span class="bf-text bf-text--title bf-text--callout" title="Filters">Filters</span><div class="bf-cases__actions" title="Filter actions"><span class="bf-action bf-action--primary" title="Apply" style="width: 22px"></span><span class="bf-action bf-action--secondary" title="Reset" style="width: 20px"></span></div></div>',
+  '<div class="bf-cases__filter" title="Jurisdiction filter"><span class="bf-cases__filter-label" title="Jurisdiction" style="width: 52%"></span><span class="bf-cases__filter-control" title="Jurisdiction select"></span></div>',
+  '<div class="bf-cases__filter" title="Case type filter"><span class="bf-cases__filter-label bf-cases__filter-label--callout" title="Case type">Case type</span><span class="bf-cases__filter-control bf-cases__filter-control--callout" title="Case type: TEC PCN">TEC PCN</span></div>',
+  '<div class="bf-cases__filter" title="State filter"><span class="bf-cases__filter-label" title="State" style="width: 28%"></span><span class="bf-cases__filter-control" title="State select"></span></div>',
+  '<div class="bf-cases__filter" title="Penalty charge number filter"><span class="bf-cases__filter-label" title="Penalty charge number" style="width: 78%"></span><span class="bf-cases__filter-control bf-cases__filter-control--input" title="Penalty charge number input"></span></div>',
+  '<div class="bf-cases__filter" title="Local authority filter"><span class="bf-cases__filter-label" title="Local authority" style="width: 58%"></span><span class="bf-cases__filter-control" title="Local authority select"></span></div>',
+  '<span class="bf-action bf-action--primary bf-cases__back-top" title="Back to top" style="width: 22px"></span>',
+  '</div>',
+  '<div class="bf-cases__results" title="Case list results">',
+  '<span class="bf-text bf-text--title bf-text--callout" title="Your cases">Your cases</span>',
+  '<span class="bf-cases__meta" title="Results count" style="width: 36%"></span>',
+  '<div class="bf-table bf-table--cases" title="Cases table">',
+  '<div class="bf-table__head" title="Table header">',
+  head_cells.join,
+  '</div>',
+  rows_html,
+  '</div>',
+  '<div class="bf-cases__pagination" title="Pagination"><span class="bf-cases__meta" style="width: 55%" title="Page links"></span></div>',
+  '</div>',
+  '</div>',
+  '</div>'
+].join %>
+<%= partial "partials/blockframe/page", locals: {
+  caption: caption,
+  show_tabs: false,
+  minimal: true,
+  frame: (compact ? nil : :cases),
+  body: body
+} %>

@@ -1,0 +1,77 @@
+---
+title: ExUI form elements
+weight: 46
+---
+
+# ExUI form elements
+
+Isolated blockframe controls for each CCD `FieldType` exposed by the SDK (`uk.gov.hmcts.ccd.sdk.type.FieldType`). Each tile shows the control alone — not as part of an event form or case page.
+
+Hover a control for the element name. For how these appear on TEC events in this POC, see [Forms and events](/tec-pcn-blockframes.html#forms-and-events).
+
+## Text and contact
+
+<div class="bf-elements">
+<%= partial "partials/blockframe/element_tile", locals: { type: :text, name: "Text" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :textarea, name: "TextArea" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :email, name: "Email" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :phone, name: "PhoneUK" } %>
+</div>
+
+## Numbers, money and dates
+
+`Number` and `DateTime` are not SDK enum values; the generator infers them from Java types (`Integer` / `Long`, `LocalDateTime`). They are shown here because ExUI renders them as distinct controls and this POC uses both on events.
+
+**Date** and **DateTime** use ExUI’s `cut-date-input`: separate Day / Month / Year boxes. DateTime also shows Hour / Minute / Second. (If a field sets `dateTimeEntryFormat`, ExUI switches to a Material datetime picker instead — none of the TEC fields do.)
+
+<div class="bf-elements">
+<%= partial "partials/blockframe/element_tile", locals: { type: :money, name: "MoneyGBP" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :number, name: "Number", note: "Inferred from numeric Java types" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :date, name: "Date", note: "Day / Month / Year" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :datetime, name: "DateTime", note: "Day–Year + Hour / Minute / Second" } %>
+</div>
+
+## Choice lists
+
+<div class="bf-elements">
+<%= partial "partials/blockframe/element_tile", locals: { type: :yes_or_no, name: "YesOrNo" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :fixed_list, name: "FixedList" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :fixed_radio_list, name: "FixedRadioList" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :multi_select, name: "MultiSelectList" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :dynamic_list, name: "DynamicList" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :dynamic_radio_list, name: "DynamicRadioList" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :dynamic_multi_select, name: "DynamicMultiSelectList" } %>
+</div>
+
+## Structured and upload
+
+<div class="bf-elements">
+<%= partial "partials/blockframe/element_tile", locals: { type: :address, name: "Address" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :document, name: "Document" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :collection, name: "Collection" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :case_link, name: "CaseLink" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :case_location, name: "CaseLocation" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :order_summary, name: "OrderSummary" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :schedule, name: "Schedule" } %>
+</div>
+
+## Display and platform
+
+`Label` is display-only markdown/copy on a page or event. The remaining types are ExUI platform panels or launchers rather than ordinary inputs.
+
+<div class="bf-elements">
+<%= partial "partials/blockframe/element_tile", locals: { type: :label, name: "Label" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :case_payment_history, name: "CasePaymentHistoryViewer" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :flags, name: "Flags" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :flag_launcher, name: "FlagLauncher" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :flag_type, name: "FlagType" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :flag_detail, name: "FlagDetail" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :component_launcher, name: "ComponentLauncher" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :search_criteria, name: "SearchCriteria" } %>
+<%= partial "partials/blockframe/element_tile", locals: { type: :ttl, name: "TTL" } %>
+</div>
+
+## Related
+
+- [TEC PCN blockframes](/tec-pcn-blockframes.html) — case tabs and event journeys
+- [Forms and events](/tec-pcn-blockframes.html#forms-and-events) — POC event field-type showcase

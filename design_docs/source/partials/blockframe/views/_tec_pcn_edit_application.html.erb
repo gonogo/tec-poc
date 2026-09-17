@@ -1,12 +1,14 @@
 <%#
   TEC PCN — Edit application event (TE9 / PE3 / TE7 / PE2 shape).
   Same form column / field sizing as Validate application form.
+  Locals: caption, short_label (default: Update TE9 application details)
 %>
 <% caption = (defined?(caption) && caption) ? caption : "Event — Edit application" %>
+<% short_label = (defined?(short_label) && short_label) ? short_label : "Update TE9 application details" %>
 <% body = [
   '<div class="bf-form">',
   partial("partials/blockframe/text", locals: { size: :title, label: "Edit TE9 application" }),
-  partial("partials/blockframe/text", locals: { size: :short, label: "Update TE9 application details" }),
+  partial("partials/blockframe/text", locals: { size: :short, label: short_label }),
   '<div class="bf-field" title="Date received field"><span class="bf-field__label" title="Date received (label)">Date received</span><span class="bf-field__input" title="Date received (input)"></span></div>',
   '<div class="bf-field" title="Application type field"><span class="bf-field__label" title="Application type (label)">Application type</span><span class="bf-field__input" title="Application type (input)"></span></div>',
   '<div class="bf-field" title="Applicant / full name field"><span class="bf-field__label" title="Applicant name (label)">Full name</span><span class="bf-field__input" title="Applicant name (input)"></span></div>',

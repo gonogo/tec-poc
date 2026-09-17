@@ -1,0 +1,14 @@
+<%#
+  Isolated ExUI field-type tile (control only — not an event form).
+  Locals: type (required), name (display name), note (optional)
+%>
+<% type = (defined?(type) && type) ? type : :text %>
+<% name = (defined?(name) && name) ? name : type.to_s %>
+<% note = (defined?(note) && note) ? note : nil %>
+<div class="bf-element" title="<%= escape_html(name) %>">
+  <div class="bf-element__label"><%= name %></div>
+  <div class="bf-element__card">
+    <%= partial "partials/blockframe/field", locals: { type: type, title: "#{name} control" } %>
+  </div>
+  <% if note %><p class="bf-element__note"><%= note %></p><% end %>
+</div>
