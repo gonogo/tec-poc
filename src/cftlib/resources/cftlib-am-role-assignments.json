@@ -1,0 +1,110 @@
+[
+  {
+    "email": "la-user@test.com",
+    "id": "e919e90b-6c25-361f-9365-6ab6d7f71797",
+    "roleAssignments": [
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-submitter",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": false,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_A"
+        },
+        "authorisations": []
+      },
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-reader",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": true,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_A",
+          "caseAccessGroupId": "TEC:TEC_BATCH_DATAFILE:tec-batch-access:tec-batch-reader:LA_A"
+        },
+        "authorisations": []
+      }
+    ],
+    "overrideAll": true
+  },
+  {
+    "email": "la-colleague@test.com",
+    "id": "5fc84d92-0d0e-3c03-a623-2ae4ac7a646b",
+    "roleAssignments": [
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-submitter",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": false,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_A"
+        },
+        "authorisations": []
+      },
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-reader",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": true,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_A",
+          "caseAccessGroupId": "TEC:TEC_BATCH_DATAFILE:tec-batch-access:tec-batch-reader:LA_A"
+        },
+        "authorisations": []
+      }
+    ],
+    "overrideAll": true
+  },
+  {
+    "email": "la-b-user@test.com",
+    "id": "b389537d-f5da-361a-8968-064dabe52125",
+    "roleAssignments": [
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-submitter",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": false,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_B"
+        },
+        "authorisations": []
+      },
+      {
+        "roleType": "ORGANISATION",
+        "roleName": "tec-batch-reader",
+        "grantType": "STANDARD",
+        "roleCategory": "PROFESSIONAL",
+        "classification": "RESTRICTED",
+        "readOnly": true,
+        "attributes": {
+          "jurisdiction": "TEC",
+          "caseType": "TEC_BATCH_DATAFILE",
+          "organisation": "LA_B",
+          "caseAccessGroupId": "TEC:TEC_BATCH_DATAFILE:tec-batch-access:tec-batch-reader:LA_B"
+        },
+        "authorisations": []
+      }
+    ],
+    "overrideAll": true
+  }
+]

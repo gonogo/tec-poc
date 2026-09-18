@@ -7,15 +7,13 @@ import uk.gov.hmcts.ccd.sdk.api.HasRole;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.reform.tecpoc.ccd.AccessProfile;
 
-public class CaseFileViewAccess implements HasAccessControl {
+/** Gives the group-scoped LA reader read-only access to a case field. */
+public class BatchDatafileReadAccess implements HasAccessControl {
 
     @Override
     public SetMultimap<HasRole, Permission> getGrants() {
         SetMultimap<HasRole, Permission> grants = HashMultimap.create();
         grants.put(AccessProfile.TEC_BATCH_READ, Permission.R);
-        grants.put(AccessProfile.CLERK, Permission.R);
-        grants.put(AccessProfile.TEC_MANAGER, Permission.R);
-        grants.put(AccessProfile.SYSTEM, Permission.R);
         return grants;
     }
 }

@@ -1,6 +1,6 @@
 # TEC_BATCH_DATAFILE: Local Authority access specification
 
-Status: business rules agreed in discussion; proposed CCD configuration contract for implementation. The project has been upgraded to SDK 7.3.0, but this access policy has not been implemented or imported. Prepared 18 September 2026.
+Status: implemented in the codebase and verified through generated CCD JSON and focused application tests. Target-environment import, production AM provisioning and cross-LA end-to-end testing remain integration work. Prepared and implemented 18 September 2026.
 
 ## Scope and agreed rules
 
@@ -25,18 +25,24 @@ Use one entitlement, `tec-batch-access`, which provisions both of these assignme
 
 | Incoming RAS role | Required applicability | CCD target profile | Responsibility |
 | --- | --- | --- | --- |
-| `tec-batch-submitter` | Entitled LA user; jurisdiction `TEC`; case type `TEC_BATCH_DATAFILE`; applicable before a case exists | `tec-batch-create` | Start and submit the three creation events |
+| `tec-batch-submitter` | Entitled LA user; jurisdiction `TEC`; case type `TEC_BATCH_DATAFILE`; applicable before a case exists | `caseworker-tec-batch-create` | Start and submit the three creation events |
 | `tec-batch-reader` | Same user and case type; matched to the access group for that user's LA | `tec-batch-read` | Read the LA's existing cases |
 
 Both incoming mapping keys are unprefixed RAS names. Neither is an IDAM role or a bracketed case role. The reader assignment must carry the matching `caseAccessGroupId`; an unscoped assignment with the same name does not fulfil the contract. The submitter assignment must remain usable during case creation, before group data exists on a case.
 
-The two assignments are provisioned and revoked together. They must not appear as independently selectable capabilities. Partial provisioning is a fault, not a supported user persona. Actual assignment creation, eligibility and validity dates belong to the professional access/AM integration. The precise RAS grant type, classification and attribute payload must be agreed and tested against the receiving environment; these are not fabricated here from the unrelated draft.
+The two assignments are provisioned and revoked together. They must not appear as independently selectable capabilities. Partial provisioning is a fault, not a supported user persona. Actual assignment creation, eligibility and validity dates belong to the professional access/AM integration. The precise production RAS grant type, classification and attribute payload must be agreed and tested against the receiving environment. CFTLib now has local `STANDARD`/`PROFESSIONAL`/`RESTRICTED` assignments for two LA A users and one LA B user; those local fixtures do not settle the production contract.
 
 ### Role reuse
 
 The proposed names keep the scope explicit. Reuse `tec-work-user` only if its agreed contract includes batch submission for exactly the intended users. Reuse `local-authority-all-cases` only if its assignment scope and group identifiers support this batch case type and its intended readers. A similar label is insufficient evidence of equivalent scope. Reusing an incoming role would not require reusing another case type's permission profile.
 
-The current `caseworker-tec-la-user` combines capabilities without the proposed organisation boundary. Do not keep it as an unrestricted parallel route when the new model is enabled. Local test users should exercise the intended assignments rather than receive a legacy bypass.
+The former `caseworker-tec-la-user` path has been removed from the case-type, state, event, field and tab authorisations. Local test users exercise the intended assignments rather than receive a legacy bypass.
+
+LA users still carry the baseline IDAM roles `caseworker` and `caseworker-tec`. The latter is required by CCD's
+ExUI metadata endpoints when the request path names jurisdiction `TEC`; it is not a batch business entitlement and
+has no CCD authorisation rows. Batch creation and reading remain controlled exclusively by the RAS assignments above.
+The clerk permission profile is therefore named `caseworker-tec-clerk`, keeping it distinct from the shared
+`caseworker-tec` routing role.
 
 ## Access-type and group metadata
 
@@ -81,7 +87,7 @@ Despite its name, `CaseAssignedRoleField` is a **role-name value**, not a Java f
 
 | `RoleName` | `AccessProfiles` | `ReadOnly` | `Disabled` | `Authorisation` | `CaseAccessCategories` |
 | --- | --- | --- | --- | --- | --- |
-| `tec-batch-submitter` | `tec-batch-create` | `N` | `N` | Empty | Empty |
+| `tec-batch-submitter` | `caseworker-tec-batch-create` | `N` | `N` | Empty | Empty |
 | `tec-batch-reader` | `tec-batch-read` | `Y` | `N` | Empty | Empty |
 
 Empty filters are deliberate proposals: this design relies on the incoming assignments' case-type applicability and the reader's organisation-group scope, rather than judicial authorisations or case-access categories. Confirm that upstream assignment qualification supplies that scope. `ReadOnly=N` on the submitter mapping permits creation; it is not a grant to update existing cases. Permissions are supplied separately below.
@@ -90,9 +96,9 @@ Empty filters are deliberate proposals: this design relies on the incoming assig
 
 ## Permission profile specification
 
-The following is the proposed minimum authorisation output. It must be verified through the target CCD and ExUI creation/read paths before deployment. `CR` means create/read; `R` means read. A dash means no grant for that profile, not an explicit deny that overrides other grants.
+The following is the implemented minimum authorisation output. It must still be verified through the target CCD and ExUI creation/read paths before deployment. `CR` means create/read; `R` means read. A dash means no grant for that profile, not an explicit deny that overrides other grants.
 
-| Resource | `tec-batch-create` | `tec-batch-read` |
+| Resource | `caseworker-tec-batch-create` | `tec-batch-read` |
 | --- | --- | --- |
 | Case type `TEC_BATCH_DATAFILE` | `CR` | `R` |
 | State `AWAITING_PROCESSING` | — | `R` |
@@ -118,11 +124,11 @@ Case-type `R` on the creation profile supports definition/creation response hand
 
 The current readable business fields are `caseState`, `batchFile`, `fileIdentifier`, `batchIdentifier`, `localAuthority`, `submitterEmail`, `batchType`, `numberOfBatches`, `numberOfPcns`, `numberOfPcnsProcessed`, `feesDue`, `receivedVia`, `receivedAt`, `emailReceivedAt` and `generatedDocuments`. New attributes must also be reviewed against the agreed all-attributes read policy. `batchType` remains derived from the initiating event; ownership remains derived from trusted context. Neither becomes a freely writable user input because the user can create a case.
 
-The SDK currently derives `CRU` for `batchFile` from submission grants and injects `CRU` for the history viewer for some roles. The proposed output deliberately narrows these. Author the SDK configuration to produce the matrix and inspect the generated result; copying today's `.grant(Permission.CRU, ...)` calls will not satisfy it. Field grants are not intrinsically conditional on whether a case is being created: the absence of update grants and subsequent executable events must enforce post-creation immutability.
+The implementation uses explicit event grants and field access controls, producing `CR` for `caseworker-tec-batch-create` on `batchFile` and no `U` or `D` grant. CCD's special `caseHistory` viewer is emitted as `CRU` for the read profile by SDK 7.3.0; that metadata row is required to render history and does not provide an executable case mutation. The immutable validation-page label is emitted as `CR`. Search-field generation also gives the creation profile `R` on fields used in search configuration, but that profile has no state grant and therefore cannot read an existing case. The event and state rows remain the enforcement boundary for the agreed behavior.
 
 ## LA ownership and case-access data
 
-Proposed authoritative business field: `owningLocalAuthorityOrganisationId`. Persist it when the case is created. The existing `localAuthority` display field is not a trusted ownership key and is currently not persisted by the mapper.
+Authoritative business field: `owningLocalAuthorityOrganisationId`. It is persisted when the case is created. The existing `localAuthority` display field is not used as a trusted ownership key.
 
 Expose a top-level `owningLocalAuthorityPolicy` of CCD type `OrganisationPolicy`, with:
 
@@ -154,6 +160,10 @@ The corresponding CCD case data must include the platform's exact `CaseAccessGro
 
 The actual collection item ID must be valid for the platform and stable across reads. Group IDs must match the reader assignment byte-for-byte. There is one LA reader group on each batch case, regardless of the number of users in that LA. The group is not tied to the creator's user ID.
 
+`CaseAccessGroups` must retain its normal searchable object mapping. Marking it `searchable = false` emits an
+`enabled: false` Elasticsearch mapping, preventing CCD's group-aware case-list filter from matching the nested
+`caseAccessGroupId` even though direct case access remains authorised.
+
 For this decentralised application, persist the owner and consistently derive the policy/group projection from it. Confirm when the CCD runtime derives groups from the policy versus when the decentralised view must supply them; do not assume the normal centralised persistence path populates them here. The agreed contract requires the correct group to be available whenever access is evaluated, including the first read and search/indexing paths.
 
 Creation rules:
@@ -164,7 +174,7 @@ Creation rules:
 4. Do not expose ownership/group data as editable creation inputs to LA users. Backend enrichment must occur through a trusted creation/callback path; its placement must be checked against CCD field-permission validation.
 5. Preserve owner and group membership throughout processing. Ownership transfer is outside this design.
 
-Ownership validation, persistence and projection are necessary application work alongside static CCD configuration. The current mapper saves only the case reference, batch type and document URL/name, so this contract is not yet implemented.
+Ownership validation, persistence and projection are implemented alongside the static CCD configuration. For an LA user, the start and submit handlers resolve the authenticated user's active `tec-batch-reader` assignment from AM and require exactly one organisation whose `caseAccessGroupId` matches the configured template. A caller-supplied organisation must match that assignment. Trusted staff and service creators must supply the target organisation explicitly. The handler normalises the policy to `PrepopulateToUsersOrganisation=Yes` and the fixed reader role; the mapper then persists the organisation ID/name and reconstructs the policy plus a stable `CaseAccessGroups` projection on reads. Caller-supplied group and authoritative-ID projections are cleared at event start.
 
 ## Presentation and documents
 
@@ -180,11 +190,13 @@ Because incoming names and target profiles differ here, use explicit `AccessType
 
 The project now declares SDK **7.3.0**, verified as the latest release in the [HMCTS Maven plugin metadata](https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1/hmcts/ccd/sdk/hmcts.ccd.sdk.gradle.plugin/maven-metadata.xml) on 18 September 2026. The published sources include `CCDAccessGroup`, `AccessTypeGenerator`, `AccessTypeRoleGenerator`, explicit access-type builders, `OrganisationPolicy` and `CaseAccessGroup`. The earlier SDK 6.32.0 generation limitation is resolved.
 
-Use the SDK's native access-type and role-mapping APIs for this implementation; a separate JSON overlay is no longer needed solely to compensate for missing generator APIs. The existing CFTLib dependency remains at 0.19.2277. Definition-store import, assignment provisioning and decentralised group enforcement for the proposed policy still need integration verification.
+The implementation uses the SDK's native access-type APIs and an isolated bridge around the SDK's over-constrained role-mapping generic. No definition JSON overlay is used. The existing CFTLib dependency remains at 0.19.2277. Local group filtering is enabled, and CFTLib loads AM fixtures for own-LA and cross-LA testing. Definition-store import, production assignment provisioning and a full decentralised group-enforcement scenario still need integration verification.
 
 The build now declares `decentralised-runtime` explicitly as an application dependency and `ccd-runtime-indexing` only as a CFTLib dependency, with versions supplied by the SDK BOM. This replaces deprecated `ccd.decentralised` / `ccd.runtimeIndexing` flags while preserving the runtime dependency scope.
 
-Upgrade verification: application and CFTLib compilation, `bootJar`, the unit test and all three integration tests passed. Fresh definition generation produced the same 37 JSON files with identical parsed contents as the 6.32.0 baseline. Docker-backed tests required temporary test JVM settings `api.version=1.44` for Docker 29 and `spring.main.allow-bean-definition-overriding=true`, matching the existing local runtime's bean-override setting. Without the latter, the OpenAPI test's duplicate Feign bean failure was also reproduced on 6.32.0 in an isolated baseline copy. Repository test settings were not changed. This verifies the existing application, not the proposed LA group-access policy or a full CFTLib/ExUI session.
+Upgrade verification: application and CFTLib compilation, `bootJar`, the unit test and all three integration tests passed before the access implementation. Fresh definition generation produced the same 37 JSON files with identical parsed contents as the 6.32.0 baseline. Docker-backed tests required temporary test JVM settings `api.version=1.44` for Docker 29 and `spring.main.allow-bean-definition-overriding=true`, matching the existing local runtime's bean-override setting. Without the latter, the OpenAPI test's duplicate Feign bean failure was also reproduced on 6.32.0 in an isolated baseline copy.
+
+After implementation, the full Gradle `check`, `bootJar`, CFTLib compilation, focused ownership tests and fresh definition generation pass. The generated output contains exactly one access type, two access-type-role rows, the two explicit role mappings, `CR` creation events for `caseworker-tec-batch-create`, `R` history rows for `tec-batch-read`, `R` state grants in all four states, and no `caseworker-tec-la-user` authorisation. The repository integration test now covers persisted LA ownership. There is not yet a CFTLib end-to-end test source for the LA A/LA B scenario.
 
 Additional 7.3.0 details to account for:
 
@@ -209,15 +221,15 @@ Additional 7.3.0 details to account for:
 | Group derivation | Case policy, projected `CaseAccessGroups` and user assignment group ID agree, including immediately after creation and after processing transitions |
 | Membership removal | Revoked users lose group visibility even when they originally created the case; cached/indexed paths do not retain access |
 
-The business specification is sufficient. Remaining integration work is to confirm the PRD profile identifier, accept the proposed incoming role names and complete assignment attributes, verify one entitlement produces both assignments, verify the target definition-store/runtime group-access path, and verify the exact creation/bootstrap ACLs with ExUI. These are concrete technical dependencies; no further LA permission choices are required to start implementation.
+The business specification is sufficient and its CCD/application portion is implemented. Remaining integration work is to confirm the PRD profile identifier, accept the incoming role names and production assignment attributes, verify one entitlement produces both assignments, verify the target definition-store/runtime group-access path, and exercise the creation/bootstrap ACLs with ExUI. These are concrete integration dependencies rather than missing LA permission choices.
 
 ## Evidence and verification limits
 
 - [Local access-profile pattern](patterns/case-roles-and-access-profiles.md): role/profile separation, access-type/group metadata and organisation-policy matching.
 - [Local Case File pattern](patterns/case-file-tab.md): separate tab, launcher and document permissions.
-- [Current case configuration](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCaseConfiguration.java), [case model](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCase.java) and [mapper](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCaseMapper.java): current events, fields and absent persisted ownership.
+- [Current case configuration](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCaseConfiguration.java), [case model](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCase.java) and [mapper](../src/main/java/uk/gov/hmcts/reform/tecpoc/ccd/batchdatafile/BatchDatafileCaseMapper.java): implemented events, field ACLs, ownership persistence and access-group projection.
 - Published `com.github.hmcts:ccd-config-generator:7.3.0` sources: `CaseRoleToAccessProfile`, `ConfigBuilder`, `CCDAccessGroup`, `AccessTypeGenerator`, `AccessTypeRoleGenerator` and `CaseAccessGroup`. The original permission-generation analysis also inspected the former 6.32.0 sources; fresh 7.3.0 generation produced the same 37 JSON files, with identical parsed contents, for the current application configuration.
 - Cached `com.github.hmcts.rse-cft-lib:ccd-data-store-api:0.19.2277` sources: `AuthorisedCreateCaseOperation` checks create permission on case type/event/submitted fields and read permission when returning created data; `CaseAccessGroupUtils` derives groups from organisation policies; `CaseAccessGroupsMatcher` matches group IDs and requires collection item IDs.
 - Newer SDK sources referenced by the pattern: `AccessTypeGenerator`, `AccessTypeRoleGenerator`, `CCDAccessGroup` and `ConfigBuilderImpl`; PCS `GroupAccessType` and `CaseAccessGroupsUtil` provide template, validity-date and projection examples.
 
-This specification was checked against local source and existing generated output. The proposed metadata has not been imported, assignments have not been provisioned, and runtime access tests have not been performed. The cached definition-store source archive contains no implementation sources, so import/provisioning behaviour has not been verified from that artifact.
+This specification was checked against local source, cached SDK/Data Store implementation sources and fresh generated output. Local assignment fixtures are present, but the metadata has not been imported into a target environment and a full LA A/LA B runtime access test has not yet been performed.

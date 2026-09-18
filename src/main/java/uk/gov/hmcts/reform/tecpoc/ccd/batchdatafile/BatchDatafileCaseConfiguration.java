@@ -11,12 +11,15 @@ import uk.gov.hmcts.ccd.sdk.api.EventPayload;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.ccd.sdk.api.callback.AboutToStartOrSubmitResponse;
 import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
+import uk.gov.hmcts.ccd.sdk.type.OrganisationPolicy;
+import uk.gov.hmcts.reform.tecpoc.ccd.AccessProfile;
+import uk.gov.hmcts.reform.tecpoc.ccd.RoleToAccessProfiles;
 import uk.gov.hmcts.reform.tecpoc.ccd.TecJurisdiction;
 import uk.gov.hmcts.reform.tecpoc.ccd.UserRole;
 
 @Component
 public class BatchDatafileCaseConfiguration implements
-    CCDConfig<BatchDatafileCase, BatchDatafileCaseState, UserRole> {
+    CCDConfig<BatchDatafileCase, BatchDatafileCaseState, AccessProfile> {
 
     public static final String CASE_TYPE = "TEC_BATCH_DATAFILE";
     static final String SUBMIT_REGISTRATION_DATAFILE = "submitRegistrationDatafile";
@@ -29,24 +32,28 @@ public class BatchDatafileCaseConfiguration implements
     static final String UPLOAD_FILE_PAGE = "uploadFile";
     static final String VALIDATION_RESULTS_PAGE = "validationResults";
     static final String DEFAULT_CALLBACK_HOST = "http://localhost:4013";
+    static final String ACCESS_TYPE_LIVE_TO = "01/01/2099";
 
     private final BatchDatafileCaseRepository repository;
     private final BatchDatafileCaseMapper mapper;
     private final BatchFileValidator validator;
+    private final BatchDatafileOwnershipService ownershipService;
 
     public BatchDatafileCaseConfiguration(
         @Lazy BatchDatafileCaseRepository repository,
         BatchDatafileCaseMapper mapper,
-        BatchFileValidator validator
+        BatchFileValidator validator,
+        BatchDatafileOwnershipService ownershipService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.validator = validator;
+        this.ownershipService = ownershipService;
     }
 
     @Override
     public void configureDecentralised(
-        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, UserRole> builder
+        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, AccessProfile> builder
     ) {
         builder.setCallbackHost(
             System.getenv().getOrDefault("CASE_API_URL", DEFAULT_CALLBACK_HOST)
@@ -55,10 +62,19 @@ public class BatchDatafileCaseConfiguration implements
             CASE_TYPE, "TEC Batch Datafile Case",
             "Represents a PCN registration, warrant or warrant reissue datafile");
         TecJurisdiction.configure(builder);
+        configureAccessType(builder);
+        RoleToAccessProfiles.configure(builder);
+        builder.omitHistoryForRoles(AccessProfile.TEC_BATCH_CREATE);
 
         for (BatchDatafileCaseState state : BatchDatafileCaseState.values()) {
-            builder.grant(state, Permission.CRU, UserRole.SYSTEM);
-            builder.grant(state, Set.of(Permission.R), UserRole.LA_USER, UserRole.CLERK, UserRole.TEC_MANAGER);
+            builder.grant(state, Permission.CRU, AccessProfile.SYSTEM);
+            builder.grant(
+                state,
+                Set.of(Permission.R),
+                AccessProfile.TEC_BATCH_READ,
+                AccessProfile.CLERK,
+                AccessProfile.TEC_MANAGER
+            );
         }
 
         configureSubmission(builder, SUBMIT_REGISTRATION_DATAFILE,
@@ -69,16 +85,22 @@ public class BatchDatafileCaseConfiguration implements
             "Submit warrant reissue file", BatchType.WARRANT_REISSUE);
 
         configureTransition(builder, START_PROCESSING, "Start processing",
-            BatchDatafileCaseState.AWAITING_PROCESSING, BatchDatafileCaseState.PROCESSING, UserRole.SYSTEM);
+            BatchDatafileCaseState.AWAITING_PROCESSING, BatchDatafileCaseState.PROCESSING, AccessProfile.SYSTEM);
         configureTransition(builder, RECORD_PROCESSING_SUCCESS, "Record processing success",
-            BatchDatafileCaseState.PROCESSING, BatchDatafileCaseState.COMPLETE, UserRole.SYSTEM);
+            BatchDatafileCaseState.PROCESSING, BatchDatafileCaseState.COMPLETE, AccessProfile.SYSTEM);
         configureTransition(builder, RECORD_PROCESSING_FAILURE, "Record processing failure",
-            BatchDatafileCaseState.PROCESSING, BatchDatafileCaseState.PROCESSING_FAILED, UserRole.SYSTEM);
+            BatchDatafileCaseState.PROCESSING, BatchDatafileCaseState.PROCESSING_FAILED, AccessProfile.SYSTEM);
         configureTransition(builder, RETRY_PROCESSING, "Retry processing",
             BatchDatafileCaseState.PROCESSING_FAILED, BatchDatafileCaseState.AWAITING_PROCESSING,
-            UserRole.CLERK, UserRole.TEC_MANAGER);
+            AccessProfile.CLERK, AccessProfile.TEC_MANAGER);
 
         builder.tab("datafileDetails", "Datafile Details")
+            .forRoles(
+                AccessProfile.TEC_BATCH_READ,
+                AccessProfile.CLERK,
+                AccessProfile.TEC_MANAGER,
+                AccessProfile.SYSTEM
+            )
             .field(BatchDatafileCase::getCaseState)
             .field(BatchDatafileCase::getFileIdentifier)
             .field(BatchDatafileCase::getBatchIdentifier)
@@ -93,14 +115,21 @@ public class BatchDatafileCaseConfiguration implements
             .field(BatchDatafileCase::getEmailReceivedAt);
 
         builder.tab("caseFile", "Case file")
-            .forRoles(UserRole.LA_USER, UserRole.CLERK, UserRole.TEC_MANAGER)
+            .forRoles(AccessProfile.TEC_BATCH_READ, AccessProfile.CLERK, AccessProfile.TEC_MANAGER)
             .field(BatchDatafileCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)");
 
         // Declare History explicitly so the SDK does not insert it before Datafile Details.
-        builder.tab("CaseHistory", "History").field("caseHistory");
+        builder.tab("CaseHistory", "History")
+            .forRoles(
+                AccessProfile.TEC_BATCH_READ,
+                AccessProfile.CLERK,
+                AccessProfile.TEC_MANAGER,
+                AccessProfile.SYSTEM
+            )
+            .field("caseHistory");
 
         for (CaseFileCategory category : CaseFileCategory.values()) {
-            builder.categories(UserRole.SYSTEM)
+            builder.categories(AccessProfile.SYSTEM)
                 .categoryID(category.getId())
                 .categoryLabel(category.getLabel())
                 .displayOrder(category.getDisplayOrder())
@@ -129,16 +158,51 @@ public class BatchDatafileCaseConfiguration implements
         builder.workBasketResultFields().caseReferenceField();
     }
 
+    private void configureAccessType(
+        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, AccessProfile> builder
+    ) {
+        builder.accessType(BatchDatafileAccessGroup.ACCESS_TYPE)
+            .organisationProfileId(BatchDatafileAccessGroup.ORGANISATION_PROFILE)
+            .accessMandatory(true)
+            .accessDefault(true)
+            .display(false)
+            .description("Submit batch datafiles and view your local authority's batch cases.")
+            .hintText("")
+            .displayOrder(1)
+            .liveTo(ACCESS_TYPE_LIVE_TO);
+
+        builder.accessTypeRole(BatchDatafileAccessGroup.ACCESS_TYPE)
+            .organisationProfileId(BatchDatafileAccessGroup.ORGANISATION_PROFILE)
+            .organisationalRoleName(UserRole.TEC_BATCH_SUBMITTER.getRole())
+            .groupAccessEnabled(false)
+            .liveTo(ACCESS_TYPE_LIVE_TO);
+
+        builder.accessTypeRole(BatchDatafileAccessGroup.ACCESS_TYPE)
+            .organisationProfileId(BatchDatafileAccessGroup.ORGANISATION_PROFILE)
+            .groupRoleName(UserRole.TEC_BATCH_READER.getRole())
+            .groupAccessEnabled(true)
+            .caseAssignedRoleField(UserRole.TEC_BATCH_READER.getRole())
+            .caseAccessGroupIdTemplate(BatchDatafileAccessGroup.GROUP_ID_TEMPLATE)
+            .liveTo(ACCESS_TYPE_LIVE_TO);
+    }
+
     private void configureSubmission(
-        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, UserRole> builder,
+        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, AccessProfile> builder,
         String eventId,
         String name,
         BatchType batchType
     ) {
-        builder.decentralisedEvent(eventId, event -> submitDatafile(event, batchType))
+        builder.decentralisedEvent(
+                eventId,
+                event -> submitDatafile(event, batchType),
+                this::startSubmission
+            )
             .initialState(BatchDatafileCaseState.AWAITING_PROCESSING)
             .name(name)
-            .grant(Permission.CRU, UserRole.LA_USER, UserRole.CLERK, UserRole.TEC_MANAGER, UserRole.SYSTEM)
+            .explicitGrants()
+            .grant(Permission.CR, AccessProfile.TEC_BATCH_CREATE)
+            .grant(Permission.CRU, AccessProfile.CLERK, AccessProfile.TEC_MANAGER, AccessProfile.SYSTEM)
+            .grantHistoryOnly(AccessProfile.TEC_BATCH_READ)
             .showSummary()
             .endButtonLabel("Submit")
             .fields()
@@ -154,17 +218,31 @@ public class BatchDatafileCaseConfiguration implements
     }
 
     private void configureTransition(
-        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, UserRole> builder,
+        DecentralisedConfigBuilder<BatchDatafileCase, BatchDatafileCaseState, AccessProfile> builder,
         String eventId,
         String name,
         BatchDatafileCaseState source,
         BatchDatafileCaseState target,
-        UserRole... roles
+        AccessProfile... roles
     ) {
         builder.decentralisedEvent(eventId, event -> recordProcessingTransition(event.caseReference(), target))
             .forStateTransition(source, target)
             .name(name)
-            .grant(Permission.CRU, roles);
+            .grant(Permission.CRU, roles)
+            .grantHistoryOnly(AccessProfile.TEC_BATCH_READ);
+    }
+
+    BatchDatafileCase startSubmission(EventPayload<BatchDatafileCase, BatchDatafileCaseState> event) {
+        BatchDatafileCase caseData = event.caseData() == null ? new BatchDatafileCase() : event.caseData();
+        OrganisationPolicy<UserRole> policy = caseData.getOwningLocalAuthorityPolicy();
+        if (policy == null) {
+            policy = new OrganisationPolicy<>();
+        }
+        caseData.setOwningLocalAuthorityPolicy(ownershipService.resolve(policy));
+        // CCD derives this collection from the policy; never accept a caller-supplied projection.
+        caseData.setCaseAccessGroups(null);
+        caseData.setOwningLocalAuthorityOrganisationId(null);
+        return caseData;
     }
 
     private SubmitResponse<BatchDatafileCaseState> recordProcessingTransition(
@@ -202,7 +280,23 @@ public class BatchDatafileCaseConfiguration implements
         }
         // The event determines the type; never trust a caller-supplied type.
         event.caseData().setBatchType(batchType);
-        repository.save(mapper.toEntity(event.caseReference(), event.caseData()));
+        try {
+            event.caseData().setOwningLocalAuthorityPolicy(
+                ownershipService.resolve(event.caseData().getOwningLocalAuthorityPolicy())
+            );
+            BatchDatafileCaseEntity entity = mapper.toEntity(event.caseReference(), event.caseData());
+            event.caseData().setOwningLocalAuthorityOrganisationId(
+                entity.getOwningLocalAuthorityOrganisationId()
+            );
+            event.caseData().setCaseAccessGroups(
+                BatchDatafileAccessGroup.projection(entity.getOwningLocalAuthorityOrganisationId())
+            );
+            repository.save(entity);
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            return SubmitResponse.<BatchDatafileCaseState>builder()
+                .errors(List.of(exception.getMessage()))
+                .build();
+        }
 
         return SubmitResponse.<BatchDatafileCaseState>builder()
             .state(BatchDatafileCaseState.AWAITING_PROCESSING)

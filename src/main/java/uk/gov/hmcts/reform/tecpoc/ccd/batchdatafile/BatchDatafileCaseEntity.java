@@ -32,4 +32,10 @@ public class BatchDatafileCaseEntity {
 
     @Column(name = "batch_file_name", nullable = false)
     private String batchFileName;
+
+    @Column(name = "owning_la_organisation_id", nullable = false, updatable = false)
+    private String owningLocalAuthorityOrganisationId;
+
+    @Column(name = "owning_la_organisation_name", updatable = false)
+    private String owningLocalAuthorityOrganisationName;
 }

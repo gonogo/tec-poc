@@ -55,6 +55,19 @@ Username: tec-clerk@test.com
 Password: password
 ```
 
+The local LA access fixtures use the same password and provide two users in LA A and one in LA B:
+
+```text
+LA A: la-user@test.com
+LA A: la-colleague@test.com
+LA B: la-b-user@test.com
+Password: password
+```
+
+All interactive TEC users receive the baseline `caseworker-tec` IDAM role required by CCD's ExUI metadata routes.
+It grants no case permissions itself. Ordinary LA users receive no PUI organisation-management role; only
+`la-manager@test.com` receives `pui-organisation-manager`.
+
 ## Create a PCN case
 
 With `bootWithCCD` running, create a valid TEC case using the local system user:

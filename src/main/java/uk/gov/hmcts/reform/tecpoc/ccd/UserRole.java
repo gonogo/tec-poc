@@ -1,28 +1,38 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import uk.gov.hmcts.ccd.sdk.api.HasRole;
-import uk.gov.hmcts.ccd.sdk.api.Permission;
 
+/**
+ * Roles supplied by Access Management. These roles do not carry CCD permissions directly.
+ */
 @RequiredArgsConstructor
 public enum UserRole implements HasRole {
 
-    SYSTEM("caseworker-tec-system", Permission.CRUD),
-    CLERK("caseworker-tec", Permission.CRU),
-    TEC_MANAGER("caseworker-tec-manager", Permission.CRU),
-    LA_USER("caseworker-tec-la-user", Permission.CRU);
+    TEC_BATCH_SUBMITTER("tec-batch-submitter"),
+    TEC_BATCH_READER("tec-batch-reader");
 
     private final String role;
-    private final Set<Permission> caseTypePermissions;
 
     @Override
+    @JsonValue
     public String getRole() {
         return role;
     }
 
     @Override
     public String getCaseTypePermissions() {
-        return Permission.toString(caseTypePermissions);
+        return "";
+    }
+
+    @JsonCreator
+    public static UserRole fromRole(String role) {
+        return Arrays.stream(values())
+            .filter(candidate -> candidate.role.equals(role))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown TEC user role: " + role));
     }
 }

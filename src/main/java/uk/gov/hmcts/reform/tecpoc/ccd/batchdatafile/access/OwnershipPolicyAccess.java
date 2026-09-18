@@ -7,15 +7,19 @@ import uk.gov.hmcts.ccd.sdk.api.HasRole;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.reform.tecpoc.ccd.AccessProfile;
 
-public class CaseFileViewAccess implements HasAccessControl {
+/**
+ * Allows CCD to return and submit its hidden organisation-policy enrichment during case creation.
+ */
+public class OwnershipPolicyAccess implements HasAccessControl {
 
     @Override
     public SetMultimap<HasRole, Permission> getGrants() {
         SetMultimap<HasRole, Permission> grants = HashMultimap.create();
+        grants.putAll(AccessProfile.SYSTEM, Permission.CRU);
+        grants.putAll(AccessProfile.CLERK, Permission.CRU);
+        grants.putAll(AccessProfile.TEC_MANAGER, Permission.CRU);
+        grants.putAll(AccessProfile.TEC_BATCH_CREATE, Permission.CR);
         grants.put(AccessProfile.TEC_BATCH_READ, Permission.R);
-        grants.put(AccessProfile.CLERK, Permission.R);
-        grants.put(AccessProfile.TEC_MANAGER, Permission.R);
-        grants.put(AccessProfile.SYSTEM, Permission.R);
         return grants;
     }
 }

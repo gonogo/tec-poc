@@ -51,7 +51,7 @@ The case type and jurisdiction IDs are both `TEC`. The current roles are:
 | Java role | IDAM role | Case-type access | State access |
 | --- | --- | --- | --- |
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
-| `CLERK` | `caseworker-tec` | RU | Read and update in every state |
+| `CLERK` | `caseworker-tec-clerk` | CRU | Read and update in every state, and create batch cases |
 
 The events themselves grant mutation access only to the system role. The clerk receives read access to the creation
 event but cannot trigger any configured event. Every event uses the condition `[STATE]="NEVER_SHOW"`, so none is
@@ -188,11 +188,18 @@ infrastructure and local IDAM/S2S simulators. The important local endpoints conf
 
 The `tec` database is added to that PostgreSQL server. `TecCftLibConfiguration` then:
 
-1. creates `caseworker`, `caseworker-tec-system` and `caseworker-tec` roles;
-2. creates `tec-system@test.com` with system and clerk roles;
-3. creates `tec-demo@test.com` with the clerk role;
-4. generates and imports the `TEC` definition; and
-5. creates a CCD profile for the demo user.
+1. creates the baseline `caseworker` and `caseworker-tec` ExUI roles plus distinct permission roles such as
+   `caseworker-tec-clerk` and `caseworker-tec-system`;
+2. creates `tec-system@test.com` with the system role;
+3. creates the clerk, manager and LA demo users with the shared jurisdiction role and their persona-specific roles;
+4. seeds the LA users' batch submitter and group-reader assignments in the local Role Assignment Service;
+5. generates and imports the `TEC_BATCH_DATAFILE` definition;
+6. dumps the imported definition snapshot required by decentralised search indexing; and
+7. creates a CCD profile for each interactive demo user.
+
+The local Role Assignment Service allow-list includes `tec_api`. This is required because the create callback uses
+the caller's IDAM token together with a `tec_api` S2S token to resolve the LA reader assignment. Target environments
+must add `tec_api` to the equivalent RAS S2S allow-list before enabling this creation flow.
 
 Local CCD routing is set on the CFTLib-launched services as:
 

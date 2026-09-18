@@ -195,6 +195,8 @@ dependencies {
   runtimeOnly group: 'org.postgresql', name: 'postgresql'
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  // CFTLib 0.19.x requests Console 1.8.2; align its isolated runner with Boot's JUnit 1.12 engine.
+  cftlibTestRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-console-standalone', version: '1.12.2'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-testcontainers'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.7'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter'
@@ -216,10 +218,26 @@ tasks.withType(CftlibExec).configureEach {
   environment 'IDAM_API_URL', 'http://localhost:5062'
   environment 'IDAM_S2S_AUTH_URL', 'http://localhost:8489'
   environment 'CCD_DATA_STORE_URL', 'http://localhost:4452'
+  environment 'ROLE_ASSIGNMENT_URL', 'http://localhost:4096'
   environment 'CCD_DOCUMENT_URL_PATTERN',
     'https?://(?:dm-store:8080|localhost:4506)/documents/[A-Za-z0-9-]+(?:/binary)?'
   environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC', 'http://localhost:4013'
   environment 'DATA_STORE_S2S_AUTHORISED_SERVICES', 'ccd_data,ccd_gw,tec_api'
+  // TEC resolves LA ownership from RAS during create callbacks, so the local RAS must accept its S2S token.
+  environment 'ROLE_ASSIGNMENT_S2S_AUTHORISED_SERVICES', [
+    'am_role_assignment_service',
+    'am_org_role_mapping_service',
+    'am_role_assignment_refresh_batch',
+    'wa_task_management_api',
+    'wa_task_configuration_api',
+    'xui_webapp',
+    'aac_manage_case_assignment',
+    'ccd_data',
+    'wa_task_monitor',
+    'wa_case_event_handler',
+    'tec_api'
+  ].join(',')
+  environment 'ENABLE_CASE_GROUP_ACCESS_FILTERING', 'true'
   environment 'XUI_JURISDICTIONS', 'TEC'
   environment 'XUI_SYSTEM_USER_NAME', 'exui-system-user@localhost'
   environment 'XUI_SYSTEM_USER_PASSWORD', 'password'
