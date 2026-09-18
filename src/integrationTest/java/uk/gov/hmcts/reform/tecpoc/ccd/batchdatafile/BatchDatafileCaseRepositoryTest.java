@@ -23,7 +23,7 @@ class BatchDatafileCaseRepositoryTest extends PostgresIntegrationTest {
     void shouldPersistAndLoadBatchDocumentMetadata() {
         BatchDatafileCaseEntity entity = BatchDatafileCaseEntity.builder()
             .caseReference(1234L)
-            .submissionType(SubmissionType.PCN_REGISTRATION)
+            .batchType(BatchType.PCN_REGISTRATION)
             .batchFileUrl("http://document-store/documents/68c89c98-399a-4eb4-b721-fd1d2109867f")
             .batchFileName("batch.csv")
             .build();
@@ -33,7 +33,7 @@ class BatchDatafileCaseRepositoryTest extends PostgresIntegrationTest {
 
         BatchDatafileCaseEntity stored = repository.findById(1234L).orElseThrow();
         assertThat(stored.getBatchFileName()).isEqualTo("batch.csv");
-        assertThat(stored.getSubmissionType()).isEqualTo(SubmissionType.PCN_REGISTRATION);
+        assertThat(stored.getBatchType()).isEqualTo(BatchType.PCN_REGISTRATION);
         assertThat(stored.getBatchFileUrl()).isEqualTo(entity.getBatchFileUrl());
     }
 }

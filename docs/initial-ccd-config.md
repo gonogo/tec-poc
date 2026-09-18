@@ -38,6 +38,7 @@ Each creation event can be initiated by a user through ExUI or by the TEC system
 
 The creation event sets the submission type, which remains fixed for the lifetime of the case.
 Validation and processing behaviour depend on the submission type, with required business validation applied to both user and automated submissions.
+After `startProcessing` succeeds, a future TEC processing worker will process the datafile, generate and upload any output documents, and link those documents to the case while it remains in `PROCESSING`. The worker must establish both the saved TEC case references and the document-access associations before it submits `recordProcessingSuccess`. This configuration does not implement or schedule that work, and document linking is deliberately not represented by an additional CCD event.
 
 ```mermaid
 stateDiagram-v2
