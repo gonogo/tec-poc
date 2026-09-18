@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.tecpoc.ccd;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
@@ -7,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CaseView;
 import uk.gov.hmcts.ccd.sdk.CaseViewRequest;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
@@ -15,6 +18,7 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 public class TecCaseView implements CaseView<TecCase, CaseState> {
 
     private final TecCaseRepository repository;
+    private final EnforcementCaseRepository enforcementCaseRepository;
 
     private static final String FORM_VALIDATION_NOT_RECORDED = "Not validated";
 
@@ -42,8 +46,25 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         if (tecCase.getLocalAuthority() != null) {
             tecCase.setCaseAccessCategory(tecCase.getLocalAuthority().getCode());
         }
+        populateEnforcementSection(tecCase);
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
+    }
+
+    private void populateEnforcementSection(TecCase tecCase) {
+        CaseLink enforcementCase = tecCase.getEnforcementCase();
+        if (enforcementCase == null || enforcementCase.getCaseReference() == null
+            || enforcementCase.getCaseReference().isBlank()) {
+            return;
+        }
+        long enforcementRef = Long.parseLong(enforcementCase.getCaseReference().replace("-", ""));
+        Instant createdAt = enforcementCaseRepository.findCreatedAt(enforcementRef);
+
+        tecCase.setEnforcementLinked("Yes");
+        tecCase.setEnforcementStatusDisplay(EnforcementCaseView.statusLabel(EnforcementCaseState.OPEN));
+        tecCase.setEnforcementCreatedDate(
+            createdAt == null ? null : LocalDate.ofInstant(createdAt, ZoneOffset.UTC)
+        );
     }
 
     static List<ListValue<Document>> toAllDocuments(List<TecCaseDocument> documents) {

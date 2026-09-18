@@ -42,7 +42,8 @@ public class TecCaseRepository {
 
     public TecCase find(long caseReference) {
         return database.queryForObject("""
-            select file_identifier, batch_identifier, batch_case_reference, penalty_charge_number,
+            select file_identifier, batch_identifier, batch_case_reference, enforcement_case_reference,
+                   penalty_charge_number,
                    local_authority,
                    respondent_details_1, respondent_details_2, respondent_details_3,
                    respondent_details_4, respondent_details_5, respondent_details_6,
@@ -78,6 +79,13 @@ public class TecCaseRepository {
                     result.setBatchCase(CaseLink.builder()
                         .caseReference(Long.toString(batchCaseReference))
                         .caseType(BatchCaseConfiguration.CASE_TYPE)
+                        .build());
+                }
+                long enforcementCaseReference = resultSet.getLong("enforcement_case_reference");
+                if (!resultSet.wasNull()) {
+                    result.setEnforcementCase(CaseLink.builder()
+                        .caseReference(Long.toString(enforcementCaseReference))
+                        .caseType(EnforcementCaseConfiguration.CASE_TYPE)
                         .build());
                 }
                 result.setPenaltyChargeNumber(resultSet.getString("penalty_charge_number"));
@@ -118,6 +126,16 @@ public class TecCaseRepository {
             """, new MapSqlParameterSource()
             .addValue("caseReference", caseReference)
             .addValue("batchCaseReference", batchCaseReference));
+    }
+
+    public void linkEnforcementCase(long caseReference, long enforcementCaseReference) {
+        database.update("""
+            update tec_case
+               set enforcement_case_reference = :enforcementCaseReference
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("enforcementCaseReference", enforcementCaseReference));
     }
 
     public void recordApplication(long caseReference, TecCase tecCase) {

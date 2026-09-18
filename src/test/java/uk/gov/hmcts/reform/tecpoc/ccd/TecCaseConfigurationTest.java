@@ -18,7 +18,11 @@ class TecCaseConfigurationTest {
     @BeforeEach
     void setUp() {
         repository = mock(TecCaseRepository.class);
-        configuration = new TecCaseConfiguration(repository, mock(BatchCaseRepository.class));
+        configuration = new TecCaseConfiguration(
+            repository,
+            mock(BatchCaseRepository.class),
+            mock(EnforcementCaseRepository.class)
+        );
     }
 
     @Test

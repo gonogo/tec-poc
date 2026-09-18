@@ -13,7 +13,7 @@ them to an environment.
 
 | Component | Responsibility | Where it runs |
 | --- | --- | --- |
-| TEC Spring Boot application | Exposes the caller-facing API, defines the `TEC`, `TEC_BATCH` and `TEC_EXCEPTION` case types, handles delegated CCD events and owns the PCN/batch/exception business data | Port 4013 locally |
+| TEC Spring Boot application | Exposes the caller-facing API, defines the `TEC`, `TEC_BATCH`, `TEC_EXCEPTION` and `TEC_ENFORCEMENT` case types, handles delegated CCD events and owns the PCN/batch/exception/enforcement business data | Port 4013 locally |
 | `hmcts.ccd.sdk` Gradle plugin | Generates CCD definition JSON from the typed Java configuration | At build/configuration time |
 | CCD decentralised runtime | Supplies `/ccd-persistence/**`, lifecycle persistence, event dispatch and `CaseView` integration | Embedded in TEC because `decentralised = true` |
 | CCD Data Store and Definition Store | Validate the definition, enforce case access/events and route decentralised persistence to TEC | Started locally by CFTLib; platform services in production |
@@ -48,11 +48,14 @@ The relevant application classes are:
 - `ExceptionCase` / `ExceptionCaseState` / `ExceptionCaseConfiguration` / `ExceptionCaseView` /
   `ExceptionCaseRepository`: third case type `TEC_EXCEPTION` for exception items.
 - `ExceptionCaseController` and `ExceptionCaseCreationService`: `POST /exception-cases` seed/create API.
+- `EnforcementCase` / `EnforcementCaseState` / `EnforcementCaseConfiguration` / `EnforcementCaseView` /
+  `EnforcementCaseRepository`: fourth case type `TEC_ENFORCEMENT` for TE10 enforcement requests.
+- `EnforcementCaseController` and `EnforcementCaseCreationService`: `POST /enforcement-cases` seed/create API.
 
 The application therefore has two API surfaces:
 
 ```text
-Caller-facing API:       POST /pcn-cases , POST /batches , POST /exception-cases
+Caller-facing API:       POST /pcn-cases , POST /batches , POST /exception-cases , POST /enforcement-cases
 CCD-facing SDK runtime:  /ccd-persistence/**
 ```
 
@@ -67,18 +70,19 @@ Jurisdiction id is `TEC`. Case types:
 | `TEC` | TEC PCN | PCN cases |
 | `TEC_BATCH` | TEC Batch | Uploaded batches |
 | `TEC_EXCEPTION` | TEC Exception | Exception items (unmatched / irrelevant submissions) |
+| `TEC_ENFORCEMENT` | TEC Enforcement | TE10 enforcement requests (1→many linked PCN cases) |
 
-All three types reuse overlapping roles (exceptions shutter LOCAL_AUTHORITY):
+All four types reuse overlapping roles (exceptions and enforcement shutter LOCAL_AUTHORITY):
 
 | Java role | IDAM role | Case-type access | State access |
 | --- | --- | --- | --- |
 | `SYSTEM` | `caseworker-tec-system` | CRUD | CRUD in every state |
 | `CLERK` | `caseworker-tec` | CRU | Create, read and update in every state |
-| `LOCAL_AUTHORITY` | `caseworker-tec-la` | CR on TEC / TEC_BATCH (GM CaseAccessCategories); shuttered on TEC_EXCEPTION | Read only on TEC / TEC_BATCH |
+| `LOCAL_AUTHORITY` | `caseworker-tec-la` | CR on TEC / TEC_BATCH (GM CaseAccessCategories); shuttered on TEC_EXCEPTION / TEC_ENFORCEMENT | Read only on TEC / TEC_BATCH |
 
 Clerk **Create** is required so ExUI can start the Upload batch file (`uploadBatch`) journey. Local
-authority users also have Create for `uploadBatch` only. PCN and exception create remain system-only
-via the hidden `createTecCase` / `createExceptionCase` events (`NEVER_SHOW`).
+authority users also have Create for `uploadBatch` only. PCN, exception and enforcement create remain system-only
+via the hidden `createTecCase` / `createExceptionCase` / `createEnforcementCase` events (`NEVER_SHOW`).
 
 LA access to TEC / TEC_BATCH is further limited by CCD **CaseAccessCategories**: case data field
 `CaseAccessCategory` is set from the local authority FixedList code on create/upload. The demo LA
@@ -117,6 +121,7 @@ The event handlers update TEC-owned data as follows:
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
 | `linkBatchCase` | `batchCase` (`CaseLink` with `CaseReference`) | Sets `public.tec_case.batch_case_reference` to the linked `TEC_BATCH` case | unchanged |
+| `linkEnforcementCase` | `enforcementCase` (`CaseLink` with `CaseReference`) | Sets `public.tec_case.enforcement_case_reference` to the linked `TEC_ENFORCEMENT` case | unchanged |
 | `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
 | `editTe9Application` | Optional TE9 application fields (clerk; no PCN) | Updates TE9 application columns except form and PCN | unchanged |
 | `editPe3Application` | Optional PE3 application fields (clerk; no PCN) | Updates PE3 application columns except form and PCN | unchanged |
@@ -134,8 +139,14 @@ the batch case that owns the uploaded data file. Local linking uses `bin/link-pc
 pass a batch case reference to `bin/create-tec-case.sh` / `bin/create-tec-cases.sh` /
 `bin/create-gm-tec-cases.sh` (argument or `BATCH_CASE_REFERENCE`; pass `-` to create unlinked;
 no args shows help) so each new PCN is linked after
-create. `TecCaseRepository` persists `batch_case_reference` (FK to `tec_batch`) and Case details shows
+create. Clerks have read access so **Link batch case** appears in PCN History (with the CaseLink in
+event details). `TecCaseRepository` persists `batch_case_reference` (FK to `tec_batch`) and Case details shows
 the **Batch case** field reconstructed as a `CaseLink` with `CaseType` `TEC_BATCH`.
+
+`linkEnforcementCase` is the matching PCN-side event for TE10 enforcement links: system-only /
+`NEVER_SHOW`, clerk-readable for History, mandatory `enforcementCase` CaseLink. Seeded by
+`bin/create-tec-enforcement-case.sh` after the enforcement-side `linkPcnCases` event so each linked
+PCN records **Link enforcement case** in History.
 
 `recordApplication` is likewise system-only and hidden from ExUI. Integrations submit OCR-extracted
 TE9 or PE3 fields via this event; Case details shows them under the **Applications** section.
@@ -302,6 +313,22 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 
 Reject reason radios (`ExceptionRejectReason`): **PCN could not be matched**, **Item is not relevant to a TEC case**, **other**. The selected reason is stored on `tec_exception_case.reject_reason` but is not shown on Case details in this PoC.
 
+### Enforcement case type (`TEC_ENFORCEMENT`)
+
+| Piece | Location / behaviour |
+| --- | --- |
+| Config | `EnforcementCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Case details, Case File View, Linked Cases |
+| State | `OPEN` only; Status on Case details is `statusDisplay` from state (Batch pattern) |
+| Persistence | `public.tec_enforcement_case` / `public.tec_enforcement_case_document`; PCN FK `tec_case.enforcement_case_reference` |
+| Case details | Status, Local authority, Submitter email, Received via |
+| Linked Cases | ExUI `ComponentLauncher` + `caseLinks` collection (`#ARGUMENT(LinkedCases)`); rebuilt from linked PCNs in `EnforcementCaseView` |
+| Case File View | No folder categories (flat document list); seeded with `TE10.pdf` by create script |
+| Create API | `POST /enforcement-cases` (`bin/create-tec-enforcement-case.sh <pcn-ref>...`) via hidden `createEnforcementCase` |
+| System events | `linkPcnCases` (errors if PCN missing; clerk-readable for History), `attachCaseFileDocument` |
+| PCN reverse event | `linkEnforcementCase` on `TEC` (clerk-readable History + CaseLink) fired per PCN by the create script |
+
+A linked PCN shows an **Enforcement** section above Registration on Case details (intro text plus CaseLink, Status and Date created fields in the same summary-list style as Registration).
+
 #### Local setup (PCN Tasks tab)
 
 1. Start the CFTLib stack: `./gradlew bootWithCCD`
@@ -323,7 +350,8 @@ ccd {
 ```
 
 `./gradlew generateCCDConfig` generates definitions under `build/ccd-definition/TEC`,
-`build/ccd-definition/TEC_BATCH` and `build/ccd-definition/TEC_EXCEPTION`. The JSON contains CCD
+`build/ccd-definition/TEC_BATCH`, `build/ccd-definition/TEC_EXCEPTION` and
+`build/ccd-definition/TEC_ENFORCEMENT`. The JSON contains CCD
 metadata; it does not contain the Java handlers.
 Existing files under `build/ccd-definition` are build output and may include remnants from an older
 model unless the directory is cleaned first.
@@ -333,7 +361,7 @@ At runtime, the decentralised SDK:
 - exposes the persistence and read callbacks used by CCD Data Store;
 - dispatches submitted events to the handler registered with `decentralisedEvent(...)`;
 - manages local CCD lifecycle data, revisions and event history in the `ccd` schema; and
-- calls the matching `CaseView` (`TecCaseView`, `BatchCaseView` or `ExceptionCaseView`) for the case type.
+- calls the matching `CaseView` (`TecCaseView`, `BatchCaseView`, `ExceptionCaseView` or `EnforcementCaseView`) for the case type.
 
 Runtime Elasticsearch indexing is explicitly disabled.
 
@@ -412,7 +440,7 @@ The `tec` database is added to that PostgreSQL server. `TecCftLibConfiguration` 
 2. creates `tec-system@test.com` with the system role;
 3. creates `tec-demo@test.com` with the clerk role;
 4. creates `tec-la-demo@test.com` with the local authority role;
-5. generates and imports the `TEC`, `TEC_BATCH` and `TEC_EXCEPTION` definitions; and
+5. generates and imports the `TEC`, `TEC_BATCH`, `TEC_EXCEPTION` and `TEC_ENFORCEMENT` definitions; and
 6. creates CCD profiles for the demo and LA demo users.
 
 Local CCD routing is set on the CFTLib-launched services as:
@@ -429,17 +457,19 @@ CFTLib itself is not deployed.
 
 | Concern | Source of truth |
 | --- | --- |
-| Case type, fields, states, events, tabs, categories and permissions | `TecCaseConfiguration`, `BatchCaseConfiguration`, `ExceptionCaseConfiguration`, states, `UserRole`, categories and case models |
-| Definition used by the local CCD stack | Generated `build/ccd-definition/TEC`, `TEC_BATCH` and `TEC_EXCEPTION` imported by `TecCftLibConfiguration` |
+| Case type, fields, states, events, tabs, categories and permissions | `TecCaseConfiguration`, `BatchCaseConfiguration`, `ExceptionCaseConfiguration`, `EnforcementCaseConfiguration`, states, `UserRole`, categories and case models |
+| Definition used by the local CCD stack | Generated `build/ccd-definition/TEC`, `TEC_BATCH`, `TEC_EXCEPTION` and `TEC_ENFORCEMENT` imported by `TecCftLibConfiguration` |
 | PCN business data | `tec.public.tec_case` |
 | Batch business data | `tec.public.tec_batch` / `tec.public.tec_batch_document` |
 | Exception business data | `tec.public.tec_exception_case` |
+| Enforcement business data | `tec.public.tec_enforcement_case` / `tec.public.tec_enforcement_case_document` |
 | Case File View documents (PCN) | `tec.public.tec_case_document` |
 | Case File View documents (batch) | `tec.public.tec_batch_document` |
+| Case File View documents (enforcement) | `tec.public.tec_enforcement_case_document` |
 | Decentralised lifecycle metadata and event history | SDK-managed `tec.ccd` schema |
-| Current CCD-facing field values | `TecCaseView` / `BatchCaseView` / `ExceptionCaseView` projection (batch fees computed in `BatchCaseView.applyFees`) |
+| Current CCD-facing field values | `TecCaseView` / `BatchCaseView` / `ExceptionCaseView` / `EnforcementCaseView` projection (batch fees computed in `BatchCaseView.applyFees`) |
 | Local users, roles and CCD profile | `TecCftLibConfiguration` |
-| Prototype task list shown on Tasks tab | `TecPrototypeTasks` / `BatchPrototypeTasks` / `ExceptionPrototypeTasks` |
+| Prototype task list shown on Tasks tab | `TecPrototypeTasks` / `BatchPrototypeTasks` / `ExceptionPrototypeTasks` / `EnforcementPrototypeTasks` |
 | ExUI primary nav (e.g. Upload batch file) | ExUI `menuConfigs` — plan in `/exui-manage-batches-plan.html`; local proxy in `bin/xui-manage-batches-proxy.py` |
 | Upload batch file wizard copy / confirmation | `BatchUploadJourney` |
 | Local service URLs and CCD-to-TEC route | `build.gradle` and `application.yaml` |

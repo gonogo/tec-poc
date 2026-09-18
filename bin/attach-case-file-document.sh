@@ -34,9 +34,11 @@ Attach a file to a TEC case so it appears in the Case File View folder.
   applications ("Applications")
   correspondence ("Correspondence")
   uncategorisedDocuments ("Uncategorised")
+  flat | none | ""  (no folder — for TEC_ENFORCEMENT flat Case File View)
 
 Optional environment variables:
-  CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION
+  CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION,
+  CASE_TYPE_ID, EVENT_ID, JURISDICTION_ID
 EOF
 }
 
@@ -70,6 +72,9 @@ resolve_category_id() {
       ;;
     uncategoriseddocuments|uncategorised|"uncategorised documents")
       printf '%s\n' "uncategorisedDocuments"
+      ;;
+    flat|none|"")
+      printf '%s\n' ""
       ;;
     *)
       echo "Unknown Case File View folder: '${folder}'" >&2
@@ -156,7 +161,11 @@ if [[ -n "${uploaded_filename}" ]]; then
   FILENAME="${uploaded_filename}"
 fi
 
-echo "Submitting ${EVENT_ID} for case ${CASE_REFERENCE} into folder ${CATEGORY_ID}..." >&2
+if [[ -z "${CATEGORY_ID}" ]]; then
+  echo "Submitting ${EVENT_ID} for case ${CASE_REFERENCE} (flat Case File View)..." >&2
+else
+  echo "Submitting ${EVENT_ID} for case ${CASE_REFERENCE} into folder ${CATEGORY_ID}..." >&2
+fi
 
 event_trigger_url="${CCD_URL}/cases/${CASE_REFERENCE}/event-triggers/${EVENT_ID}"
 
@@ -181,31 +190,57 @@ if [[ -z "${event_token}" ]]; then
   exit 1
 fi
 
-submit_body="$(jq --null-input --compact-output \
-  --arg eventId "${EVENT_ID}" \
-  --arg eventToken "${event_token}" \
-  --arg documentUrl "${document_url}" \
-  --arg documentBinaryUrl "${document_binary_url}" \
-  --arg documentFilename "${FILENAME}" \
-  --arg documentHash "${document_hash}" \
-  --arg categoryId "${CATEGORY_ID}" \
-  '{
-    event: {
-      id: $eventId,
-      summary: "Attach case file document",
-      description: "Attach case file document"
-    },
-    data: {
-      caseFileDocument: {
-        document_url: $documentUrl,
-        document_binary_url: $documentBinaryUrl,
-        document_filename: $documentFilename,
-        document_hash: $documentHash,
-        category_id: $categoryId
-      }
-    },
-    event_token: $eventToken
-  }')"
+if [[ -z "${CATEGORY_ID}" ]]; then
+  submit_body="$(jq --null-input --compact-output \
+    --arg eventId "${EVENT_ID}" \
+    --arg eventToken "${event_token}" \
+    --arg documentUrl "${document_url}" \
+    --arg documentBinaryUrl "${document_binary_url}" \
+    --arg documentFilename "${FILENAME}" \
+    --arg documentHash "${document_hash}" \
+    '{
+      event: {
+        id: $eventId,
+        summary: "Attach case file document",
+        description: "Attach case file document"
+      },
+      data: {
+        caseFileDocument: {
+          document_url: $documentUrl,
+          document_binary_url: $documentBinaryUrl,
+          document_filename: $documentFilename,
+          document_hash: $documentHash
+        }
+      },
+      event_token: $eventToken
+    }')"
+else
+  submit_body="$(jq --null-input --compact-output \
+    --arg eventId "${EVENT_ID}" \
+    --arg eventToken "${event_token}" \
+    --arg documentUrl "${document_url}" \
+    --arg documentBinaryUrl "${document_binary_url}" \
+    --arg documentFilename "${FILENAME}" \
+    --arg documentHash "${document_hash}" \
+    --arg categoryId "${CATEGORY_ID}" \
+    '{
+      event: {
+        id: $eventId,
+        summary: "Attach case file document",
+        description: "Attach case file document"
+      },
+      data: {
+        caseFileDocument: {
+          document_url: $documentUrl,
+          document_binary_url: $documentBinaryUrl,
+          document_filename: $documentFilename,
+          document_hash: $documentHash,
+          category_id: $categoryId
+        }
+      },
+      event_token: $eventToken
+    }')"
+fi
 
 submit_response="$({
   curl --silent --show-error --fail-with-body \

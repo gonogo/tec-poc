@@ -232,6 +232,8 @@ tasks.withType(CftlibExec).configureEach {
   environment 'CCD_DATA_STORE_URL', 'http://localhost:4452'
   environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC', 'http://localhost:4013'
   environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC_BATCH', 'http://localhost:4013'
+  environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC_EXCEPTION', 'http://localhost:4013'
+  environment 'CCD_DECENTRALISED_CASE-TYPE-SERVICE-URLS_TEC_ENFORCEMENT', 'http://localhost:4013'
   environment 'DATA_STORE_S2S_AUTHORISED_SERVICES', 'ccd_data,ccd_gw,tec_api,ccd_case_document_am_api'
   // Allow Case Document AM and local dm-store stub URLs on Document fields
   environment 'CCD_DOCUMENT_URL_PATTERN',

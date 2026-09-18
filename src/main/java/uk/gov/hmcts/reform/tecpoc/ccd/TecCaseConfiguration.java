@@ -23,13 +23,16 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
     private final TecCaseRepository repository;
     private final BatchCaseRepository batchCaseRepository;
+    private final EnforcementCaseRepository enforcementCaseRepository;
 
     public TecCaseConfiguration(
         @Lazy TecCaseRepository repository,
-        @Lazy BatchCaseRepository batchCaseRepository
+        @Lazy BatchCaseRepository batchCaseRepository,
+        @Lazy EnforcementCaseRepository enforcementCaseRepository
     ) {
         this.repository = repository;
         this.batchCaseRepository = batchCaseRepository;
+        this.enforcementCaseRepository = enforcementCaseRepository;
     }
 
     @Override
@@ -90,6 +93,20 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field("rolesAndAccessMarkdown", NEVER_SHOW);
 
         builder.tab("caseDetails", "Case details")
+            .label(
+                "enforcementSection",
+                "enforcementLinked=\"Yes\"",
+                "## Enforcement"
+            )
+            .label(
+                "enforcementIntro",
+                "enforcementLinked=\"Yes\"",
+                "This case is subject to an enforcement case"
+            )
+            .field(TecCase::getEnforcementCase, "enforcementLinked=\"Yes\"")
+            .field(TecCase::getEnforcementStatusDisplay, "enforcementLinked=\"Yes\"")
+            .field(TecCase::getEnforcementCreatedDate, "enforcementLinked=\"Yes\"")
+            .field(TecCase::getEnforcementLinked, NEVER_SHOW)
             .label("registrationSection", null, "## Registration")
             .field(TecCase::getFileIdentifier)
             .field(TecCase::getBatchIdentifier)
@@ -413,8 +430,18 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .name("Link batch case")
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM)
+            .grant(Permission.R, UserRole.CLERK)
             .fields()
             .mandatory(TecCase::getBatchCase);
+
+        builder.decentralisedEvent("linkEnforcementCase", this::linkEnforcementCase)
+            .forStates(CaseState.values())
+            .name("Link enforcement case")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .grant(Permission.R, UserRole.CLERK)
+            .fields()
+            .mandatory(TecCase::getEnforcementCase);
 
         builder.decentralisedEvent("recordApplication", this::recordApplication)
             .forStates(CaseState.values())
@@ -538,6 +565,29 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             );
         }
         repository.linkBatchCase(event.caseReference(), batchCaseReference);
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> linkEnforcementCase(EventPayload<TecCase, CaseState> event) {
+        CaseLink enforcementCase = event.caseData().getEnforcementCase();
+        if (enforcementCase == null || isBlank(enforcementCase.getCaseReference())) {
+            throw new IllegalArgumentException("enforcementCase.CaseReference is required");
+        }
+        long enforcementCaseReference = parseCaseReference(enforcementCase.getCaseReference());
+        if (!enforcementCaseRepository.exists(enforcementCaseReference)) {
+            throw new IllegalArgumentException(
+                "No TEC_ENFORCEMENT case found for reference " + enforcementCaseReference
+            );
+        }
+        Long existingEnforcement = enforcementCaseRepository
+            .findEnforcementCaseReferenceForPcn(event.caseReference());
+        if (existingEnforcement != null && existingEnforcement != enforcementCaseReference) {
+            throw new IllegalArgumentException(
+                "PCN case " + event.caseReference()
+                    + " is already linked to enforcement case " + existingEnforcement
+            );
+        }
+        repository.linkEnforcementCase(event.caseReference(), enforcementCaseReference);
         return SubmitResponse.defaultResponse();
     }
 
