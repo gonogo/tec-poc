@@ -15,7 +15,7 @@ public class BatchDatafileCaseMapper {
 
         return BatchDatafileCaseEntity.builder()
             .caseReference(caseReference)
-            .submissionType(batchBatchDatafileCase.getSubmissionType())
+            .batchType(batchBatchDatafileCase.getBatchType())
             .batchFileUrl(batchFile.getUrl())
             .batchFileName(batchFile.getFilename())
             .build();
@@ -26,11 +26,12 @@ public class BatchDatafileCaseMapper {
             .url(entity.getBatchFileUrl())
             .filename(entity.getBatchFileName())
             .binaryUrl(entity.getBatchFileUrl() + "/binary")
+            .categoryId(CaseFileCategory.SUBMITTED_DATAFILE.getId())
             .build();
 
         BatchDatafileCase batchBatchDatafileCase = new BatchDatafileCase();
         batchBatchDatafileCase.setBatchFile(batchFile);
-        batchBatchDatafileCase.setSubmissionType(entity.getSubmissionType());
+        batchBatchDatafileCase.setBatchType(entity.getBatchType());
         return batchBatchDatafileCase;
     }
 }

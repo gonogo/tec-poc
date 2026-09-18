@@ -25,7 +25,7 @@ public class BatchDatafileCaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "submission_type", updatable = false)
-    private SubmissionType submissionType;
+    private BatchType batchType;
 
     @Column(name = "batch_file_url", nullable = false)
     private String batchFileUrl;

@@ -1,16 +1,23 @@
 package uk.gov.hmcts.reform.tecpoc.ccd.batchdatafile;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CaseView;
 import uk.gov.hmcts.ccd.sdk.CaseViewRequest;
 
 @Component
-@RequiredArgsConstructor
 public class BatchDatafileCaseViewProvider implements CaseView<BatchDatafileCase, BatchDatafileCaseState> {
 
     private final BatchDatafileCaseRepository repository;
     private final BatchDatafileCaseMapper mapper;
+
+    public BatchDatafileCaseViewProvider(
+        @Lazy BatchDatafileCaseRepository repository,
+        BatchDatafileCaseMapper mapper
+    ) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
 
     @Override
     public BatchDatafileCase getCase(CaseViewRequest<BatchDatafileCaseState> request) {
