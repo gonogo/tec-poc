@@ -115,6 +115,24 @@ With `bootWithCCD` running, create a valid TEC case using the local system user:
 The script generates unique valid identifiers and submits an amount of `12345` pence. Set `AMOUNT_DUE`,
 `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, or `PENALTY_CHARGE_NUMBER` to override those defaults.
 
+To create the PCN already linked to an existing batch case (`TEC_BATCH`), pass the batch case
+reference as an argument or set `BATCH_CASE_REFERENCE` (hyphens optional). The script creates the
+PCN then submits `linkBatchCase`:
+
+```bash
+./bin/create-tec-batch.sh   # note the batch caseReference from the response
+./bin/create-tec-case.sh <batch-case-reference>
+# or
+BATCH_CASE_REFERENCE=<batch-case-reference> ./bin/create-tec-case.sh
+```
+
+Bulk seeding scripts accept the same option:
+
+```bash
+CASE_COUNT=20 ./bin/create-tec-cases.sh <batch-case-reference>
+CASES_PER_AUTHORITY=10 ./bin/create-gm-tec-cases.sh <batch-case-reference>
+```
+
 To make the request manually, obtain a token for the local TEC system user (password `password`):
 
 ```bash
@@ -262,6 +280,28 @@ If the filename has spaces, quote it:
 `applications`, `correspondence`, `uncategorisedDocuments` (or the matching display labels).
 
 Refresh the case in Manage Case to see the file under the chosen Case File View folder.
+
+### Link a PCN case to a batch case (local)
+
+With `bootWithCCD` running (restart after pulling so the `linkBatchCase` event and
+`V17` migration are loaded), link a PCN to the batch case that owns the data file.
+
+**At create time** (preferred for new seed data):
+
+```bash
+./bin/create-tec-batch.sh
+./bin/create-tec-case.sh <batch-case-reference>
+```
+
+**For an existing PCN**:
+
+```bash
+./bin/link-pcn-to-batch.sh <pcn-case-reference> <batch-case-reference>
+```
+
+Hyphens in either case reference are optional. Both paths submit the system-only
+`linkBatchCase` event with a CCD `CaseLink` (`CaseReference` + `CaseType` `TEC_BATCH`).
+Case details then shows **Batch case** when the link is set (empty on unlinked cases).
 
 ### Generate a sample TE9/PE3 application (local)
 

@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import uk.gov.hmcts.ccd.sdk.api.CCD;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.ComponentLauncher;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.FieldType;
@@ -24,6 +25,13 @@ public class TecCase {
 
     @CCD(label = "Batch identifier")
     private String batchIdentifier;
+
+    /**
+     * CCD link to the {@code TEC_BATCH} case that owns the uploaded data file.
+     * Persisted as {@code tec_case.batch_case_reference}; reconstructed by {@link TecCaseView}.
+     */
+    @CCD(label = "Batch case")
+    private CaseLink batchCase;
 
     @CCD(label = "Penalty charge number")
     private String penaltyChargeNumber;

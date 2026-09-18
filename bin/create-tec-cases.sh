@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
 CASE_COUNT="${CASE_COUNT:-20}"
+# Optional: positional arg or BATCH_CASE_REFERENCE env — link each new PCN to a TEC_BATCH case.
+BATCH_CASE_REFERENCE_RAW="${1:-${BATCH_CASE_REFERENCE:-}}"
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -12,6 +14,11 @@ for command in curl jq; do
     exit 1
   fi
 done
+
+if [[ -n "${BATCH_CASE_REFERENCE_RAW}" ]]; then
+  echo "Each created PCN will be linked to batch case ${BATCH_CASE_REFERENCE_RAW}." >&2
+fi
+
 
 FIRST_NAMES=(
   "OLIVER" "AMELIA" "NOAH" "ISLA" "ARTHUR" "FREYA" "LEO" "AVA"
@@ -162,6 +169,16 @@ for index in $(seq 0 $((CASE_COUNT - 1))); do
       penaltyChargeNumber: $penaltyChargeNumber,
       respondentDetails1: $respondentDetails1
     }' <<<"${response}"
+
+  if [[ -n "${BATCH_CASE_REFERENCE_RAW}" ]]; then
+    case_reference="$(jq --raw-output '.caseReference // empty' <<<"${response}")"
+    if [[ -z "${case_reference}" ]]; then
+      echo "Created case response did not include caseReference; cannot link to batch" >&2
+      exit 1
+    fi
+    echo "Linking PCN case ${case_reference} to batch case ${BATCH_CASE_REFERENCE_RAW}..." >&2
+    "${SCRIPT_DIR}/link-pcn-to-batch.sh" "${case_reference}" "${BATCH_CASE_REFERENCE_RAW}" >/dev/null
+  fi
 done
 
 echo "Created ${created} TEC cases." >&2

@@ -27,6 +27,19 @@ public class BatchCaseRepository {
             """, parameters(caseReference, batchCase));
     }
 
+    public boolean exists(long caseReference) {
+        Integer count = database.queryForObject(
+            """
+            select count(*)
+              from tec_batch
+             where case_reference = :caseReference
+            """,
+            Map.of("caseReference", caseReference),
+            Integer.class
+        );
+        return count != null && count > 0;
+    }
+
     public BatchCase find(long caseReference) {
         return database.queryForObject("""
             select file_identifier, batch_identifier, pcn_count, operation, received_via,

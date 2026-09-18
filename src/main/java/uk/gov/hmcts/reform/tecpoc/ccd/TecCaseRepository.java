@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class TecCaseRepository {
 
     public TecCase find(long caseReference) {
         return database.queryForObject("""
-            select file_identifier, batch_identifier, penalty_charge_number,
+            select file_identifier, batch_identifier, batch_case_reference, penalty_charge_number,
                    local_authority,
                    respondent_details_1, respondent_details_2, respondent_details_3,
                    respondent_details_4, respondent_details_5, respondent_details_6,
@@ -72,6 +73,13 @@ public class TecCaseRepository {
                 TecCase result = new TecCase();
                 result.setFileIdentifier(resultSet.getString("file_identifier"));
                 result.setBatchIdentifier(resultSet.getString("batch_identifier"));
+                long batchCaseReference = resultSet.getLong("batch_case_reference");
+                if (!resultSet.wasNull()) {
+                    result.setBatchCase(CaseLink.builder()
+                        .caseReference(Long.toString(batchCaseReference))
+                        .caseType(BatchCaseConfiguration.CASE_TYPE)
+                        .build());
+                }
                 result.setPenaltyChargeNumber(resultSet.getString("penalty_charge_number"));
                 result.setLocalAuthority(LocalAuthority.valueOf(resultSet.getString("local_authority")));
                 result.setRespondentDetails1(resultSet.getString("respondent_details_1"));
@@ -100,6 +108,16 @@ public class TecCaseRepository {
                 mapTimeExtensionFields(resultSet, result);
                 return result;
             });
+    }
+
+    public void linkBatchCase(long caseReference, long batchCaseReference) {
+        database.update("""
+            update tec_case
+               set batch_case_reference = :batchCaseReference
+             where case_reference = :caseReference
+            """, new MapSqlParameterSource()
+            .addValue("caseReference", caseReference)
+            .addValue("batchCaseReference", batchCaseReference));
     }
 
     public void recordApplication(long caseReference, TecCase tecCase) {

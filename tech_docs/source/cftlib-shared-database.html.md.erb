@@ -89,6 +89,7 @@ Batch schema updates since then:
 | `V14__batch_file_identifier.sql` | Adds unique `file_identifier` (authority prefix must match batch identifier) |
 | `V15__batch_submitter_email.sql` | Adds mandatory `submitter_email` |
 | `V16__drop_batch_validation_result.sql` | Drops `batch_validation_result` / display columns |
+| `V17__pcn_batch_case_link.sql` | Adds optional `tec_case.batch_case_reference` FK to `tec_batch` |
 
 `BatchCaseRepository` owns the batch tables. CCD label **Email received at** maps to column `received_at`;
 the Batch details tab shows it only when received via is email. `ExceptionCaseRepository` owns

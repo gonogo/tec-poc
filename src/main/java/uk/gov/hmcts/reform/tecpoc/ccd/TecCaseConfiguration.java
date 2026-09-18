@@ -8,6 +8,7 @@ import uk.gov.hmcts.ccd.sdk.api.EventMetadata;
 import uk.gov.hmcts.ccd.sdk.api.EventPayload;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 
 import java.time.LocalDate;
@@ -21,9 +22,14 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
     private static final String NEVER_SHOW = "[STATE]=\"NEVER_SHOW\"";
 
     private final TecCaseRepository repository;
+    private final BatchCaseRepository batchCaseRepository;
 
-    public TecCaseConfiguration(@Lazy TecCaseRepository repository) {
+    public TecCaseConfiguration(
+        @Lazy TecCaseRepository repository,
+        @Lazy BatchCaseRepository batchCaseRepository
+    ) {
         this.repository = repository;
+        this.batchCaseRepository = batchCaseRepository;
     }
 
     @Override
@@ -87,6 +93,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .label("registrationSection", null, "## Registration")
             .field(TecCase::getFileIdentifier)
             .field(TecCase::getBatchIdentifier)
+            .field(TecCase::getBatchCase)
             .field(TecCase::getPenaltyChargeNumber)
             .field(TecCase::getLocalAuthority)
             .field(TecCase::getRespondentDetails1)
@@ -401,6 +408,14 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .fields()
             .mandatory(TecCase::getCaseFileDocument);
 
+        builder.decentralisedEvent("linkBatchCase", this::linkBatchCase)
+            .forStates(CaseState.values())
+            .name("Link batch case")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .mandatory(TecCase::getBatchCase);
+
         builder.decentralisedEvent("recordApplication", this::recordApplication)
             .forStates(CaseState.values())
             .name("Record application")
@@ -511,6 +526,21 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
         return SubmitResponse.defaultResponse();
     }
 
+    private SubmitResponse<CaseState> linkBatchCase(EventPayload<TecCase, CaseState> event) {
+        CaseLink batchCase = event.caseData().getBatchCase();
+        if (batchCase == null || isBlank(batchCase.getCaseReference())) {
+            throw new IllegalArgumentException("batchCase.CaseReference is required");
+        }
+        long batchCaseReference = parseCaseReference(batchCase.getCaseReference());
+        if (!batchCaseRepository.exists(batchCaseReference)) {
+            throw new IllegalArgumentException(
+                "No TEC_BATCH case found for reference " + batchCaseReference
+            );
+        }
+        repository.linkBatchCase(event.caseReference(), batchCaseReference);
+        return SubmitResponse.defaultResponse();
+    }
+
     private SubmitResponse<CaseState> recordApplication(EventPayload<TecCase, CaseState> event) {
         repository.recordApplication(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
@@ -543,6 +573,16 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
 
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    static long parseCaseReference(String value) {
+        String digits = value == null ? "" : value.replace("-", "").trim();
+        if (digits.isEmpty() || !digits.chars().allMatch(Character::isDigit)) {
+            throw new IllegalArgumentException(
+                "Case reference must contain digits (hyphens optional): '" + value + "'"
+            );
+        }
+        return Long.parseLong(digits);
     }
 
     private SubmitResponse<CaseState> response(CaseState state) {
