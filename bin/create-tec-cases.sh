@@ -5,8 +5,56 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
 CASE_COUNT="${CASE_COUNT:-20}"
+
+usage() {
+  cat <<EOF
+Usage: ${0} <batch-case-reference|->
+       ${0} -h|--help
+
+Create ${CASE_COUNT} randomised TEC PCN cases through the local API
+(${TEC_API_URL}/pcn-cases).
+
+Arguments:
+  <batch-case-reference>  Optional CCD case reference of a TEC_BATCH case to link
+                          each PCN to after create (hyphens optional). Use '-' to
+                          create without linking.
+  -h, --help              Show this help and exit
+
+If BATCH_CASE_REFERENCE is set in the environment and no argument is passed,
+that value is used as the batch case reference.
+
+Optional environment variables:
+  TEC_API_URL, CASE_COUNT (default: 20), BATCH_CASE_REFERENCE, LOCAL_AUTHORITY
+  (if LOCAL_AUTHORITY is set, every case uses it; otherwise authorities are randomised)
+
+Examples:
+  ${0} -                                    # create ${CASE_COUNT} unlinked PCNs
+  CASE_COUNT=5 ${0} -                       # create 5 unlinked PCNs
+  LOCAL_AUTHORITY=manchesterCityCouncil ${0} -
+  ${0} 1234-5678-9012-3456                  # create and link each to batch
+  BATCH_CASE_REFERENCE=1234567890123456 ${0}
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 # Optional: positional arg or BATCH_CASE_REFERENCE env — link each new PCN to a TEC_BATCH case.
-BATCH_CASE_REFERENCE_RAW="${1:-${BATCH_CASE_REFERENCE:-}}"
+# Pass '-' to create without linking. With no args and no env, show help.
+if [[ $# -eq 0 ]]; then
+  if [[ -n "${BATCH_CASE_REFERENCE:-}" ]]; then
+    BATCH_CASE_REFERENCE_RAW="${BATCH_CASE_REFERENCE}"
+  else
+    usage >&2
+    exit 1
+  fi
+elif [[ "${1}" == "-" ]]; then
+  BATCH_CASE_REFERENCE_RAW=""
+else
+  BATCH_CASE_REFERENCE_RAW="${1}"
+fi
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -17,6 +65,9 @@ done
 
 if [[ -n "${BATCH_CASE_REFERENCE_RAW}" ]]; then
   echo "Each created PCN will be linked to batch case ${BATCH_CASE_REFERENCE_RAW}." >&2
+fi
+if [[ -n "${LOCAL_AUTHORITY:-}" ]]; then
+  echo "Each created PCN will use local authority ${LOCAL_AUTHORITY}." >&2
 fi
 
 
@@ -95,6 +146,7 @@ build_case_payload() {
   local batch_identifier
   local respondent_name
   local amount_due
+  local local_authority
 
   authority_code="$(random_from "${AUTHORITY_CODES[@]}")"
   file_number="$(printf '%05d' "$(((sequence_base + index * 17) % 100000))")"
@@ -107,12 +159,13 @@ build_case_payload() {
   batch_identifier="R${authority_code}${batch_number}"
   respondent_name="$(random_from "${FIRST_NAMES[@]}") $(random_from "${LAST_NAMES[@]}")"
   amount_due="$(random_amount_due)"
+  local_authority="${LOCAL_AUTHORITY:-$(random_from "${LOCAL_AUTHORITIES[@]}")}"
 
   jq --null-input --compact-output \
     --arg fileIdentifier "${file_identifier}" \
     --arg batchIdentifier "${batch_identifier}" \
     --arg penaltyChargeNumber "${penalty_charge_number}" \
-    --arg localAuthority "$(random_from "${LOCAL_AUTHORITIES[@]}")" \
+    --arg localAuthority "${local_authority}" \
     --arg respondentDetails1 "${respondent_name}" \
     --arg respondentDetails2 "$(random_from "${STREETS[@]}")" \
     --arg respondentDetails3 "$(random_from "${CITIES[@]}")" \

@@ -98,7 +98,8 @@ Case list via **Manage cases** and use the case type filter to switch between PC
 (`TEC_EXCEPTION` / **TEC Exception**) — LA users do not see Exception.
 
 Seed scripts leave `localAuthority` as-is; `CaseAccessCategory` is derived server-side. For LA-visible
-cases, override when seeding, e.g. `LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-case.sh`.
+cases, override when seeding, e.g. `LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-case.sh -`
+(or the same env var with `./bin/create-tec-cases.sh -`).
 Re-seed or recreate cases after this change so categories are populated.
 
 Journey detail: [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
@@ -106,14 +107,16 @@ Journey detail: [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source
 
 ## Create a PCN case
 
-With `bootWithCCD` running, create a valid TEC case using the local system user:
+With `bootWithCCD` running, create a valid TEC case using the local system user. Run any of the
+scripts with no arguments (or `-h` / `--help`) to print usage:
 
 ```bash
-./bin/create-tec-case.sh
+./bin/create-tec-case.sh -
 ```
 
-The script generates unique valid identifiers and submits an amount of `12345` pence. Set `AMOUNT_DUE`,
-`FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, or `PENALTY_CHARGE_NUMBER` to override those defaults.
+Pass `-` to create without a batch link. The script generates unique valid identifiers and submits
+an amount of `12345` pence. Set `AMOUNT_DUE`, `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, or
+`PENALTY_CHARGE_NUMBER` to override those defaults.
 
 To create the PCN already linked to an existing batch case (`TEC_BATCH`), pass the batch case
 reference as an argument or set `BATCH_CASE_REFERENCE` (hyphens optional). The script creates the
@@ -129,7 +132,9 @@ BATCH_CASE_REFERENCE=<batch-case-reference> ./bin/create-tec-case.sh
 Bulk seeding scripts accept the same option:
 
 ```bash
+CASE_COUNT=20 ./bin/create-tec-cases.sh -
 CASE_COUNT=20 ./bin/create-tec-cases.sh <batch-case-reference>
+CASES_PER_AUTHORITY=10 ./bin/create-gm-tec-cases.sh -
 CASES_PER_AUTHORITY=10 ./bin/create-gm-tec-cases.sh <batch-case-reference>
 ```
 
@@ -192,11 +197,14 @@ above). That creates a real batch case through CCD.
 
 ```bash
 ./bin/create-tec-batch.sh
+./bin/create-tec-batch.sh manchesterCityCouncil
 ./bin/create-tec-batches.sh 6
 ```
 
-Optional overrides: `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `LOCAL_AUTHORITY`,
+Pass a FixedList local-authority code as the first argument (or set `LOCAL_AUTHORITY`). Other optional
+overrides: `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`,
 `SUBMITTER_EMAIL`, `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
+`create-tec-batches.sh` rotates authorities unless `LOCAL_AUTHORITY` is set.
 Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
 
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
@@ -245,7 +253,7 @@ No extra docker services or Azure registry access are required.
 Create a case and move it to `CASE_ISSUED` to see sample tasks:
 
 ```bash
-./bin/create-tec-case.sh
+./bin/create-tec-case.sh -
 ./bin/transition-to-case-issued.sh <case-reference-from-output>
 ```
 
@@ -266,7 +274,7 @@ With `bootWithCCD` running (restart it after pulling these changes so the attach
 document URL pattern are loaded), create a case and attach a file:
 
 ```bash
-./bin/create-tec-case.sh
+./bin/create-tec-case.sh -
 ./bin/attach-case-file-document.sh <case-reference> "Hearing documents" ./path/to/file.pdf
 ```
 

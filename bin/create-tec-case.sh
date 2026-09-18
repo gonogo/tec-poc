@@ -4,8 +4,54 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
+
+usage() {
+  cat <<EOF
+Usage: ${0} <batch-case-reference|->
+       ${0} -h|--help
+
+Create a TEC PCN case through the local API (${TEC_API_URL}/pcn-cases).
+
+Arguments:
+  <batch-case-reference>  Optional CCD case reference of a TEC_BATCH case to link
+                          after create (hyphens optional). Use '-' to create
+                          without linking.
+  -h, --help              Show this help and exit
+
+If BATCH_CASE_REFERENCE is set in the environment and no argument is passed,
+that value is used as the batch case reference.
+
+Optional environment variables:
+  TEC_API_URL, BATCH_CASE_REFERENCE, AMOUNT_DUE, FILE_IDENTIFIER,
+  BATCH_IDENTIFIER, PENALTY_CHARGE_NUMBER, LOCAL_AUTHORITY
+
+Examples:
+  ${0} -                                    # create unlinked PCN
+  ${0} 1234-5678-9012-3456                  # create and link to batch
+  BATCH_CASE_REFERENCE=1234567890123456 ${0}
+  LOCAL_AUTHORITY=manchesterCityCouncil ${0} -
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 # Optional: positional arg or BATCH_CASE_REFERENCE env — link the new PCN to a TEC_BATCH case.
-BATCH_CASE_REFERENCE_RAW="${1:-${BATCH_CASE_REFERENCE:-}}"
+# Pass '-' to create without linking. With no args and no env, show help.
+if [[ $# -eq 0 ]]; then
+  if [[ -n "${BATCH_CASE_REFERENCE:-}" ]]; then
+    BATCH_CASE_REFERENCE_RAW="${BATCH_CASE_REFERENCE}"
+  else
+    usage >&2
+    exit 1
+  fi
+elif [[ "${1}" == "-" ]]; then
+  BATCH_CASE_REFERENCE_RAW=""
+else
+  BATCH_CASE_REFERENCE_RAW="${1}"
+fi
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then

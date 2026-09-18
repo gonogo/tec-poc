@@ -21,11 +21,13 @@ for ((index = 0; index < COUNT; index++)); do
   export OPERATION="${OPERATIONS[$((index % ${#OPERATIONS[@]}))]}"
   export RECEIVED_VIA="${RECEIVED_VIA[$((index % ${#RECEIVED_VIA[@]}))]}"
   export TARGET_STATE="${TARGET_STATES[$((index % ${#TARGET_STATES[@]}))]}"
-  export LOCAL_AUTHORITY="${LOCAL_AUTHORITIES[$((index % ${#LOCAL_AUTHORITIES[@]}))]}"
   export PCN_COUNT="$((200 + (index * 173) % 1801))"
   # Unique per run (fixed index math collided on re-runs and caused tec_batch_identifier_uk errors).
   export BATCH_IDENTIFIER="R${AUTHORITY_CODE}$(printf '%06d' "$((($(date +%s) + RANDOM + index * 97) % 1000000))")"
 
-  echo "Creating batch $((index + 1))/${COUNT}: ${BATCH_IDENTIFIER} (${TARGET_STATE}, ${OPERATION})"
-  "${SCRIPT_DIR}/create-tec-batch.sh"
+  # Prefer caller LOCAL_AUTHORITY; otherwise rotate through the sample list.
+  local_authority="${LOCAL_AUTHORITY:-${LOCAL_AUTHORITIES[$((index % ${#LOCAL_AUTHORITIES[@]}))]}}"
+
+  echo "Creating batch $((index + 1))/${COUNT}: ${BATCH_IDENTIFIER} (${TARGET_STATE}, ${OPERATION}, ${local_authority})"
+  "${SCRIPT_DIR}/create-tec-batch.sh" "${local_authority}"
 done

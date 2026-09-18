@@ -5,6 +5,36 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
 
+usage() {
+  cat <<EOF
+Usage: ${0} [local-authority]
+       ${0} -h|--help
+
+Create a TEC Batch case through the local API (${TEC_API_URL}/batches).
+
+Arguments:
+  [local-authority]  FixedList code for the submitting local authority
+                     (default: westminster, or LOCAL_AUTHORITY if set).
+                     Examples: westminster, manchesterCityCouncil
+  -h, --help         Show this help and exit
+
+Optional environment variables:
+  TEC_API_URL, LOCAL_AUTHORITY, AUTHORITY_CODE, FILE_IDENTIFIER,
+  BATCH_IDENTIFIER, PCN_COUNT, OPERATION, RECEIVED_VIA, RECEIVED_AT,
+  SUBMITTER_EMAIL, TARGET_STATE, ATTACH_SAMPLE_DOCUMENTS, CASE_DOCUMENT_AM_URL
+
+Examples:
+  ${0}
+  ${0} manchesterCityCouncil
+  LOCAL_AUTHORITY=manchesterCityCouncil ${0}
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
     echo "Required command not found: ${command}" >&2
@@ -21,7 +51,8 @@ file_identifier="${FILE_IDENTIFIER:-R${authority_code}${file_number}}"
 pcn_count="${PCN_COUNT:-$((200 + batch_seed % 1801))}"
 operation="${OPERATION:-registration}"
 received_via="${RECEIVED_VIA:-upload}"
-local_authority="${LOCAL_AUTHORITY:-westminster}"
+# Positional arg wins over LOCAL_AUTHORITY env; default westminster.
+local_authority="${1:-${LOCAL_AUTHORITY:-westminster}}"
 target_state="${TARGET_STATE:-QUEUED_FOR_PROCESSING}"
 received_at="${RECEIVED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%S")}"
 submitter_email="${SUBMITTER_EMAIL:-la.submitter@example.com}"

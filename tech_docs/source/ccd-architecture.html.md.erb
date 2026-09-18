@@ -132,7 +132,8 @@ group files by category.
 `linkBatchCase` is system-only and hidden from ExUI. It stores a CCD `CaseLink` from the PCN case to
 the batch case that owns the uploaded data file. Local linking uses `bin/link-pcn-to-batch.sh`, or
 pass a batch case reference to `bin/create-tec-case.sh` / `bin/create-tec-cases.sh` /
-`bin/create-gm-tec-cases.sh` (argument or `BATCH_CASE_REFERENCE`) so each new PCN is linked after
+`bin/create-gm-tec-cases.sh` (argument or `BATCH_CASE_REFERENCE`; pass `-` to create unlinked;
+no args shows help) so each new PCN is linked after
 create. `TecCaseRepository` persists `batch_case_reference` (FK to `tec_batch`) and Case details shows
 the **Batch case** field reconstructed as a `CaseLink` with `CaseType` `TEC_BATCH`.
 
@@ -304,7 +305,7 @@ Reject reason radios (`ExceptionRejectReason`): **PCN could not be matched**, **
 #### Local setup (PCN Tasks tab)
 
 1. Start the CFTLib stack: `./gradlew bootWithCCD`
-2. Create a case: `./bin/create-tec-case.sh` (optionally pass a batch case reference to link it)
+2. Create a case: `./bin/create-tec-case.sh -` (or pass a batch case reference to link it; no args shows help)
 3. Move it to `CASE_ISSUED`: `./bin/transition-to-case-issued.sh <case-reference>`
 4. Sign in to Manage Case as `tec-demo@test.com` / `password` and open the case — the **Tasks** tab should list the tasks
 
@@ -451,8 +452,8 @@ CFTLib itself is not deployed.
 - `src/main/java/uk/gov/hmcts/reform/tecpoc/service/`: CCD start/submit clients for PCN, batch and exception create.
 - `src/main/resources/db/migration/`: TEC business schema (including `V13__create_tec_exception_case.sql`).
 - `src/cftlib/java/uk/gov/hmcts/reform/tecpoc/cftlib/TecCftLibConfiguration.java`: local setup and definition import.
-- `bin/create-tec-case.sh`: local PCN case-creation example (optional batch case link via argument / `BATCH_CASE_REFERENCE`).
-- `bin/create-tec-cases.sh` / `bin/create-gm-tec-cases.sh`: bulk PCN seeding (same optional batch link).
+- `bin/create-tec-case.sh`: local PCN case-creation example (pass `-` to create unlinked, or a batch case reference / `BATCH_CASE_REFERENCE` to link; no args shows help).
+- `bin/create-tec-cases.sh` / `bin/create-gm-tec-cases.sh`: bulk PCN seeding (same argument / help behaviour).
 - `bin/link-pcn-to-batch.sh`: link an existing PCN to a `TEC_BATCH` case via `linkBatchCase`.
 - `bin/create-tec-exception-case.sh`: local exception case-creation example.
 - `bin/transition-to-case-issued.sh`: fires `registrationPaymentSucceeded` to move a PCN case to `CASE_ISSUED`.
