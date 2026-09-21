@@ -325,7 +325,7 @@ Hyphens in either case reference are optional. Both paths:
 
 1. Submit PCN `linkBatchCase` (`CaseLink` to `TEC_BATCH`) — Case details **Batch case** and History
 2. Submit batch `linkPcnCases` with the full `caseLinks` collection and reason
-   **Linked when creating the case during batch registration** — ExUI Linked Cases shows the
+   **Linked as part of a batch of registrations** — ExUI Linked Cases shows the
    PCN under the batch's **linked to** list and the batch under the PCN's **linked from** list
 
 ### Generate a sample TE9/PE3 application (local)

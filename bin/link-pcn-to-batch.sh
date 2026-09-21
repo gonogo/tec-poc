@@ -9,9 +9,14 @@ EVENT_ID="${EVENT_ID:-linkBatchCase}"
 BATCH_LINK_EVENT_ID="${BATCH_LINK_EVENT_ID:-linkPcnCases}"
 PCN_CASE_REFERENCE_RAW="${1:-}"
 BATCH_CASE_REFERENCE_RAW="${2:-}"
-BATCH_REGISTRATION_REASON="${BATCH_REGISTRATION_REASON:-Linked when creating the case during batch registration}"
 # ExUI Reasons column looks up Reason via CaseLinkingReasonCode LOV; free text goes in OtherDescription.
-BATCH_REGISTRATION_REASON_CODE="${BATCH_REGISTRATION_REASON_CODE:-CLRC007}"
+BATCH_LINK_REASON_CODE="${BATCH_LINK_REASON_CODE:-${BATCH_REGISTRATION_REASON_CODE:-CLRC007}}"
+BATCH_REGISTRATION_REASON="${BATCH_REGISTRATION_REASON:-Linked as part of a batch of registrations}"
+BATCH_WARRANT_AUTH_REASON="${BATCH_WARRANT_AUTH_REASON:-Linked as part of a batch of warrant auth requests}"
+BATCH_WARRANT_REISSUE_REASON="${BATCH_WARRANT_REISSUE_REASON:-Linked as part of a batch of warrant reissue requests}"
+BATCH_OUT_OF_TIME_REASON="${BATCH_OUT_OF_TIME_REASON:-Linked as part of a batch of out-of-time decisions}"
+BATCH_CHANGE_OF_ADDRESS_REASON="${BATCH_CHANGE_OF_ADDRESS_REASON:-Linked as part of a batch of change of address}"
+BATCH_CASE_CLOSURE_REASON="${BATCH_CASE_CLOSURE_REASON:-Linked as part of a batch of case closure requests}"
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -28,15 +33,50 @@ Link a TEC PCN case to a TEC Batch case:
   1. PCN event linkBatchCase (History + batch_case_reference)
   2. Batch event linkPcnCases with the full caseLinks collection so ExUI
      shows the PCN under the batch's "linked to" list and the batch under
-     the PCN's "linked from" list, with reason:
-     "${BATCH_REGISTRATION_REASON}"
+     the PCN's "linked from" list, with Reason=CLRC007 (Other) and
+     OtherDescription chosen from the batch's operation:
+       registration          → "${BATCH_REGISTRATION_REASON}"
+       warrantAuthRequests   → "${BATCH_WARRANT_AUTH_REASON}"
+       warrantReissueRequests → "${BATCH_WARRANT_REISSUE_REASON}"
+       outOfTimeDecisions    → "${BATCH_OUT_OF_TIME_REASON}"
+       changeOfAddress       → "${BATCH_CHANGE_OF_ADDRESS_REASON}"
+       caseClosureRequests   → "${BATCH_CASE_CLOSURE_REASON}"
 
 Hyphens in either case reference are optional.
 
 Optional environment variables:
-  CCD_DATA_STORE_URL, EVENT_ID, BATCH_LINK_EVENT_ID, BATCH_REGISTRATION_REASON,
-  BATCH_REGISTRATION_REASON_CODE (default CLRC007 = Other; free text goes in OtherDescription)
+  CCD_DATA_STORE_URL, EVENT_ID, BATCH_LINK_EVENT_ID, BATCH_LINK_REASON_CODE
+  (default CLRC007 = Other), and BATCH_*_REASON overrides for each batch type
 EOF
+}
+
+# Maps BatchOperation JSON value → OtherDescription free text.
+reason_for_batch_operation() {
+  local operation="$1"
+  case "${operation}" in
+    registration)
+      printf '%s\n' "${BATCH_REGISTRATION_REASON}"
+      ;;
+    warrantAuthRequests)
+      printf '%s\n' "${BATCH_WARRANT_AUTH_REASON}"
+      ;;
+    warrantReissueRequests)
+      printf '%s\n' "${BATCH_WARRANT_REISSUE_REASON}"
+      ;;
+    outOfTimeDecisions)
+      printf '%s\n' "${BATCH_OUT_OF_TIME_REASON}"
+      ;;
+    changeOfAddress)
+      printf '%s\n' "${BATCH_CHANGE_OF_ADDRESS_REASON}"
+      ;;
+    caseClosureRequests)
+      printf '%s\n' "${BATCH_CASE_CLOSURE_REASON}"
+      ;;
+    *)
+      echo "Unsupported or missing batch operation '${operation}' on batch case; cannot choose link reason" >&2
+      exit 1
+      ;;
+  esac
 }
 
 if [[ -z "${PCN_CASE_REFERENCE_RAW}" || -z "${BATCH_CASE_REFERENCE_RAW}" ]]; then
@@ -137,10 +177,14 @@ batch_case_response="$({
   exit 1
 }
 
+batch_operation="$(jq --raw-output '.data.operation // empty' <<<"${batch_case_response}")"
+batch_link_reason="$(reason_for_batch_operation "${batch_operation}")"
+echo "Using link reason for batch operation '${batch_operation}': Other - ${batch_link_reason}" >&2
+
 # CaseView returns caseLinks for all PCNs with this batch_case_reference.
 case_links_json="$(jq --compact-output \
-  --arg reason "${BATCH_REGISTRATION_REASON}" \
-  --arg reasonCode "${BATCH_REGISTRATION_REASON_CODE}" '
+  --arg reason "${batch_link_reason}" \
+  --arg reasonCode "${BATCH_LINK_REASON_CODE}" '
   (.data.caseLinks // []) as $existing
   | if ($existing | length) > 0 then
       [
@@ -166,8 +210,8 @@ case_links_json="$(jq --compact-output \
 # Ensure the PCN we just linked is present even if CaseView was empty.
 case_links_json="$(jq --compact-output \
   --arg pcn "${PCN_CASE_REFERENCE}" \
-  --arg reason "${BATCH_REGISTRATION_REASON}" \
-  --arg reasonCode "${BATCH_REGISTRATION_REASON_CODE}" '
+  --arg reason "${batch_link_reason}" \
+  --arg reasonCode "${BATCH_LINK_REASON_CODE}" '
   . as $links
   | if any(.[]; .value.CaseReference == $pcn) then .
     else . + [{

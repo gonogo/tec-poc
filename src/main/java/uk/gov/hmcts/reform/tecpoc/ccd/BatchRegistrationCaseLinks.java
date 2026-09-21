@@ -18,7 +18,7 @@ final class BatchRegistrationCaseLinks {
 
     /** Free-text shown after "Other - " in ExUI Reasons for case link. */
     static final String REASON =
-        "Linked when creating the case during batch registration";
+        "Linked as part of a batch of registrations";
 
     private BatchRegistrationCaseLinks() {
     }

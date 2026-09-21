@@ -19,7 +19,7 @@ echo "2/2 Restart TEC / CFTLib so BatchCaseView picks up CLRC007 reasons:"
 echo "    ./bin/restart-boot-with-ccd.sh"
 echo
 echo "Then hard-refresh Manage Cases and open a batch or PCN Linked Cases tab."
-echo "Expected reason text: Other - Linked when creating the case during batch registration"
+echo "Expected reason text: Other - Linked as part of a batch of registrations"
 echo
 echo "Quick API checks after restart:"
 echo "  curl -s http://localhost:3000/api/commondata/lov/categories/CaseLinkingReasonCode | jq '.list_of_values|length'"
