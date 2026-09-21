@@ -6,8 +6,12 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 CCD_URL="${CCD_DATA_STORE_URL:-http://localhost:4452}"
 EVENT_ID="${EVENT_ID:-linkBatchCase}"
+BATCH_LINK_EVENT_ID="${BATCH_LINK_EVENT_ID:-linkPcnCases}"
 PCN_CASE_REFERENCE_RAW="${1:-}"
 BATCH_CASE_REFERENCE_RAW="${2:-}"
+BATCH_REGISTRATION_REASON="${BATCH_REGISTRATION_REASON:-Linked when creating the case during batch registration}"
+# ExUI Reasons column looks up Reason via CaseLinkingReasonCode LOV; free text goes in OtherDescription.
+BATCH_REGISTRATION_REASON_CODE="${BATCH_REGISTRATION_REASON_CODE:-CLRC007}"
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -20,12 +24,18 @@ usage() {
   cat <<EOF
 Usage: ${0} <pcn-case-reference> <batch-case-reference>
 
-Link a TEC PCN case to a TEC Batch case via the CCD CaseLink field (batchCase).
+Link a TEC PCN case to a TEC Batch case:
+  1. PCN event linkBatchCase (History + batch_case_reference)
+  2. Batch event linkPcnCases with the full caseLinks collection so ExUI
+     shows the PCN under the batch's "linked to" list and the batch under
+     the PCN's "linked from" list, with reason:
+     "${BATCH_REGISTRATION_REASON}"
 
 Hyphens in either case reference are optional.
 
 Optional environment variables:
-  CCD_DATA_STORE_URL, EVENT_ID
+  CCD_DATA_STORE_URL, EVENT_ID, BATCH_LINK_EVENT_ID, BATCH_REGISTRATION_REASON,
+  BATCH_REGISTRATION_REASON_CODE (default CLRC007 = Other; free text goes in OtherDescription)
 EOF
 }
 
@@ -108,6 +118,123 @@ submit_response="$({
 } 2>&1)" || {
   echo "Failed to submit ${EVENT_ID} for case ${PCN_CASE_REFERENCE}" >&2
   echo "${submit_response}" >&2
+  exit 1
+}
+
+echo "Refreshing batch caseLinks (linked to) for case ${BATCH_CASE_REFERENCE}..." >&2
+
+batch_case_response="$({
+  curl --silent --show-error --fail-with-body \
+    --connect-timeout 5 \
+    --max-time 120 \
+    --request GET "${CCD_URL}/cases/${BATCH_CASE_REFERENCE}" \
+    --header "Authorization: Bearer ${user_token}" \
+    --header "ServiceAuthorization: ${service_token}" \
+    --header 'experimental: true'
+} 2>&1)" || {
+  echo "Failed to load batch case ${BATCH_CASE_REFERENCE}" >&2
+  echo "${batch_case_response}" >&2
+  exit 1
+}
+
+# CaseView returns caseLinks for all PCNs with this batch_case_reference.
+case_links_json="$(jq --compact-output \
+  --arg reason "${BATCH_REGISTRATION_REASON}" \
+  --arg reasonCode "${BATCH_REGISTRATION_REASON_CODE}" '
+  (.data.caseLinks // []) as $existing
+  | if ($existing | length) > 0 then
+      [
+        $existing[]
+        | . as $entry
+        | {
+            id: ($entry.id // $entry.value.CaseReference),
+            value: {
+              CaseReference: $entry.value.CaseReference,
+              CaseType: ($entry.value.CaseType // "TEC"),
+              ReasonForLink: [ {
+                id: "1",
+                value: { Reason: $reasonCode, OtherDescription: $reason }
+              } ]
+            }
+          }
+      ]
+    else
+      []
+    end
+' <<<"${batch_case_response}")"
+
+# Ensure the PCN we just linked is present even if CaseView was empty.
+case_links_json="$(jq --compact-output \
+  --arg pcn "${PCN_CASE_REFERENCE}" \
+  --arg reason "${BATCH_REGISTRATION_REASON}" \
+  --arg reasonCode "${BATCH_REGISTRATION_REASON_CODE}" '
+  . as $links
+  | if any(.[]; .value.CaseReference == $pcn) then .
+    else . + [{
+      id: $pcn,
+      value: {
+        CaseReference: $pcn,
+        CaseType: "TEC",
+        ReasonForLink: [ {
+          id: "1",
+          value: { Reason: $reasonCode, OtherDescription: $reason }
+        } ]
+      }
+    }]
+    end
+' <<<"${case_links_json}")"
+
+batch_event_trigger_url="${CCD_URL}/cases/${BATCH_CASE_REFERENCE}/event-triggers/${BATCH_LINK_EVENT_ID}"
+
+batch_start_response="$({
+  curl --silent --show-error --fail-with-body \
+    --connect-timeout 5 \
+    --max-time 120 \
+    --request GET "${batch_event_trigger_url}" \
+    --header "Authorization: Bearer ${user_token}" \
+    --header "ServiceAuthorization: ${service_token}" \
+    --header 'experimental: true'
+} 2>&1)" || {
+  echo "Failed to start ${BATCH_LINK_EVENT_ID} for batch case ${BATCH_CASE_REFERENCE}" >&2
+  echo "${batch_start_response}" >&2
+  exit 1
+}
+
+batch_event_token="$(jq --raw-output '.token // empty' <<<"${batch_start_response}")"
+if [[ -z "${batch_event_token}" ]]; then
+  echo "CCD start-event response did not contain a token for ${BATCH_LINK_EVENT_ID}" >&2
+  echo "${batch_start_response}" >&2
+  exit 1
+fi
+
+batch_submit_body="$(jq --null-input --compact-output \
+  --arg eventToken "${batch_event_token}" \
+  --argjson caseLinks "${case_links_json}" \
+  '{
+    event: {
+      id: "linkPcnCases",
+      summary: "Link PCN cases",
+      description: "Link PCN cases to batch case"
+    },
+    data: {
+      caseLinks: $caseLinks
+    },
+    event_token: $eventToken
+  }')"
+
+batch_submit_response="$({
+  curl --silent --show-error --fail-with-body \
+    --connect-timeout 5 \
+    --max-time 120 \
+    --request POST "${CCD_URL}/cases/${BATCH_CASE_REFERENCE}/events" \
+    --header "Authorization: Bearer ${user_token}" \
+    --header "ServiceAuthorization: ${service_token}" \
+    --header 'Content-Type: application/json' \
+    --header 'experimental: true' \
+    --data "${batch_submit_body}"
+} 2>&1)" || {
+  echo "Failed to submit ${BATCH_LINK_EVENT_ID} for batch case ${BATCH_CASE_REFERENCE}" >&2
+  echo "${batch_submit_response}" >&2
   exit 1
 }
 

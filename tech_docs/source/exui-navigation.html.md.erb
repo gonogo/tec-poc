@@ -33,7 +33,7 @@ Stock XUI cannot be configured via env for primary nav. This POC simulates the E
 | --- | --- |
 | `XUI_PORT=3002` in `build.gradle` | Real Manage Cases container |
 | `bin/start-xui-manage-batches-proxy.sh` | Started by `bootWithCCD`; listens on **:3000** |
-| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add `^caseworker-tec$` (clerk) and `^caseworker-tec-la$` (LA) menus including **Upload batch file** |
+| `bin/xui-manage-batches-proxy.py` | Rewrites `/external/config/ui/` to add `^caseworker-tec$` (clerk) and `^caseworker-tec-la$` (LA) menus including **Upload batch file**; also stubs `CaseLinkingReasonCode` LOV (CFTLib has no rd-commondata) so Linked Cases **Reasons** can resolve `CLRC007` → Other |
 | `/cases/case-create/TEC/TEC_BATCH/uploadBatch` | ExUI Angular route for the Upload batch file CCD wizard (nav `href` must be this) |
 | `/tec-create-batch` | Legacy bookmark path only; proxy redirects. Do **not** use as nav `href` — ExUI uses `routerLink`, so an unknown path falls through to `/cases` |
 

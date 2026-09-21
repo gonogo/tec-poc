@@ -243,6 +243,14 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(TecCase::getAllDocuments, NEVER_SHOW);
 
+        builder.tab("caseLinks", "Linked Cases")
+            .field(TecCase::getLinkedCasesComponentLauncher, null, "#ARGUMENT(LinkedCases)")
+            .field(
+                TecCase::getCaseLinks,
+                "LinkedCasesComponentLauncher!=\"\"",
+                "#ARGUMENT(LinkedCases)"
+            );
+
         builder.tab("paymentHistory", "Payment History")
             .field(TecCase::getCasePaymentHistoryViewer);
 
@@ -581,7 +589,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
         }
         Long existingEnforcement = enforcementCaseRepository
             .findEnforcementCaseReferenceForPcn(event.caseReference());
-        if (existingEnforcement != null && existingEnforcement != enforcementCaseReference) {
+        if (existingEnforcement != null && existingEnforcement.longValue() != enforcementCaseReference) {
             throw new IllegalArgumentException(
                 "PCN case " + event.caseReference()
                     + " is already linked to enforcement case " + existingEnforcement

@@ -15,8 +15,9 @@ authority (via create-tec-case.sh).
 
 Arguments:
   <batch-case-reference>  Optional CCD case reference of a TEC_BATCH case to link
-                          each PCN to after create (hyphens optional). Use '-' to
-                          create without linking.
+                          each PCN to after create (hyphens optional). The batch
+                          must already exist or the script exits before creating
+                          any PCNs. Use '-' to create without linking.
   -h, --help              Show this help and exit
 
 If BATCH_CASE_REFERENCE is set in the environment and no argument is passed,
@@ -74,6 +75,9 @@ created=0
 
 echo "Creating ${CASES_PER_AUTHORITY} TEC cases for each of ${#LOCAL_AUTHORITIES[@]} Greater Manchester authorities (${total} total)..." >&2
 if [[ -n "${BATCH_CASE_REFERENCE:-}" ]]; then
+  echo "Verifying batch case ${BATCH_CASE_REFERENCE} exists..." >&2
+  "${SCRIPT_DIR}/assert-batch-case-exists.sh" "${BATCH_CASE_REFERENCE}"
+  export SKIP_BATCH_CASE_ASSERT=1
   echo "Each created PCN will be linked to batch case ${BATCH_CASE_REFERENCE}." >&2
 fi
 

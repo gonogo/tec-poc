@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CaseView;
 import uk.gov.hmcts.ccd.sdk.CaseViewRequest;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
@@ -41,8 +42,32 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
             "<p class=\"govuk-body\">Roles and access (CCD shell). "
                 + "The Manage Case Work Allocation tab is not wired for TEC in this PoC.</p>"
         );
+        batchCase.setCaseLinks(toCaseLinks(repository.findLinkedPcnCaseReferences(request.caseRef())));
         batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return batchCase;
+    }
+
+    /**
+     * ExUI Linked Cases "linked to" reads {@code ListValue.id} as the linked case reference
+     * ({@code getCaseViewV2(fieldValue.id)}), not {@code CaseReference}. Use the
+     * PCN case reference as the collection id (same pattern as pcs-api).
+     * Reason text is the batch-registration message so batch "linked to" and PCN
+     * "linked from" (via getLinkedCases) show the same label.
+     */
+    static List<ListValue<CaseLink>> toCaseLinks(List<Long> pcnCaseReferences) {
+        return pcnCaseReferences.stream()
+            .map(ref -> {
+                String caseReference = Long.toString(ref);
+                return ListValue.<CaseLink>builder()
+                    .id(caseReference)
+                    .value(CaseLink.builder()
+                        .caseReference(caseReference)
+                        .caseType(TecCaseConfiguration.CASE_TYPE)
+                        .reasonForLink(BatchRegistrationCaseLinks.reasonForLink())
+                        .build())
+                    .build();
+            })
+            .toList();
     }
 
     static String statusLabel(BatchCaseState state) {

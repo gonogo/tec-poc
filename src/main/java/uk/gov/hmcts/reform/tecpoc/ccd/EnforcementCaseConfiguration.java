@@ -176,7 +176,7 @@ public class EnforcementCaseConfiguration
                 );
             }
             Long existingEnforcement = repository.findEnforcementCaseReferenceForPcn(pcnCaseReference);
-            if (existingEnforcement != null && existingEnforcement != event.caseReference()) {
+            if (existingEnforcement != null && existingEnforcement.longValue() != event.caseReference()) {
                 throw new IllegalArgumentException(
                     "PCN case " + pcnCaseReference
                         + " is already linked to enforcement case " + existingEnforcement

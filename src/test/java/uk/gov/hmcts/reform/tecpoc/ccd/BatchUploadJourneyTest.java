@@ -28,7 +28,7 @@ class BatchUploadJourneyTest {
     @BeforeEach
     void setUp() {
         repository = mock(BatchCaseRepository.class);
-        configuration = new BatchCaseConfiguration(repository);
+        configuration = new BatchCaseConfiguration(repository, mock(TecCaseRepository.class));
     }
 
     @Test

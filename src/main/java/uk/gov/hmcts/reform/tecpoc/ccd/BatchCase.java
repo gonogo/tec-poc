@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import uk.gov.hmcts.ccd.sdk.api.CCD;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.ComponentLauncher;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.FieldType;
@@ -138,6 +139,23 @@ public class BatchCase {
 
     @CCD(label = "Case file view")
     private ComponentLauncher caseFileView;
+
+    /**
+     * Standard CCD Linked Cases collection. Field id must remain {@code caseLinks}.
+     * Populated by {@link BatchCaseView} from PCN cases with this batch as
+     * {@code tec_case.batch_case_reference}.
+     */
+    @CCD(
+        label = "Linked cases",
+        typeOverride = FieldType.Collection,
+        typeParameterOverride = "CaseLink"
+    )
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<ListValue<CaseLink>> caseLinks;
+
+    @CCD(label = "Component Launcher (for displaying Linked Cases data)")
+    @JsonProperty("LinkedCasesComponentLauncher")
+    private ComponentLauncher linkedCasesComponentLauncher;
 
     @CCD(label = "Tasks", searchable = false)
     private String tasksMarkdown;

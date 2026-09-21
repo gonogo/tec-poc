@@ -128,6 +128,31 @@ public class TecCaseRepository {
             .addValue("batchCaseReference", batchCaseReference));
     }
 
+    public boolean exists(long caseReference) {
+        Integer count = database.queryForObject(
+            """
+            select count(*)
+              from tec_case
+             where case_reference = :caseReference
+            """,
+            Map.of("caseReference", caseReference),
+            Integer.class
+        );
+        return count != null && count > 0;
+    }
+
+    public Long findBatchCaseReference(long caseReference) {
+        try {
+            return database.queryForObject("""
+                select batch_case_reference
+                  from tec_case
+                 where case_reference = :caseReference
+                """, Map.of("caseReference", caseReference), Long.class);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
     public void linkEnforcementCase(long caseReference, long enforcementCaseReference) {
         database.update("""
             update tec_case

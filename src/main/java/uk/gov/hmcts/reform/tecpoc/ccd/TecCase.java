@@ -317,6 +317,24 @@ public class TecCase {
     private ComponentLauncher caseFileView;
 
     /**
+     * Standard CCD Linked Cases collection. Field id must remain {@code caseLinks}.
+     * Populated by {@link TecCaseView} from the enforcement CaseLink when set.
+     * Batch links are owned by the batch case ({@code caseLinks} there) so the PCN
+     * shows them under ExUI "linked from", not in this collection.
+     */
+    @CCD(
+        label = "Linked cases",
+        typeOverride = FieldType.Collection,
+        typeParameterOverride = "CaseLink"
+    )
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<ListValue<CaseLink>> caseLinks;
+
+    @CCD(label = "Component Launcher (for displaying Linked Cases data)")
+    @JsonProperty("LinkedCasesComponentLauncher")
+    private ComponentLauncher linkedCasesComponentLauncher;
+
+    /**
      * CCD shell for the ExUI Roles and access tab. Not the real Work Allocation / CAA UI.
      */
     @CCD(label = "Roles and access", searchable = false)

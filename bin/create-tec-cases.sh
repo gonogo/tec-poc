@@ -16,8 +16,9 @@ Create ${CASE_COUNT} randomised TEC PCN cases through the local API
 
 Arguments:
   <batch-case-reference>  Optional CCD case reference of a TEC_BATCH case to link
-                          each PCN to after create (hyphens optional). Use '-' to
-                          create without linking.
+                          each PCN to after create (hyphens optional). The batch
+                          must already exist or the script exits before creating
+                          any PCNs. Use '-' to create without linking.
   -h, --help              Show this help and exit
 
 If BATCH_CASE_REFERENCE is set in the environment and no argument is passed,
@@ -25,7 +26,10 @@ that value is used as the batch case reference.
 
 Optional environment variables:
   TEC_API_URL, CASE_COUNT (default: 20), BATCH_CASE_REFERENCE, LOCAL_AUTHORITY
-  (if LOCAL_AUTHORITY is set, every case uses it; otherwise authorities are randomised)
+  (if LOCAL_AUTHORITY is set, every case uses it; otherwise authorities are randomised),
+  BATCH_REGISTRATION_REASON, BATCH_REGISTRATION_REASON_CODE
+  (reason defaults: CLRC007 / "Linked when creating the case during batch
+  registration"; passed through to link-pcn-to-batch.sh when linking)
 
 Examples:
   ${0} -                                    # create ${CASE_COUNT} unlinked PCNs
@@ -64,6 +68,8 @@ for command in curl jq; do
 done
 
 if [[ -n "${BATCH_CASE_REFERENCE_RAW}" ]]; then
+  echo "Verifying batch case ${BATCH_CASE_REFERENCE_RAW} exists..." >&2
+  "${SCRIPT_DIR}/assert-batch-case-exists.sh" "${BATCH_CASE_REFERENCE_RAW}"
   echo "Each created PCN will be linked to batch case ${BATCH_CASE_REFERENCE_RAW}." >&2
 fi
 if [[ -n "${LOCAL_AUTHORITY:-}" ]]; then

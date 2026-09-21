@@ -139,9 +139,13 @@ the batch case that owns the uploaded data file. Local linking uses `bin/link-pc
 pass a batch case reference to `bin/create-tec-case.sh` / `bin/create-tec-cases.sh` /
 `bin/create-gm-tec-cases.sh` (argument or `BATCH_CASE_REFERENCE`; pass `-` to create unlinked;
 no args shows help) so each new PCN is linked after
-create. Clerks have read access so **Link batch case** appears in PCN History (with the CaseLink in
+create. The create scripts verify the batch exists and is `TEC_BATCH` before creating any
+PCNs. Clerks have read access so **Link batch case** appears in PCN History (with the CaseLink in
 event details). `TecCaseRepository` persists `batch_case_reference` (FK to `tec_batch`) and Case details shows
 the **Batch case** field reconstructed as a `CaseLink` with `CaseType` `TEC_BATCH`.
+The same script then submits **`linkPcnCases`** on the batch (full `caseLinks` collection with the
+batch-registration reason) so ExUI **linked to** / **linked from** are populated via CCD
+`case_link`.
 
 `linkEnforcementCase` is the matching PCN-side event for TE10 enforcement links: system-only /
 `NEVER_SHOW`, clerk-readable for History, mandatory `enforcementCase` CaseLink. Seeded by
@@ -171,7 +175,7 @@ Blockframe wireframes of the case tabs and Next steps journeys: [TEC PCN blockfr
 Caseworker review boards (including the expanded out-of-time validation failure journey):
 [Caseworker journeys](/caseworker-journeys.html). Field-type catalogue: [ExUI form elements](/exui-form-elements.html).
 
-`TecCaseConfiguration` generates five application tabs in addition to CCD's case-history tab:
+`TecCaseConfiguration` generates six application tabs in addition to CCD's case-history tab:
 
 - **Tasks**: prototype task list for local UX exploration.
 - **Roles and access**: CCD shell tab so the label always appears in Manage Case. This is not ExUI's
@@ -195,6 +199,10 @@ Caseworker review boards (including the expanded out-of-time validation failure 
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in
   `TecCaseConfiguration`. Documents appear when `TecCaseView` exposes `allDocuments` from
   `tec_case_document` with matching `category_id` values.
+- **Linked Cases**: ExUI `ComponentLauncher` + `caseLinks` collection (`#ARGUMENT(LinkedCases)`).
+  Batch links are owned by the batch case (see below); a PCN shows its batch under ExUI
+  **linked from** after `linkPcnCases` updates CCD's `case_link` table. Enforcement links still
+  appear under **linked to** when set.
 - **Payment History**: CCD tab hosting the shared `CasePaymentHistoryViewer` field (ccpay case
   transactions UI). Local content depends on Payments being wired for TEC.
 
@@ -237,7 +245,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 
 | Piece | Location / behaviour |
 | --- | --- |
-| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Batch details, Case File View |
+| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Batch details, Case File View, Linked Cases |
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
@@ -246,13 +254,19 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | Work-basket results | Same as search results except State is omitted |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Upload batch file | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
-| Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument` |
+| Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument`, `linkPcnCases` |
 
 #### Batch details presentation
 
 `BatchCaseConfiguration` declares the **Batch details** tab. `BatchCaseView` supplies values at
 runtime (status label, processed-PCN display, conditional fees). Inputs and Outputs documents appear
-on the **Case File View** tab (`allDocuments` from `tec_batch_document`).
+on the **Case File View** tab (`allDocuments` from `tec_batch_document`). The **Linked Cases** tab
+uses ExUI's Linked Cases component (`caseLinks` collection); `BatchCaseView` rebuilds it from PCN
+rows whose `batch_case_reference` points at this batch. Reasons use LOV code `CLRC007` (Other) with
+`OtherDescription` **Linked when creating the case during batch registration** (ExUI shows
+`Other - …`). Local linking (`bin/link-pcn-to-batch.sh`) also submits batch event `linkPcnCases` so
+CCD's `case_link` table lists those PCNs — ExUI then shows the batch under each PCN's **linked from**
+list with the same reason.
 
 Fields appear in this order:
 
@@ -482,8 +496,9 @@ CFTLib itself is not deployed.
 - `src/main/java/uk/gov/hmcts/reform/tecpoc/service/`: CCD start/submit clients for PCN, batch and exception create.
 - `src/main/resources/db/migration/`: TEC business schema (including `V13__create_tec_exception_case.sql`).
 - `src/cftlib/java/uk/gov/hmcts/reform/tecpoc/cftlib/TecCftLibConfiguration.java`: local setup and definition import.
-- `bin/create-tec-case.sh`: local PCN case-creation example (pass `-` to create unlinked, or a batch case reference / `BATCH_CASE_REFERENCE` to link; no args shows help).
-- `bin/create-tec-cases.sh` / `bin/create-gm-tec-cases.sh`: bulk PCN seeding (same argument / help behaviour).
+- `bin/create-tec-case.sh`: local PCN case-creation example (pass `-` to create unlinked, or a batch case reference / `BATCH_CASE_REFERENCE` to link after verifying the batch exists; no args shows help).
+- `bin/create-tec-cases.sh` / `bin/create-gm-tec-cases.sh`: bulk PCN seeding (same argument / help behaviour; verify batch before creating).
+- `bin/assert-batch-case-exists.sh`: verify a CCD case exists and is `TEC_BATCH` (used by the create scripts).
 - `bin/link-pcn-to-batch.sh`: link an existing PCN to a `TEC_BATCH` case via `linkBatchCase`.
 - `bin/create-tec-exception-case.sh`: local exception case-creation example.
 - `bin/transition-to-case-issued.sh`: fires `registrationPaymentSucceeded` to move a PCN case to `CASE_ISSUED`.

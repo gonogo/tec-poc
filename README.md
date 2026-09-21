@@ -105,6 +105,19 @@ Re-seed or recreate cases after this change so categories are populated.
 Journey detail: [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#upload-batch-file-journey-uploadbatch)
 (or http://localhost:4568/ccd-architecture.html#upload-batch-file-journey-uploadbatch).
 
+## Clear TEC cases
+
+With `bootWithCCD` running, wipe all local TEC case data (PCN, batch, exception, enforcement)
+from the `tec` and `datastore` databases **and** the Elasticsearch search indices (so ExUI Find
+case / work-basket do not keep ghost results):
+
+```bash
+./bin/clear-tec-cases.sh          # asks y/n before deleting
+./bin/clear-tec-cases.sh --yes    # skip confirmation
+```
+
+Then recreate cases with the seed scripts below.
+
 ## Create a PCN case
 
 With `bootWithCCD` running, create a valid TEC case using the local system user. Run any of the
@@ -119,8 +132,8 @@ an amount of `12345` pence. Set `AMOUNT_DUE`, `FILE_IDENTIFIER`, `BATCH_IDENTIFI
 `PENALTY_CHARGE_NUMBER` to override those defaults.
 
 To create the PCN already linked to an existing batch case (`TEC_BATCH`), pass the batch case
-reference as an argument or set `BATCH_CASE_REFERENCE` (hyphens optional). The script creates the
-PCN then submits `linkBatchCase`:
+reference as an argument or set `BATCH_CASE_REFERENCE` (hyphens optional). The script verifies the
+batch exists (and is `TEC_BATCH`) first, then creates the PCN and submits `linkBatchCase`:
 
 ```bash
 ./bin/create-tec-batch.sh   # note the batch caseReference from the response
@@ -208,10 +221,10 @@ overrides: `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `REC
 Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
 
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
-Batch details, and Case File View. Batch details shows file identifier, batch identifier, local
+Batch details, Case File View, and Linked Cases. Batch details shows file identifier, batch identifier, local
 authority, **Submitter email**, and batch type (and no longer shows batch validation result).
 Registration batches also show **Fees due** while queued and **Fees paid** when processing is
-complete (`PCN count × £11`).
+complete (`PCN count × £11`). Linked Cases lists PCN cases that reference the batch.
 Filter by **File identifier**, **Submitter email**, and optionally batch identifier; case list results
 show file identifier and submitter email rather than batch identifier.
 See [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source/ccd-architecture.html.md.erb#batch-details-presentation)
@@ -291,8 +304,9 @@ Refresh the case in Manage Case to see the file under the chosen Case File View 
 
 ### Link a PCN case to a batch case (local)
 
-With `bootWithCCD` running (restart after pulling so the `linkBatchCase` event and
-`V17` migration are loaded), link a PCN to the batch case that owns the data file.
+With `bootWithCCD` running (restart after pulling so the `linkBatchCase` /
+`linkPcnCases` events and `V17` migration are loaded), link a PCN to the batch case
+that owns the data file.
 
 **At create time** (preferred for new seed data):
 
@@ -307,9 +321,12 @@ With `bootWithCCD` running (restart after pulling so the `linkBatchCase` event a
 ./bin/link-pcn-to-batch.sh <pcn-case-reference> <batch-case-reference>
 ```
 
-Hyphens in either case reference are optional. Both paths submit the system-only
-`linkBatchCase` event with a CCD `CaseLink` (`CaseReference` + `CaseType` `TEC_BATCH`).
-Case details then shows **Batch case** when the link is set (empty on unlinked cases).
+Hyphens in either case reference are optional. Both paths:
+
+1. Submit PCN `linkBatchCase` (`CaseLink` to `TEC_BATCH`) — Case details **Batch case** and History
+2. Submit batch `linkPcnCases` with the full `caseLinks` collection and reason
+   **Linked when creating the case during batch registration** — ExUI Linked Cases shows the
+   PCN under the batch's **linked to** list and the batch under the PCN's **linked from** list
 
 ### Generate a sample TE9/PE3 application (local)
 

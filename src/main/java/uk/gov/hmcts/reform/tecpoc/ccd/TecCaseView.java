@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.tecpoc.ccd;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +48,34 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
             tecCase.setCaseAccessCategory(tecCase.getLocalAuthority().getCode());
         }
         populateEnforcementSection(tecCase);
+        tecCase.setCaseLinks(toCaseLinks(tecCase));
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
+    }
+
+    /**
+     * ExUI Linked Cases "linked to" reads this case's {@code caseLinks}.
+     * Batch links are owned by the batch case (PCN appears under "linked from"
+     * via CCD {@code case_link} / getLinkedCases). Only enforcement remains outbound here.
+     */
+    static List<ListValue<CaseLink>> toCaseLinks(TecCase tecCase) {
+        List<ListValue<CaseLink>> links = new ArrayList<>();
+        addCaseLink(links, tecCase.getEnforcementCase());
+        return links;
+    }
+
+    private static void addCaseLink(List<ListValue<CaseLink>> links, CaseLink caseLink) {
+        if (caseLink == null || caseLink.getCaseReference() == null || caseLink.getCaseReference().isBlank()) {
+            return;
+        }
+        String caseReference = caseLink.getCaseReference().replace("-", "").trim();
+        links.add(ListValue.<CaseLink>builder()
+            .id(caseReference)
+            .value(CaseLink.builder()
+                .caseReference(caseReference)
+                .caseType(caseLink.getCaseType())
+                .build())
+            .build());
     }
 
     private void populateEnforcementSection(TecCase tecCase) {

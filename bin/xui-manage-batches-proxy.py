@@ -8,6 +8,10 @@ path) so TEC clerks see Upload batch file without a custom XUI image.
 
 Upload batch file nav points at the ExUI CCD create-case deep link for uploadBatch.
 Legacy /tec-create-batch redirects there for bookmarks.
+
+Also stubs GET **/lov/categories/CaseLinkingReasonCode** (CFTLib has no
+rd-commondata-api). ExUI Linked Cases resolves Reason codes through that LOV;
+without it the Reasons column stays blank even when caseLinks carry CLRC007.
 """
 
 from __future__ import annotations
@@ -54,6 +58,24 @@ _CONFIG_PATHS = {
     "/external/configuration-ui",
     "/external/configuration-ui/",
 }
+
+# CFTLib does not run rd-commondata-api. ExUI Linked Cases resolves Reason via
+# CaseLinkingReasonCode LOV; without it the Reasons column stays blank.
+_CASE_LINKING_REASON_LOV = {
+    "list_of_values": [
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC001", "value_en": "Case consolidated", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 1, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC002", "value_en": "Linked for a hearing", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 2, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC003", "value_en": "Progressed as part of this lead case", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 3, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC004", "value_en": "Related appeal", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 4, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC005", "value_en": "Related proceedings", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 5, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC006", "value_en": "Same Party", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 6, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+        {"category_key": "CaseLinkingReasonCode", "key": "CLRC007", "value_en": "Other", "value_cy": "", "hint_text_en": "", "hint_text_cy": "", "lov_order": 7, "parent_category": "", "parent_key": "", "active_flag": "Y", "child_nodes": []},
+    ]
+}
+
+
+def _is_case_linking_reason_lov(path: str) -> bool:
+    return "lov/categories/CaseLinkingReasonCode" in path
 
 
 def _tec_menu(create_batch_href: str) -> list[dict]:
@@ -224,6 +246,17 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             if self.command != "HEAD":
                 self.wfile.write(body)
+            return
+
+        if _is_case_linking_reason_lov(path) and self.command in ("GET", "HEAD"):
+            raw = json.dumps(_CASE_LINKING_REASON_LOV).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(raw)
             return
 
         if self.headers.get("Upgrade", "").lower() == "websocket":

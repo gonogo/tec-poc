@@ -106,6 +106,15 @@ public class BatchCaseRepository {
             });
     }
 
+    public List<Long> findLinkedPcnCaseReferences(long batchCaseReference) {
+        return database.queryForList("""
+            select case_reference
+              from tec_case
+             where batch_case_reference = :batchCaseReference
+             order by case_reference asc
+            """, Map.of("batchCaseReference", batchCaseReference), Long.class);
+    }
+
     private MapSqlParameterSource parameters(long caseReference, BatchCase batchCase) {
         return new MapSqlParameterSource()
             .addValue("caseReference", caseReference)

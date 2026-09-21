@@ -9,7 +9,9 @@ import uk.gov.hmcts.ccd.sdk.api.EventPayload;
 import uk.gov.hmcts.ccd.sdk.api.Permission;
 import uk.gov.hmcts.ccd.sdk.api.callback.AboutToStartOrSubmitResponse;
 import uk.gov.hmcts.ccd.sdk.api.callback.SubmitResponse;
+import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.Document;
+import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
 import java.util.List;
 import java.util.Set;
@@ -22,9 +24,14 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
     private static final String NEVER_SHOW = "[STATE]=\"NEVER_SHOW\"";
 
     private final BatchCaseRepository repository;
+    private final TecCaseRepository tecCaseRepository;
 
-    public BatchCaseConfiguration(@Lazy BatchCaseRepository repository) {
+    public BatchCaseConfiguration(
+        @Lazy BatchCaseRepository repository,
+        @Lazy TecCaseRepository tecCaseRepository
+    ) {
         this.repository = repository;
+        this.tecCaseRepository = tecCaseRepository;
     }
 
     @Override
@@ -109,6 +116,14 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         builder.tab("caseFileView", "Case File View")
             .field(BatchCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(BatchCase::getAllDocuments, NEVER_SHOW);
+
+        builder.tab("caseLinks", "Linked Cases")
+            .field(BatchCase::getLinkedCasesComponentLauncher, null, "#ARGUMENT(LinkedCases)")
+            .field(
+                BatchCase::getCaseLinks,
+                "LinkedCasesComponentLauncher!=\"\"",
+                "#ARGUMENT(LinkedCases)"
+            );
 
         builder.searchInputFields()
             .field(BatchCase::getFileIdentifier, "File identifier")
@@ -271,6 +286,15 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .fields()
             .mandatory(BatchCase::getBatchFileDocument);
+
+        builder.decentralisedEvent("linkPcnCases", this::linkPcnCases)
+            .forStates(BatchCaseState.values())
+            .name("Link PCN cases")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .grant(Permission.R, UserRole.CLERK)
+            .fields()
+            .mandatory(BatchCase::getCaseLinks);
     }
 
     AboutToStartOrSubmitResponse<BatchCase, BatchCaseState> populateValidationPlaceholder(
@@ -335,6 +359,49 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         requireDocument(document);
         attachUploadedDocumentIfPresent(event.caseReference(), document);
         return SubmitResponse.defaultResponse();
+    }
+
+    /**
+     * Records standard {@code caseLinks} on the batch so CCD's {@code case_link} table
+     * (and ExUI "linked to" / PCN "linked from") include each PCN. Also ensures
+     * {@code tec_case.batch_case_reference} matches this batch.
+     */
+    private SubmitResponse<BatchCaseState> linkPcnCases(EventPayload<BatchCase, BatchCaseState> event) {
+        List<ListValue<CaseLink>> caseLinks = event.caseData().getCaseLinks();
+        if (caseLinks == null || caseLinks.isEmpty()) {
+            throw new IllegalArgumentException("caseLinks is required");
+        }
+
+        for (ListValue<CaseLink> entry : caseLinks) {
+            if (entry == null || entry.getValue() == null || isBlank(entry.getValue().getCaseReference())) {
+                throw new IllegalArgumentException("caseLinks[].value.CaseReference is required");
+            }
+            long pcnCaseReference = parseCaseReference(entry.getValue().getCaseReference());
+            if (!tecCaseRepository.exists(pcnCaseReference)) {
+                throw new IllegalArgumentException(
+                    "No TEC PCN case found for reference " + pcnCaseReference
+                );
+            }
+            Long existingBatch = tecCaseRepository.findBatchCaseReference(pcnCaseReference);
+            if (existingBatch != null && existingBatch.longValue() != event.caseReference()) {
+                throw new IllegalArgumentException(
+                    "PCN case " + pcnCaseReference
+                        + " is already linked to batch case " + existingBatch
+                );
+            }
+            tecCaseRepository.linkBatchCase(pcnCaseReference, event.caseReference());
+        }
+        return SubmitResponse.defaultResponse();
+    }
+
+    static long parseCaseReference(String value) {
+        String digits = value == null ? "" : value.replace("-", "").trim();
+        if (digits.isEmpty() || !digits.chars().allMatch(Character::isDigit)) {
+            throw new IllegalArgumentException(
+                "Case reference must contain digits (hyphens optional): '" + value + "'"
+            );
+        }
+        return Long.parseLong(digits);
     }
 
     private void attachUploadedDocumentIfPresent(long caseReference, Document document) {

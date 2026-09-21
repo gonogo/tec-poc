@@ -14,8 +14,9 @@ Create a TEC PCN case through the local API (${TEC_API_URL}/pcn-cases).
 
 Arguments:
   <batch-case-reference>  Optional CCD case reference of a TEC_BATCH case to link
-                          after create (hyphens optional). Use '-' to create
-                          without linking.
+                          after create (hyphens optional). The batch must already
+                          exist or the script exits before creating the PCN.
+                          Use '-' to create without linking.
   -h, --help              Show this help and exit
 
 If BATCH_CASE_REFERENCE is set in the environment and no argument is passed,
@@ -23,7 +24,10 @@ that value is used as the batch case reference.
 
 Optional environment variables:
   TEC_API_URL, BATCH_CASE_REFERENCE, AMOUNT_DUE, FILE_IDENTIFIER,
-  BATCH_IDENTIFIER, PENALTY_CHARGE_NUMBER, LOCAL_AUTHORITY
+  BATCH_IDENTIFIER, PENALTY_CHARGE_NUMBER, LOCAL_AUTHORITY,
+  BATCH_REGISTRATION_REASON, BATCH_REGISTRATION_REASON_CODE
+  (reason defaults: CLRC007 / "Linked when creating the case during batch
+  registration"; passed through to link-pcn-to-batch.sh when linking)
 
 Examples:
   ${0} -                                    # create unlinked PCN
@@ -59,6 +63,11 @@ for command in curl jq; do
     exit 1
   fi
 done
+
+if [[ -n "${BATCH_CASE_REFERENCE_RAW}" && -z "${SKIP_BATCH_CASE_ASSERT:-}" ]]; then
+  echo "Verifying batch case ${BATCH_CASE_REFERENCE_RAW} exists..." >&2
+  "${SCRIPT_DIR}/assert-batch-case-exists.sh" "${BATCH_CASE_REFERENCE_RAW}"
+fi
 
 case_seed=$(($(date +%s) ^ $$ ^ RANDOM))
 file_number="$(printf '%05d' "$((case_seed % 100000))")"
