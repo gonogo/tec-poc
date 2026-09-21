@@ -5,18 +5,33 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
 
+# Batch type FixedList codes (BatchOperation JSON names).
+BATCH_TYPES=(
+  registration
+  warrantAuthRequests
+  warrantReissueRequests
+  outOfTimeDecisions
+  changeOfAddress
+  caseClosureRequests
+)
+
 usage() {
   cat <<EOF
-Usage: ${0} [local-authority]
+Usage: ${0} <local-authority> [batch-type]
        ${0} -h|--help
 
 Create a TEC Batch case through the local API (${TEC_API_URL}/batches).
 
 Arguments:
-  [local-authority]  FixedList code for the submitting local authority
-                     (default: westminster, or LOCAL_AUTHORITY if set).
+  <local-authority>  FixedList code for the submitting local authority.
                      Examples: westminster, manchesterCityCouncil
+  [batch-type]       FixedList code for the batch type / operation
+                     (default: registration, or OPERATION if set).
+                     One of: ${BATCH_TYPES[*]}
   -h, --help         Show this help and exit
+
+If LOCAL_AUTHORITY is set in the environment and no argument is passed,
+that value is used as the local authority.
 
 Optional environment variables:
   TEC_API_URL, LOCAL_AUTHORITY, AUTHORITY_CODE, FILE_IDENTIFIER,
@@ -24,15 +39,48 @@ Optional environment variables:
   SUBMITTER_EMAIL, TARGET_STATE, ATTACH_SAMPLE_DOCUMENTS, CASE_DOCUMENT_AM_URL
 
 Examples:
-  ${0}
-  ${0} manchesterCityCouncil
+  ${0} westminster
+  ${0} westminster warrantAuthRequests
+  ${0} manchesterCityCouncil registration
   LOCAL_AUTHORITY=manchesterCityCouncil ${0}
+  OPERATION=changeOfAddress ${0} westminster
 EOF
+}
+
+is_valid_batch_type() {
+  local candidate="$1"
+  local known
+  for known in "${BATCH_TYPES[@]}"; do
+    if [[ "${candidate}" == "${known}" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
   exit 0
+fi
+
+# Require at least one positional arg, unless LOCAL_AUTHORITY is set (mirrors create-tec-case.sh).
+if [[ $# -eq 0 ]]; then
+  if [[ -n "${LOCAL_AUTHORITY:-}" ]]; then
+    local_authority="${LOCAL_AUTHORITY}"
+  else
+    usage >&2
+    exit 1
+  fi
+else
+  local_authority="${1}"
+fi
+
+# Positional batch-type wins over OPERATION env; default registration.
+operation="${2:-${OPERATION:-registration}}"
+if ! is_valid_batch_type "${operation}"; then
+  echo "Unknown batch type: ${operation}" >&2
+  echo "Expected one of: ${BATCH_TYPES[*]}" >&2
+  exit 1
 fi
 
 for command in curl jq; do
@@ -49,10 +97,7 @@ authority_code="${AUTHORITY_CODE:-AB}"
 batch_identifier="${BATCH_IDENTIFIER:-R${authority_code}${batch_number}}"
 file_identifier="${FILE_IDENTIFIER:-R${authority_code}${file_number}}"
 pcn_count="${PCN_COUNT:-$((200 + batch_seed % 1801))}"
-operation="${OPERATION:-registration}"
 received_via="${RECEIVED_VIA:-upload}"
-# Positional arg wins over LOCAL_AUTHORITY env; default westminster.
-local_authority="${1:-${LOCAL_AUTHORITY:-westminster}}"
 target_state="${TARGET_STATE:-QUEUED_FOR_PROCESSING}"
 received_at="${RECEIVED_AT:-$(date -u +"%Y-%m-%dT%H:%M:%S")}"
 submitter_email="${SUBMITTER_EMAIL:-la.submitter@example.com}"
