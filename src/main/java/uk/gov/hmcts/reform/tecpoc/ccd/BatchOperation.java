@@ -26,7 +26,10 @@ public enum BatchOperation implements HasLabel {
     CHANGE_OF_ADDRESS("Change of address"),
 
     @JsonProperty("caseClosureRequests")
-    CASE_CLOSURE_REQUESTS("Case closure requests");
+    CASE_CLOSURE_REQUESTS("Case closure requests"),
+
+    @JsonProperty("transferRequest")
+    TRANSFER_REQUEST("Transfer request");
 
     private final String label;
 

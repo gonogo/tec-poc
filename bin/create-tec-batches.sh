@@ -12,6 +12,7 @@ BATCH_TYPES=(
   outOfTimeDecisions
   changeOfAddress
   caseClosureRequests
+  transferRequest
 )
 
 usage() {
@@ -79,7 +80,7 @@ if [[ -n "${FIXED_BATCH_TYPE}" ]] && ! is_valid_batch_type "${FIXED_BATCH_TYPE}"
 fi
 
 AUTHORITY_CODES=(TE AB WM LE BR CK)
-OPERATIONS=(registration warrantAuthRequests warrantReissueRequests outOfTimeDecisions changeOfAddress caseClosureRequests)
+OPERATIONS=(registration warrantAuthRequests warrantReissueRequests outOfTimeDecisions changeOfAddress caseClosureRequests transferRequest)
 RECEIVED_VIA=(email upload)
 TARGET_STATES=(QUEUED_FOR_PROCESSING PROCESSING_STARTED PROCESSING_COMPLETE)
 LOCAL_AUTHORITIES=(westminster manchesterCityCouncil birminghamCityCouncil leedsCityCouncil bristolCityCouncil)

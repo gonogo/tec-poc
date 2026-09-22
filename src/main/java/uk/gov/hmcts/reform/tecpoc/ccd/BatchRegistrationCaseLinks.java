@@ -33,6 +33,7 @@ final class BatchRegistrationCaseLinks {
             case OUT_OF_TIME_DECISIONS -> "Linked as part of a batch of out-of-time decisions";
             case CHANGE_OF_ADDRESS -> "Linked as part of a batch of change of address";
             case CASE_CLOSURE_REQUESTS -> "Linked as part of a batch of case closure requests";
+            case TRANSFER_REQUEST -> "Linked as part of a batch of transfer requests";
         };
     }
 

@@ -227,7 +227,7 @@ above). That creates a real batch case through CCD.
 Pass a FixedList local-authority code as the first argument (or set `LOCAL_AUTHORITY`). Optional
 second argument is the batch type / operation (`registration` default, or `OPERATION` if set):
 `registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`,
-`changeOfAddress`, `caseClosureRequests`. Other optional overrides: `FILE_IDENTIFIER`,
+`changeOfAddress`, `caseClosureRequests`, `transferRequest`. Other optional overrides: `FILE_IDENTIFIER`,
 `BATCH_IDENTIFIER`, `PCN_COUNT`, `RECEIVED_VIA`, `SUBMITTER_EMAIL`,
 `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
 `create-tec-batches.sh` requires a count; it rotates authorities and batch types unless

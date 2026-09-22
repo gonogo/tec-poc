@@ -17,6 +17,7 @@ BATCH_WARRANT_REISSUE_REASON="${BATCH_WARRANT_REISSUE_REASON:-Linked as part of 
 BATCH_OUT_OF_TIME_REASON="${BATCH_OUT_OF_TIME_REASON:-Linked as part of a batch of out-of-time decisions}"
 BATCH_CHANGE_OF_ADDRESS_REASON="${BATCH_CHANGE_OF_ADDRESS_REASON:-Linked as part of a batch of change of address}"
 BATCH_CASE_CLOSURE_REASON="${BATCH_CASE_CLOSURE_REASON:-Linked as part of a batch of case closure requests}"
+BATCH_TRANSFER_REQUEST_REASON="${BATCH_TRANSFER_REQUEST_REASON:-Linked as part of a batch of transfer requests}"
 
 for command in curl jq; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -44,6 +45,7 @@ Link a TEC PCN case to a TEC Batch case:
        outOfTimeDecisions    → "${BATCH_OUT_OF_TIME_REASON}"
        changeOfAddress       → "${BATCH_CHANGE_OF_ADDRESS_REASON}"
        caseClosureRequests   → "${BATCH_CASE_CLOSURE_REASON}"
+       transferRequest       → "${BATCH_TRANSFER_REQUEST_REASON}"
 
 Hyphens in either case reference are optional.
 
@@ -74,6 +76,9 @@ reason_for_batch_operation() {
       ;;
     caseClosureRequests)
       printf '%s\n' "${BATCH_CASE_CLOSURE_REASON}"
+      ;;
+    transferRequest)
+      printf '%s\n' "${BATCH_TRANSFER_REQUEST_REASON}"
       ;;
     *)
       echo "Unsupported or missing batch operation '${operation}' on batch case; cannot choose link reason" >&2

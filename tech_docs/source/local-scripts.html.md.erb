@@ -47,7 +47,7 @@ Used by other scripts; rarely invoked directly.
 
 | Script | Usage summary | Purpose |
 | --- | --- | --- |
-| `bin/create-tec-batch.sh` | `<local-authority> [batch-type]` | Create one `TEC_BATCH` via `POST /batches`. No args shows help (unless `LOCAL_AUTHORITY` is set). Batch types: `registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`, `changeOfAddress`, `caseClosureRequests` |
+| `bin/create-tec-batch.sh` | `<local-authority> [batch-type]` | Create one `TEC_BATCH` via `POST /batches`. No args shows help (unless `LOCAL_AUTHORITY` is set). Batch types: `registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`, `changeOfAddress`, `caseClosureRequests`, `transferRequest` |
 | `bin/create-tec-batches.sh` | `<count> [batch-type]` | Create many batches (rotates authority / type / state unless fixed). No args shows help |
 | `bin/create-tec-case.sh` | `<batch-case-reference\|->` | Create one `TEC` PCN. Pass `-` for unlinked; pass a batch ref (or `BATCH_CASE_REFERENCE`) to link after create |
 | `bin/create-tec-cases.sh` | `<batch-case-reference\|->` | Bulk randomised PCNs (`CASE_COUNT`, default 20) |
@@ -89,6 +89,7 @@ Link reason text (LOV `CLRC007` = Other) by batch type:
 | `outOfTimeDecisions` | Linked as part of a batch of out-of-time decisions |
 | `changeOfAddress` | Linked as part of a batch of change of address |
 | `caseClosureRequests` | Linked as part of a batch of case closure requests |
+| `transferRequest` | Linked as part of a batch of transfer requests |
 
 Override with `BATCH_REGISTRATION_REASON`, `BATCH_WARRANT_AUTH_REASON`, and the other `BATCH_*_REASON` env vars, or `BATCH_LINK_REASON_CODE` for the LOV key.
 

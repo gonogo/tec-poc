@@ -13,6 +13,7 @@ BATCH_TYPES=(
   outOfTimeDecisions
   changeOfAddress
   caseClosureRequests
+  transferRequest
 )
 
 usage() {
