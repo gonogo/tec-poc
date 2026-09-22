@@ -1,0 +1,56 @@
+---
+title: Local demo cases
+weight: 55
+---
+
+# Local demo cases
+
+Catalogue of local Manage Cases examples for design review. Each entry links to a seeded CCD
+case and explains what state or journey the case demonstrates.
+
+Case references are created by `./bin/seed-demo-catalogue.sh` and change every time you clear
+and re-seed. They are **not** committed — regenerate them on your machine after
+`./gradlew bootWithCCD` is running.
+
+Approach and scenario list:
+[Local demo catalogue seed](http://localhost:4568/demo-catalogue-seed.html)
+(tech docs).
+
+## Prerequisites
+
+1. Stack up: `./gradlew bootWithCCD`
+2. Manage Cases via the nav proxy: [http://localhost:3000](http://localhost:3000)
+   (sign in as `tec-demo@test.com` / `password`)
+3. Seed:
+
+```bash
+./bin/seed-demo-catalogue.sh
+```
+
+Then refresh this page. Middleman will pick up the generated links partial.
+
+## Demo cases
+
+<%
+  links_partial = "partials/local_demo_case_links"
+  partial_path = File.join(config[:source], "partials", "_local_demo_case_links.html.erb")
+%>
+<% if File.exist?(partial_path) %>
+<%= partial links_partial %>
+<% else %>
+<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    <span class="govuk-visually-hidden">Warning</span>
+    No generated case links yet. Run
+    <code>./bin/seed-demo-catalogue.sh</code> (with the stack up) to create local cases and write
+    <code>design_docs/source/partials/_local_demo_case_links.html.erb</code>.
+  </strong>
+</div>
+<% end %>
+
+## Related
+
+- Grey-box wireframes: [TEC PCN blockframes](/tec-pcn-blockframes.html)
+- Journey boards: [Caseworker journeys](/caseworker-journeys.html)
+- Seed approach (tech docs): [Local demo catalogue seed](http://localhost:4568/demo-catalogue-seed.html)

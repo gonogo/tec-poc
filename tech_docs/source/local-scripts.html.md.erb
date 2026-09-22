@@ -42,6 +42,7 @@ Used by other scripts; rarely invoked directly.
 | Script | Purpose |
 | --- | --- |
 | `bin/clear-tec-cases.sh` | Delete all local TEC case data from Postgres (`tec` + `datastore`) and Elasticsearch TEC aliases. `--yes` skips confirmation |
+| `bin/seed-demo-catalogue.sh` | Clear (`--yes`), seed curated PCN / batch / exception catalogue via the scripts below, regenerate design-docs case links. `--skip-clear` keeps existing data. Docs: [Local demo catalogue seed](/demo-catalogue-seed.html) |
 
 ## Create cases
 
@@ -116,3 +117,5 @@ These are created by the scripts and are gitignored / local-only:
 - `bin/.venv-generate-application` — Python venv for PDF filling
 - `bin/.local-dm-store-data/` — persisted dm-store binaries
 - `bin/*.pid` / `bin/*.log` — process ids and logs for docs servers, nav proxy, and dm-store stub
+- `design_docs/source/partials/_local_demo_case_links.html.erb` — output of `seed-demo-catalogue.sh` (live case refs; not committed)
+- `bin/.demo-catalogue.json` — optional machine-readable dump of the last seed run

@@ -1,0 +1,149 @@
+---
+title: Local demo catalogue seed
+weight: 36
+---
+
+# Local demo catalogue seed
+
+Single orchestrator that clears local TEC data, seeds a **curated catalogue** of cases
+(PCN, batch, exception) in known states using only existing `bin/` scripts, then
+regenerates a **design docs** page so designers can open each case in Manage Cases with an
+explanation of what that case demonstrates.
+
+Status: **implemented** — run `./bin/seed-demo-catalogue.sh` after `bootWithCCD` is up.
+See [Local bin scripts](/local-scripts.html) for the primitives it composes.
+
+## Goals
+
+1. One command to reset and re-seed a predictable local demo set after `bootWithCCD` is up.
+2. Compose existing scripts only — no new CCD/API curl logic in the orchestrator.
+3. Keep scenario **prose** in git; keep live **case references** out of git (they change every run).
+4. Surface links + explanations on the design docs site for local use
+   ([http://localhost:4567](http://localhost:4567)).
+
+## Non-goals
+
+- Seeding every `CaseState` × authority combination (catalogue stays curated).
+- Committing ExUI URLs with case refs to `main` / GitHub Pages (always stale for other machines).
+- Replacing individual create/link/state scripts — those remain the public primitives.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  clear["bin/clear-tec-cases.sh --yes"]
+  orch["bin/seed-demo-catalogue.sh"]
+  create["create-tec-batch / create-tec-case / create-tec-exception-case"]
+  mutate["set-case-state / transition-to-case-issued / apply-warrant-authorisation / link-pcn-to-batch / …"]
+  partial["design_docs … _local_demo_case_links.html.erb gitignored"]
+  page["design_docs … local-demo-cases.html.md.erb committed"]
+  exui["Manage Cases :3000"]
+
+  orch --> clear
+  orch --> create
+  create --> mutate
+  orch -->|"writes refs + explanations"| partial
+  page -->|"includes partial or fallback"| partial
+  partial -->|"case-details URLs"| exui
+```
+
+| Piece | Role | In git? |
+| --- | --- | --- |
+| `bin/seed-demo-catalogue.sh` | Orchestrator: clear → recipes → write partial | Yes |
+| Scenario catalogue (data inside the script) | Stable ids, titles, explanations, recipe steps | Yes |
+| `design_docs/source/local-demo-cases.html.md.erb` | Intro, how to run, warning that links are local-only | Yes |
+| `design_docs/source/partials/_local_demo_case_links.html.erb` | Generated table of links | **No** (gitignored) |
+| `bin/.demo-catalogue.json` | Machine-readable dump of last seed | **No** (gitignored) |
+
+### Why split prose from refs
+
+CCD case references are allocated at create time. After every
+`clear-tec-cases` + re-seed they change. Committing them would break links for other developers
+and for any published design docs. The committed page explains the catalogue; the generated
+partial holds only the current machine’s refs.
+
+### How create-script output is consumed
+
+Create scripts already print JSON with `caseReference` on **stdout** and progress on **stderr**.
+The orchestrator captures refs with `jq`:
+
+```bash
+BATCH_REF="$(./bin/create-tec-batch.sh westminster | jq -r '.caseReference')"
+PCN_REF="$(./bin/create-tec-case.sh "${BATCH_REF}" | jq -r '.caseReference')"
+```
+
+Passing a batch ref into `create-tec-case.sh` / `create-tec-cases.sh` links after create
+(see [Local bin scripts — Link and transition](/local-scripts.html#link-and-transition)).
+No separate link step is required for that path.
+
+ExUI deep link shape (nav proxy, not `:3002`):
+
+```text
+http://localhost:3000/cases/case-details/<caseReference>
+```
+
+## Scenario catalogue
+
+Curated set — enough for design review of Tasks / Case details / Linked Cases, not a full
+state matrix. Prefer **real lifecycle scripts** where they exist; use
+`bin/set-case-state.sh` only for prototype-only PCN states (see
+[CCD architecture — States and events](/ccd-architecture.html#states-and-events)).
+
+| Id | Type | Demonstrates | Recipe sketch |
+| --- | --- | --- | --- |
+| `pcn-pending-case-issued` | `TEC` | Fresh registration, payment pending | `create-tec-case.sh -` (leave default state) |
+| `pcn-case-issued` | `TEC` | After registration payment | create → `transition-to-case-issued.sh` |
+| `pcn-awaiting-la-oot` | `TEC` | Prototype OOT / LA response Tasks | create → `set-case-state.sh … AWAITING_LA_OOT_RESPONSE` |
+| `pcn-warrant-issued` | `TEC` | Warrant authorisation on case | create → `apply-warrant-authorisation.sh` (`STATUS=active`) |
+| `pcn-warrant-expired` | `TEC` | Expired warrant | create → `STATUS=expired apply-warrant-authorisation.sh` |
+| `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | `create-tec-batch.sh … transferRequest` → `create-tec-case.sh "${BATCH_REF}"` |
+| `pcn-closed` | `TEC` | Closure-request link side-effect | `create-tec-batch.sh … caseClosureRequests` → create with batch ref |
+| `batch-registration-with-pcns` | `TEC_BATCH` + linked `TEC` | Registration batch + Linked Cases | `create-tec-batch.sh` → `CASE_COUNT=n create-tec-cases.sh "${BATCH_REF}"` |
+| `batch-queued` | `TEC_BATCH` | Queued for processing | `TARGET_STATE=QUEUED_FOR_PROCESSING create-tec-batch.sh …` |
+| `batch-processing-complete` | `TEC_BATCH` | Processing complete | `TARGET_STATE=PROCESSING_COMPLETE create-tec-batch.sh …` |
+| `exception-pending-review` | `TEC_EXCEPTION` | Exception review Tasks | `create-tec-exception-case.sh` |
+
+Explanations on the design page are short and aimed at designers: what to look at in ExUI.
+
+## Orchestrator behaviour
+
+Script: `bin/seed-demo-catalogue.sh`.
+
+```bash
+./bin/seed-demo-catalogue.sh
+./bin/seed-demo-catalogue.sh --skip-clear   # re-seed without wiping
+```
+
+1. Require stack up (`TEC_API_URL` /health); fail fast with a clear message.
+2. Run `./bin/clear-tec-cases.sh --yes` (unless `--skip-clear`).
+3. For each catalogue entry, run the recipe via existing scripts; collect
+   `{ id, title, caseType, state, caseReference, url, explanation }`.
+4. Write `design_docs/source/partials/_local_demo_case_links.html.erb` (HTML table).
+5. Write `bin/.demo-catalogue.json` for debugging.
+6. Print to stderr: count created, paths, design docs URL
+   `http://localhost:4567/local-demo-cases.html`.
+
+Optional env: `TEC_API_URL`, `EXUI_BASE_URL`, `DESIGN_DOCS_URL`,
+`REGISTRATION_PCN_COUNT` (default 3), `SKIP_CLEAR`.
+
+Constraints:
+
+- `set -euo pipefail`; progress on stderr.
+- Do not call CCD/HTTP directly — only invoke `bin/*.sh`.
+- Batch identifiers match `^R[A-Z]{2,3}[0-9]{6}$`.
+
+## Design docs page
+
+Committed shell: `design_docs/source/local-demo-cases.html.md.erb`
+([http://localhost:4567/local-demo-cases.html](http://localhost:4567/local-demo-cases.html)).
+
+- Intro and prerequisites (`bootWithCCD`, clerk login, ExUI on **:3000**).
+- How to regenerate: `./bin/seed-demo-catalogue.sh`.
+- Includes the generated partial when present; otherwise a fallback to run the seed.
+
+## Related
+
+- [Local bin scripts](/local-scripts.html) — primitives to compose
+- [CCD architecture — States and events](/ccd-architecture.html#states-and-events) — which states need `setCaseState`
+- [ExUI primary navigation](/exui-navigation.html) — use Manage Cases on `:3000`
+- Design docs: [Local demo cases](http://localhost:4567/local-demo-cases.html)

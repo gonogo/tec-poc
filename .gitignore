@@ -34,3 +34,5 @@ bin/.tech-docs.pid
 bin/.tech-docs.log
 bin/.venv-generate-application/
 __pycache__/
+bin/.demo-catalogue.json
+design_docs/source/partials/_local_demo_case_links.html.erb
