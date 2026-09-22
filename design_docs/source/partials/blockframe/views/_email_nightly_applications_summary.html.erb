@@ -1,0 +1,29 @@
+<%#
+  Nightly batch summary to local authority: in-time and out-of-time applications received.
+  Summary counts only; link to case list (no per-case links).
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Email — Nightly applications summary (to LA)" %>
+<% body = [
+  '<p class="bf-email__p">Dear Local authority,</p>',
+  '<p class="bf-email__p">This is your overnight summary of Traffic Enforcement Centre (TEC) applications received for your authority.</p>',
+  '<ul class="bf-email__list">',
+  '<li><strong>In-time applications received:</strong> 14</li>',
+  '<li><strong>Out-of-time applications received:</strong> 3</li>',
+  '</ul>',
+  '<p class="bf-email__p">Where the court officer and your authority agree an out-of-time decision, those cases are included in the counts above.</p>',
+  '<p class="bf-email__p">Open the case list and filter by case state to find the relevant cases:</p>',
+  '<ul class="bf-email__list">',
+  '<li><strong>revoked</strong> — in-time applications</li>',
+  '<li><strong>awaiting_OOT_decision</strong> — out-of-time applications awaiting a decision</li>',
+  '</ul>',
+  '<p class="bf-email__p"><a class="bf-email__link" href="#" title="Link to case list">Open case list</a></p>',
+  '<p class="bf-email__meta">This email does not include direct links to individual cases.</p>',
+  '<p class="bf-email__p">HM Courts &amp; Tribunals Service</p>'
+].join %>
+<%= partial "partials/blockframe/email", locals: {
+  caption: caption,
+  subject: "TEC applications received — overnight summary",
+  from_w: "52%",
+  to_w: "64%",
+  body: body
+} %>

@@ -1,0 +1,15 @@
+<%#
+  Email message shell (larger scale than ExUI page frames).
+  Locals:
+    caption  — frame label above the page
+    subject  — subject line (callout text)
+    body     — HTML for the message body
+    from_w   — optional From address bar width (default "58%")
+    to_w     — optional To address bar width (default "68%")
+%>
+<% caption = (defined?(caption) && caption) ? caption : nil %>
+<% subject = (defined?(subject) && subject) ? subject : nil %>
+<% body = (defined?(body) && body) ? body : "" %>
+<% from_w = (defined?(from_w) && from_w) ? from_w : "58%" %>
+<% to_w = (defined?(to_w) && to_w) ? to_w : "68%" %>
+<div class="bf-frame bf-frame--email"><% if caption %><div class="bf-frame__label"><%= caption %></div><% end %><div class="bf-frame__page"<% if caption %> title="<%= escape_html(caption) %>"<% end %>><div class="bf-email"><div class="bf-email__headers"><div class="bf-email__row" title="From"><span class="bf-email__key">From</span><span class="bf-email__addr bf-email__addr--from" style="max-width: <%= escape_html(from_w) %>" title="Sender email address"></span></div><div class="bf-email__row" title="To"><span class="bf-email__key">To</span><span class="bf-email__addr bf-email__addr--to" style="max-width: <%= escape_html(to_w) %>" title="Recipient email address"></span></div><% if subject %><div class="bf-email__row" title="Subject"><span class="bf-email__key">Subject</span><span class="bf-email__subject"><%= subject %></span></div><% end %></div><div class="bf-email__body"><%= body %></div></div></div></div>

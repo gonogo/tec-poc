@@ -1921,3 +1921,125 @@ $bf-link-callout: #1a65a6;
   line-height: 1.2;
   max-width: 4.5rem;
 }
+
+// Email notification frames — larger scale than ExUI wireframes for readable copy.
+.bf-frame--email {
+  width: 520px;
+}
+
+.bf-frame--email .bf-frame__page {
+  min-height: 0;
+}
+
+.bf-email {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: $bf-page-bg;
+}
+
+.bf-email__headers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid $bf-border;
+  background: #f8f8f8;
+  flex-shrink: 0;
+}
+
+.bf-email__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.bf-email__key {
+  flex-shrink: 0;
+  width: 3.25rem;
+  color: $bf-text-dark;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bf-email__addr {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  max-width: 72%;
+  background: $bf-text;
+  border-radius: 1px;
+}
+
+.bf-email__addr--from {
+  max-width: 58%;
+}
+
+.bf-email__addr--to {
+  max-width: 68%;
+}
+
+.bf-email__subject {
+  display: block;
+  min-width: 0;
+  color: $bf-callout-on-light;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bf-email__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.bf-email__p {
+  margin: 0;
+  color: $bf-callout-on-light;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.bf-email__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: $bf-callout-on-light;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+
+  li {
+    margin: 0 0 0.35rem;
+  }
+}
+
+.bf-email__link {
+  display: inline;
+  color: $bf-link-callout;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-decoration: underline;
+}
+
+.bf-email__meta {
+  margin: 0;
+  color: #505a5f;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.bf-catalogue--email {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin: 1rem 0 2rem;
+}

@@ -1,0 +1,59 @@
+---
+title: Email notifications
+weight: 55
+---
+
+# Email notifications
+
+Larger-scale **blockframes** for TEC emails to local authorities (and the respondent, for N244). Frames use readable draft copy; **From** and **To** stay as grey address bars (no real email addresses). Hover those bars for the element name.
+
+Reuse the email shell (`partials/blockframe/email`) when adding further notification types.
+
+## Overview
+
+| Email | Audience | Timing | Case links |
+| --- | --- | --- | --- |
+| In-time and out-of-time applications | Local authority | One batch per night | Case list only (filter by state) |
+| Out-of-time decision — CO rejection | Local authority | When CO and LA disagree | Direct link to the case |
+| Out-of-time decision — CO agreement | Local authority | Included in nightly batch | Same as nightly summary |
+| N244 filed by respondent | Local authority | Individual | Direct link to the case |
+| N244 filed by LA | Respondent | Individual | Direct link to the case |
+
+## Nightly batch: in-time and out-of-time applications
+
+One overnight email per local authority. **Summary counts only** — how many in-time and out-of-time applications were received. Includes a link to the case list so the authority can find cases by matching case state (`revoked` or `awaiting_OOT_decision`). No direct links to the cases named in the summary.
+
+Where the court officer and the local authority **agree** an out-of-time decision, that outcome is covered by this same nightly summary (no separate agreement email).
+
+<div class="bf-catalogue bf-catalogue--email">
+<%= partial "partials/blockframe/views/email_nightly_applications_summary" %>
+</div>
+
+## Out-of-time decision — court officer rejection
+
+Sent when the court officer and the local authority are **not** in agreement about an out-of-time decision. Individual email with a link to the case so the authority can review and, if needed, file an N244.
+
+<div class="bf-catalogue bf-catalogue--email">
+<%= partial "partials/blockframe/views/email_oot_co_rejection" %>
+</div>
+
+## N244 filed by respondent
+
+Individual email to the local authority when the respondent files an N244.
+
+<div class="bf-catalogue bf-catalogue--email">
+<%= partial "partials/blockframe/views/email_n244_by_respondent" %>
+</div>
+
+## N244 filed by local authority
+
+Individual email to the respondent when the local authority files an N244.
+
+<div class="bf-catalogue bf-catalogue--email">
+<%= partial "partials/blockframe/views/email_n244_by_la" %>
+</div>
+
+## Related
+
+- Caseworker OOT and N244 review journeys: [Caseworker journeys](/caseworker-journeys.html)
+- ExUI case shells and case list: [TEC PCN blockframes](/tec-pcn-blockframes.html)

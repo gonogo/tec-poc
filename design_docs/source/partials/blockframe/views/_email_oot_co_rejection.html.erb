@@ -1,0 +1,24 @@
+<%#
+  Out-of-time decision: court officer rejects / disagrees with LA.
+  Individual email with link to the case so the LA can review and file an N244.
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Email — OOT decision: CO rejection (to LA)" %>
+<% body = [
+  '<p class="bf-email__p">Dear Local authority,</p>',
+  '<p class="bf-email__p">The court officer has not agreed your proposed out-of-time decision on the following case.</p>',
+  '<ul class="bf-email__list">',
+  '<li><strong>Case reference:</strong> 1788-2660-5799-1856</li>',
+  '<li><strong>PCN:</strong> AB12345678</li>',
+  '<li><strong>Court officer decision:</strong> Reject out-of-time application</li>',
+  '</ul>',
+  '<p class="bf-email__p">Please review the case. If you wish to challenge the decision, you may file an N244 application.</p>',
+  '<p class="bf-email__p"><a class="bf-email__link" href="#" title="Link to case">Open case 1788-2660-5799-1856</a></p>',
+  '<p class="bf-email__p">HM Courts &amp; Tribunals Service</p>'
+].join %>
+<%= partial "partials/blockframe/email", locals: {
+  caption: caption,
+  subject: "Out-of-time decision — court officer rejection",
+  from_w: "55%",
+  to_w: "61%",
+  body: body
+} %>

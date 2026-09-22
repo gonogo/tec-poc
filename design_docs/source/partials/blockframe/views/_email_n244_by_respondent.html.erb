@@ -1,0 +1,24 @@
+<%#
+  N244 filed by the respondent — notify the local authority (individual email).
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Email — N244 filed by respondent (to LA)" %>
+<% body = [
+  '<p class="bf-email__p">Dear Local authority,</p>',
+  '<p class="bf-email__p">An N244 application has been filed by the respondent on a Traffic Enforcement Centre (TEC) case for your authority.</p>',
+  '<ul class="bf-email__list">',
+  '<li><strong>Case reference:</strong> 1788-2660-5799-1856</li>',
+  '<li><strong>PCN:</strong> AB12345678</li>',
+  '<li><strong>Filed by:</strong> Respondent</li>',
+  '<li><strong>Date received:</strong> 21 September 2026</li>',
+  '</ul>',
+  '<p class="bf-email__p">Please review the application and take any action required.</p>',
+  '<p class="bf-email__p"><a class="bf-email__link" href="#" title="Link to case">Open case 1788-2660-5799-1856</a></p>',
+  '<p class="bf-email__p">HM Courts &amp; Tribunals Service</p>'
+].join %>
+<%= partial "partials/blockframe/email", locals: {
+  caption: caption,
+  subject: "N244 application filed by respondent",
+  from_w: "50%",
+  to_w: "66%",
+  body: body
+} %>
