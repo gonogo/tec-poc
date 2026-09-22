@@ -73,6 +73,38 @@ class TecCaseConfigurationTest {
         SubmitResponse<CaseState> response = applyWarrantAuthorisation(10L, data);
 
         verify(repository).insertWarrantAuthorisation(10L, authorisation);
+        assertThat(response.getState()).isEqualTo(CaseState.WARRANT_AUTHORISATION_ISSUED);
+    }
+
+    @Test
+    void applyWarrantAuthorisationExpiredMovesToExpiredState() {
+        WarrantAuthorisation authorisation = new WarrantAuthorisation();
+        authorisation.setDateOfIssue(java.time.LocalDate.of(2025, 9, 22));
+        authorisation.setDateOfExpiry(java.time.LocalDate.of(2026, 9, 22));
+        authorisation.setStatus(WarrantAuthorisationStatus.EXPIRED);
+
+        TecCase data = new TecCase();
+        data.setWarrantAuthorisation(authorisation);
+
+        SubmitResponse<CaseState> response = applyWarrantAuthorisation(17L, data);
+
+        verify(repository).insertWarrantAuthorisation(17L, authorisation);
+        assertThat(response.getState()).isEqualTo(CaseState.WARRANT_AUTHORISATION_EXPIRED);
+    }
+
+    @Test
+    void applyWarrantAuthorisationCancelledLeavesStateUnchanged() {
+        WarrantAuthorisation authorisation = new WarrantAuthorisation();
+        authorisation.setDateOfIssue(java.time.LocalDate.of(2026, 9, 22));
+        authorisation.setDateOfExpiry(java.time.LocalDate.of(2027, 9, 22));
+        authorisation.setStatus(WarrantAuthorisationStatus.CANCELLED);
+
+        TecCase data = new TecCase();
+        data.setWarrantAuthorisation(authorisation);
+
+        SubmitResponse<CaseState> response = applyWarrantAuthorisation(18L, data);
+
+        verify(repository).insertWarrantAuthorisation(18L, authorisation);
         assertThat(response.getState()).isNull();
     }
 
@@ -84,6 +116,26 @@ class TecCaseConfigurationTest {
         SubmitResponse<CaseState> response = setCaseState(11L, data);
 
         assertThat(response.getState()).isEqualTo(CaseState.CLOSED);
+    }
+
+    @Test
+    void setCaseStateReturnsWarrantAuthorisationIssued() {
+        TecCase data = new TecCase();
+        data.setTargetCaseState("WARRANT_AUTHORISATION_ISSUED");
+
+        SubmitResponse<CaseState> response = setCaseState(14L, data);
+
+        assertThat(response.getState()).isEqualTo(CaseState.WARRANT_AUTHORISATION_ISSUED);
+    }
+
+    @Test
+    void setCaseStateReturnsReferForEnforcement() {
+        TecCase data = new TecCase();
+        data.setTargetCaseState("REFER_FOR_ENFORCEMENT");
+
+        SubmitResponse<CaseState> response = setCaseState(15L, data);
+
+        assertThat(response.getState()).isEqualTo(CaseState.REFER_FOR_ENFORCEMENT);
     }
 
     @Test
@@ -102,6 +154,17 @@ class TecCaseConfigurationTest {
         org.junit.jupiter.api.Assertions.assertThrows(
             IllegalArgumentException.class,
             () -> setCaseState(13L, data)
+        );
+    }
+
+    @Test
+    void setCaseStateRejectsExceptionPendingReviewOnPcn() {
+        TecCase data = new TecCase();
+        data.setTargetCaseState("EXCEPTION_PENDING_REVIEW");
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> setCaseState(16L, data)
         );
     }
 

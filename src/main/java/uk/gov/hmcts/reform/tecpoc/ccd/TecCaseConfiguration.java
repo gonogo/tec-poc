@@ -598,7 +598,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
         } else {
             batchCaseRepository.linkPcnCase(batchCaseReference, event.caseReference());
         }
-        return SubmitResponse.defaultResponse();
+        return switch (batchLinkType) {
+            case TRANSFER_REQUEST -> response(CaseState.REFER_FOR_ENFORCEMENT);
+            case CASE_CLOSURE_REQUESTS -> response(CaseState.CLOSED);
+            default -> SubmitResponse.defaultResponse();
+        };
     }
 
     private SubmitResponse<CaseState> recordApplication(EventPayload<TecCase, CaseState> event) {
@@ -646,7 +650,11 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             throw new IllegalArgumentException("warrantAuthorisation.status is required");
         }
         repository.insertWarrantAuthorisation(event.caseReference(), authorisation);
-        return SubmitResponse.defaultResponse();
+        return switch (authorisation.getStatus()) {
+            case ACTIVE -> response(CaseState.WARRANT_AUTHORISATION_ISSUED);
+            case EXPIRED -> response(CaseState.WARRANT_AUTHORISATION_EXPIRED);
+            case CANCELLED -> SubmitResponse.defaultResponse();
+        };
     }
 
     private SubmitResponse<CaseState> setCaseState(EventPayload<TecCase, CaseState> event) {

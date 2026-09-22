@@ -118,7 +118,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
         DecentralisedConfigBuilder<ExceptionCase, ExceptionCaseState, UserRole> builder
     ) {
         builder.decentralisedEvent("createExceptionCase", this::createExceptionCase)
-            .initialState(ExceptionCaseState.OPEN)
+            .initialState(ExceptionCaseState.EXCEPTION_PENDING_REVIEW)
             .name("Exception case created")
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM)
@@ -127,7 +127,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
             .mandatory(ExceptionCase::getPenaltyChargeNumber);
 
         builder.decentralisedEvent("rejectItem", this::rejectItem)
-            .forStates(ExceptionCaseState.OPEN)
+            .forStates(ExceptionCaseState.EXCEPTION_PENDING_REVIEW)
             .name("Reject item")
             .grant(Permission.CRU, UserRole.CLERK)
             .fields()
@@ -135,7 +135,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
             .optional(ExceptionCase::getRejectComment);
 
         builder.decentralisedEvent("editPcn", this::editPcn)
-            .forStates(ExceptionCaseState.OPEN)
+            .forStates(ExceptionCaseState.EXCEPTION_PENDING_REVIEW)
             .name("Edit PCN")
             .description("Update the penalty charge number")
             .grant(Permission.CRU, UserRole.CLERK)
@@ -148,7 +148,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
     ) {
         repository.create(event.caseReference(), event.caseData());
         return SubmitResponse.<ExceptionCaseState>builder()
-            .state(ExceptionCaseState.OPEN)
+            .state(ExceptionCaseState.EXCEPTION_PENDING_REVIEW)
             .build();
     }
 

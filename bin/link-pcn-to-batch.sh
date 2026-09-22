@@ -47,6 +47,11 @@ Link a TEC PCN case to a TEC Batch case:
        caseClosureRequests   → "${BATCH_CASE_CLOSURE_REASON}"
        transferRequest       → "${BATCH_TRANSFER_REQUEST_REASON}"
 
+PCN CCD case state side-effects from linkBatchCase:
+  transferRequest       → REFER_FOR_ENFORCEMENT
+  caseClosureRequests   → CLOSED
+  other batch types     → state unchanged
+
 Hyphens in either case reference are optional.
 
 Optional environment variables:
@@ -189,6 +194,13 @@ submit_response="$({
   echo "${submit_response}" >&2
   exit 1
 }
+
+pcn_state="$(jq --raw-output '.state // empty' <<<"${submit_response}")"
+if [[ -n "${pcn_state}" ]]; then
+  echo "PCN case ${PCN_CASE_REFERENCE} is now ${pcn_state}." >&2
+else
+  echo "PCN case ${PCN_CASE_REFERENCE} linked (state unchanged)." >&2
+fi
 
 echo "Refreshing batch caseLinks (linked to) for case ${BATCH_CASE_REFERENCE}..." >&2
 

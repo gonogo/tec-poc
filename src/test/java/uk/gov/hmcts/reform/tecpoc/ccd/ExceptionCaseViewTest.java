@@ -26,7 +26,7 @@ class ExceptionCaseViewTest {
         when(repository.find(99L)).thenReturn(stored);
 
         ExceptionCase result = view.getCase(
-            new CaseViewRequest<>(99L, ExceptionCaseState.OPEN)
+            new CaseViewRequest<>(99L, ExceptionCaseState.EXCEPTION_PENDING_REVIEW)
         );
 
         assertThat(result.getPenaltyChargeNumber()).isEqualTo("AB1234567A0");

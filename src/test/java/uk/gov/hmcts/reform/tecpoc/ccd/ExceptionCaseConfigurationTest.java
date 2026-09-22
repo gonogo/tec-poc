@@ -72,14 +72,14 @@ class ExceptionCaseConfigurationTest {
     }
 
     @Test
-    void createExceptionCasePersistsAndReturnsOpenState() {
+    void createExceptionCasePersistsAndReturnsPendingReviewState() {
         ExceptionCase data = new ExceptionCase();
         data.setPenaltyChargeNumber("AB1234567A0");
 
         SubmitResponse<ExceptionCaseState> response = createExceptionCase(5L, data);
 
         verify(repository).create(5L, data);
-        assertThat(response.getState()).isEqualTo(ExceptionCaseState.OPEN);
+        assertThat(response.getState()).isEqualTo(ExceptionCaseState.EXCEPTION_PENDING_REVIEW);
     }
 
     @SuppressWarnings("unchecked")

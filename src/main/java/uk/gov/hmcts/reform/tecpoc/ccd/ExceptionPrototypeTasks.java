@@ -19,7 +19,7 @@ final class ExceptionPrototypeTasks {
     }
 
     static String markdownFor(long caseReference, ExceptionCaseState state) {
-        if (state != ExceptionCaseState.OPEN) {
+        if (state != ExceptionCaseState.EXCEPTION_PENDING_REVIEW) {
             return """
                 <h2 class="govuk-heading-m">Active tasks</h2>
                 <p class="govuk-body">There are no active tasks for this case.</p>

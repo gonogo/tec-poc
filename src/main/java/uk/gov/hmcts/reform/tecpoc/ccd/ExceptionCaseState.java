@@ -4,6 +4,6 @@ import uk.gov.hmcts.ccd.sdk.api.CCD;
 
 public enum ExceptionCaseState {
 
-    @CCD(label = "Open", hint = "### Case number: ${[CASE_REFERENCE]}")
-    OPEN
+    @CCD(label = "Exception pending review", hint = "### Case number: ${[CASE_REFERENCE]}")
+    EXCEPTION_PENDING_REVIEW
 }

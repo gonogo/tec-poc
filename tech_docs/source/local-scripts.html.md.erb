@@ -74,9 +74,9 @@ and `ATTACH_SAMPLE_DOCUMENTS`.
 
 | Script | Usage summary | Purpose |
 | --- | --- | --- |
-| `bin/link-pcn-to-batch.sh` | `<pcn-case-reference> <batch-case-reference>` | Loads batch operation; PCN `linkBatchCase` (`batchLinkCase` + `batchLinkType`, not Case details `batchCase`) then batch `linkPcnCases` (ExUI **linked to** / **linked from**). Registration sets `batch_case_reference`; other types use `tec_batch_pcn_link` without changing Case details **Batch case**. Additive: existing registration / Linked Cases links remain. Reason `OtherDescription` depends on the batch type |
+| `bin/link-pcn-to-batch.sh` | `<pcn-case-reference> <batch-case-reference>` | Loads batch operation; PCN `linkBatchCase` (`batchLinkCase` + `batchLinkType`, not Case details `batchCase`) then batch `linkPcnCases` (ExUI **linked to** / **linked from**). Registration sets `batch_case_reference`; other types use `tec_batch_pcn_link` without changing Case details **Batch case**. Additive: existing registration / Linked Cases links remain. Reason `OtherDescription` depends on the batch type. PCN state: `transferRequest` → `REFER_FOR_ENFORCEMENT`, `caseClosureRequests` → `CLOSED`, others unchanged |
 | `bin/transition-to-case-issued.sh` | `<pcn-case-reference>` | Fire `registrationPaymentSucceeded` so a PCN reaches `CASE_ISSUED` |
-| `bin/set-case-state.sh` | `<pcn-case-reference> <state>` | Fire `setCaseState` to jump a PCN to any state (`PENDING_CASE_ISSUED`, `CASE_ISSUED`, `AWAITING_RESPONDENT_RESPONSE`, `CLOSED`) |
+| `bin/set-case-state.sh` | `<pcn-case-reference> <state>` | Fire `setCaseState` to jump a PCN to any `CaseState` (see [CCD architecture — States and events](/ccd-architecture.html#states-and-events)) |
 | `bin/complete-batch-processing.sh` | `<batch-ref> <output-file-1> <output-file-2>` | Attach two Outputs documents and move a batch to `PROCESSING_COMPLETE` |
 
 Link reason text (LOV `CLRC007` = Other) by batch type:
@@ -103,7 +103,7 @@ A PCN may be linked to a registration batch and later to other batch types (e.g.
 | `bin/attach-case-file-document.sh` | `<case-ref> <folder> <file-path>` | Upload via Case Document AM and attach to Case File View (`CASE_TYPE_ID` for non-PCN types) |
 | `bin/generate-application.sh` | `<case-ref> <in\|out of time> <TE9\|PE3>` | `recordApplication`, fill PDF, attach under Applications |
 | `bin/generate-time-extension.sh` | `<case-ref> <TE7\|PE2>` | `recordTimeExtension`, fill PDF, attach under Applications |
-| `bin/apply-warrant-authorisation.sh` | `<case-ref>` | `applyWarrantAuthorisation` — appends a warrant authorisation (issue/expiry/status) to the PCN |
+| `bin/apply-warrant-authorisation.sh` | `<case-ref>` | `applyWarrantAuthorisation` — appends a warrant authorisation (issue/expiry/status) to the PCN; `STATUS=active` → `WARRANT_AUTHORISATION_ISSUED`, `expired` → `WARRANT_AUTHORISATION_EXPIRED`, `cancelled` → state unchanged |
 
 Optional env for warrant authorisation: `DATE_OF_ISSUE`, `DATE_OF_EXPIRY` (YYYY-MM-DD),
 `STATUS` (`active` \| `expired` \| `cancelled`; default `active`). Defaults: issue = today,

@@ -27,6 +27,11 @@ Apply a warrant authorisation to a TEC PCN case via the applyWarrantAuthorisatio
 event. Case details then shows a Warrant authorisations section with the new
 entry (date of issue, date of expiry, status).
 
+CCD case state is updated from STATUS:
+  active    → WARRANT_AUTHORISATION_ISSUED
+  expired   → WARRANT_AUTHORISATION_EXPIRED
+  cancelled → unchanged (no matching CaseState)
+
 Optional environment variables:
   DATE_OF_ISSUE   (default: today, YYYY-MM-DD)
   DATE_OF_EXPIRY  (default: today + 1 year, YYYY-MM-DD)
@@ -131,4 +136,10 @@ submit_response="$({
   exit 1
 }
 
+final_state="$(jq --raw-output '.state // empty' <<<"${submit_response}")"
+if [[ -n "${final_state}" ]]; then
+  echo "Case ${CASE_REFERENCE} is now ${final_state}." >&2
+else
+  echo "Case ${CASE_REFERENCE} warrant authorisation applied (state unchanged)." >&2
+fi
 jq . <<<"${submit_response}"

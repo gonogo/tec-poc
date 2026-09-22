@@ -33,7 +33,7 @@ CFTLib makes the integration runnable locally.
 The relevant application classes are:
 
 - `TecCase`: the CCD-facing PCN data model.
-- `CaseState`: the four states generated into the CCD definition for PCN cases.
+- `CaseState`: PCN lifecycle states generated into the CCD definition (see States and events).
 - `UserRole`: the system and clerk access profiles.
 - `TecCaseConfiguration`: the PCN case type, access, tabs, Case File View categories, search/work-basket
   fields, events and Java event handlers.
@@ -106,9 +106,36 @@ stateDiagram-v2
     CASE_ISSUED --> AWAITING_RESPONDENT_RESPONSE: registrationAuthorised
 ```
 
-`CLOSED` is defined and has role access, but no lifecycle event currently enters it. Local scripts can
-jump to any state (including `CLOSED`) via the system-only `setCaseState` event /
+Implemented lifecycle events only cover the path above. The full PCN `CaseState` catalogue (aligned with
+the future-state service blueprint) is:
+
+| State | Notes |
+| --- | --- |
+| `PENDING_CASE_ISSUED` | Create |
+| `CASE_ISSUED` | Payment succeeded |
+| `AWAITING_RESPONDENT_RESPONSE` | Registration authorised |
+| `AWAITING_LA_OOT_RESPONSE` | Prototype via `setCaseState` |
+| `CASE_REVOKED_IN_TIME` | Prototype via `setCaseState` |
+| `CASE_REVOKED_OOT_ACCEPTED` | Prototype via `setCaseState` |
+| `CASE_REVOKED_LA_NO_RESPONSE` | Prototype via `setCaseState` |
+| `PENDING_REFUSAL_DECISION` | Prototype via `setCaseState` |
+| `REFUSAL_ORDER` | Prototype via `setCaseState` |
+| `CASE_REVOKED_LA_REFUSAL_OVERTURNED` | Prototype via `setCaseState` |
+| `PENDING_OOT_APPEAL_PAYMENT` | Prototype via `setCaseState` |
+| `OOT_APPEAL_PAYMENT_CONFIRMED` | Prototype via `setCaseState` |
+| `PENDING_OOT_APPEAL_DECISION` | Prototype via `setCaseState` |
+| `OOT_APPEAL_REFUSED` | Prototype via `setCaseState` |
+| `CASE_REVOKED_OOT_APPEAL_ACCEPTED` | Prototype via `setCaseState` |
+| `WARRANT_AUTHORISATION_ISSUED` | `applyWarrantAuthorisation` with status `active` (also via `setCaseState`) |
+| `WARRANT_AUTHORISATION_EXPIRED` | `applyWarrantAuthorisation` with status `expired` (also via `setCaseState`) |
+| `REFER_FOR_ENFORCEMENT` | `linkBatchCase` with `TRANSFER_REQUEST` batch (also via `setCaseState`). Transfer work is a `TEC_BATCH`, not a separate case type |
+| `CLOSED` | `linkBatchCase` with `CASE_CLOSURE_REQUESTS` batch; also via `setCaseState`. No dedicated lifecycle close event yet |
+
+Local scripts can jump to any PCN state via the system-only `setCaseState` event /
 `bin/set-case-state.sh`. There is no payment-failure event in the current implementation.
+
+`EXCEPTION_PENDING_REVIEW` is an exception-case state (`TEC_EXCEPTION`), not a PCN state. Early
+blueprint drafts incorrectly listed it on the PCN state model.
 
 The event handlers update TEC-owned data as follows:
 
@@ -118,14 +145,14 @@ The event handlers update TEC-owned data as follows:
 | `registrationPaymentSucceeded` | `paymentReference` | Sets payment status to `SUCCEEDED` and stores the reference | `CASE_ISSUED` |
 | `registrationAuthorised` | `registrationDocument` | Stores the document value and the application server's current date | `AWAITING_RESPONDENT_RESPONSE` |
 | `attachCaseFileDocument` | `caseFileDocument` (CCD Document with `category_id`) | Inserts `public.tec_case_document` | unchanged |
-| `linkBatchCase` | `batchLinkCase` (`CaseLink`) + `batchLinkType` (`BatchOperation`, must match the batch) | Registration: sets `public.tec_case.batch_case_reference`. Other types: upserts `public.tec_batch_pcn_link` (does not change `batch_case_reference` / Case details **Batch case**) | unchanged |
+| `linkBatchCase` | `batchLinkCase` (`CaseLink`) + `batchLinkType` (`BatchOperation`, must match the batch) | Registration: sets `public.tec_case.batch_case_reference`. Other types: upserts `public.tec_batch_pcn_link` (does not change `batch_case_reference` / Case details **Batch case**) | `TRANSFER_REQUEST` → `REFER_FOR_ENFORCEMENT`; `CASE_CLOSURE_REQUESTS` → `CLOSED`; otherwise unchanged |
 | `recordApplication` | Optional TE9/PE3 OCR application fields | Upserts application columns on `public.tec_case` | unchanged |
 | `editTe9Application` | Optional TE9 application fields (clerk; no PCN) | Updates TE9 application columns except form and PCN | unchanged |
 | `editPe3Application` | Optional PE3 application fields (clerk; no PCN) | Updates PE3 application columns except form and PCN | unchanged |
 | `recordTimeExtension` | Optional TE7/PE2 time-extension fields | Upserts time-extension columns on `public.tec_case` | unchanged |
 | `editTe7Application` | Optional TE7 fields (clerk; no PCN) | Updates TE7 columns except form and PCN | unchanged |
 | `editPe2Application` | Optional PE2 fields (clerk; no PCN) | Updates PE2 columns except form and PCN | unchanged |
-| `applyWarrantAuthorisation` | `warrantAuthorisation` (date of issue, date of expiry, status) | Inserts `public.tec_case_warrant_authorisation` | unchanged |
+| `applyWarrantAuthorisation` | `warrantAuthorisation` (date of issue, date of expiry, status) | Inserts `public.tec_case_warrant_authorisation` | `active` → `WARRANT_AUTHORISATION_ISSUED`; `expired` → `WARRANT_AUTHORISATION_EXPIRED`; `cancelled` → unchanged |
 | `setCaseState` | `targetCaseState` | None (prototype helper) | the requested `CaseState` |
 
 `attachCaseFileDocument` is system-only and hidden from ExUI (`NEVER_SHOW`). Local uploads use
@@ -147,6 +174,8 @@ in event details). For **registration** batches, `TecCaseRepository` persists
 `batch_case_reference` (FK to `tec_batch`) and Case details shows the **Batch case** field
 reconstructed as a `CaseLink` with `CaseType` `TEC_BATCH`. For other batch types (e.g. warrant
 auth), membership is stored in `tec_batch_pcn_link` and Case details **Batch case** is unchanged.
+`TRANSFER_REQUEST` links move the PCN to `REFER_FOR_ENFORCEMENT`; `CASE_CLOSURE_REQUESTS` links
+move it to `CLOSED`; other batch types leave PCN state unchanged.
 The same script then submits **`linkPcnCases`** on the batch (full `caseLinks` collection with the
 operation-specific reason) so ExUI **linked to** / **linked from** are populated via CCD
 `case_link`.
@@ -166,9 +195,11 @@ single page so caseworkers can correct OCR data. Penalty charge number and form 
 are not shown and are not changed by these events.
 
 `applyWarrantAuthorisation` is system-only and hidden from ExUI. It appends one warrant
-authorisation (date of issue, date of expiry, status) to `public.tec_case_warrant_authorisation`.
-`TecCaseView` rebuilds the Case details **Warrant authorisations** collection from that table.
-Local seeding uses `bin/apply-warrant-authorisation.sh`.
+authorisation (date of issue, date of expiry, status) to `public.tec_case_warrant_authorisation`
+and sets PCN state to `WARRANT_AUTHORISATION_ISSUED` (`active`) or `WARRANT_AUTHORISATION_EXPIRED`
+(`expired`); `cancelled` leaves state unchanged. `TecCaseView` rebuilds the Case details
+**Warrant authorisations** collection from that table. Local seeding uses
+`bin/apply-warrant-authorisation.sh`.
 
 Local CDAM expects dm-store on `:4506`. `bootWithCCD` starts `./bin/start-local-dm-store.sh`
 automatically; CFTLib does not otherwise start dm-store under `AuthMode.Local`.
@@ -328,7 +359,7 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 | Piece | Location / behaviour |
 | --- | --- |
 | Config | `ExceptionCaseConfiguration` — tabs Tasks, Roles and access, Case details, Case File View, History |
-| State | `OPEN` only (Reject item does not close the case) |
+| State | `EXCEPTION_PENDING_REVIEW` only (Reject item does not close the case) |
 | Persistence | `public.tec_exception_case` |
 | Case details | Form validation result `—`, Associated TEC case `—`, PCN (placeholders set in `ExceptionCaseView`) |
 | Case File View | Same folder categories as PCN (`ExceptionCaseFileCategory`); empty until documents are attached |

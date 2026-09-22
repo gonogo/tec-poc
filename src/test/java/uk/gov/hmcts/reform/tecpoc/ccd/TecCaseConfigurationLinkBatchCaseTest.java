@@ -39,7 +39,7 @@ class TecCaseConfigurationLinkBatchCaseTest {
 
         verify(repository).linkBatchCase(111L, 222L);
         verify(batchCaseRepository, never()).linkPcnCase(222L, 111L);
-        assertThat(response).isNotNull();
+        assertThat(response.getState()).isNull();
     }
 
     @Test
@@ -76,6 +76,48 @@ class TecCaseConfigurationLinkBatchCaseTest {
         verify(batchCaseRepository).linkPcnCase(222L, 111L);
         verify(repository, never()).linkBatchCase(111L, 222L);
         verify(repository, never()).linkBatchCase(111L, 999L);
+    }
+
+    @Test
+    void linkBatchCaseTransferRequestMovesToReferForEnforcement() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.TRANSFER_REQUEST));
+
+        SubmitResponse<CaseState> response = linkBatchCase(
+            111L,
+            linkPayload("222", BatchOperation.TRANSFER_REQUEST)
+        );
+
+        verify(batchCaseRepository).linkPcnCase(222L, 111L);
+        assertThat(response.getState()).isEqualTo(CaseState.REFER_FOR_ENFORCEMENT);
+    }
+
+    @Test
+    void linkBatchCaseCaseClosureRequestsMovesToClosed() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.CASE_CLOSURE_REQUESTS));
+
+        SubmitResponse<CaseState> response = linkBatchCase(
+            111L,
+            linkPayload("222", BatchOperation.CASE_CLOSURE_REQUESTS)
+        );
+
+        verify(batchCaseRepository).linkPcnCase(222L, 111L);
+        assertThat(response.getState()).isEqualTo(CaseState.CLOSED);
+    }
+
+    @Test
+    void linkBatchCaseWarrantAuthRequestsLeavesStateUnchanged() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.WARRANT_AUTH_REQUESTS));
+
+        SubmitResponse<CaseState> response = linkBatchCase(
+            111L,
+            linkPayload("222", BatchOperation.WARRANT_AUTH_REQUESTS)
+        );
+
+        verify(batchCaseRepository).linkPcnCase(222L, 111L);
+        assertThat(response.getState()).isNull();
     }
 
     @Test
