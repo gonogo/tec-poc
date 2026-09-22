@@ -117,6 +117,10 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(BatchCase::getAllDocuments, NEVER_SHOW);
 
+        // Explicit CaseHistory so History sits after Case File View (SDK otherwise prepends it).
+        builder.tab("CaseHistory", "History")
+            .field("caseHistory");
+
         builder.tab("caseLinks", "Linked Cases")
             .field(BatchCase::getLinkedCasesComponentLauncher, null, "#ARGUMENT(LinkedCases)")
             .field(

@@ -238,8 +238,8 @@ To finish a queued batch with real Outputs files:
 
 See [local-scripts.html](tech_docs/source/local-scripts.html.md.erb) for the full `bin/` inventory.
 
-In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
-Batch details, Case File View, and Linked Cases. Batch details shows file identifier, batch identifier, local
+In Manage Case, open Case list → set case type to **TEC Batch** → open a row for Tasks,
+Batch details, Case File View, History, and Linked Cases. Batch details shows file identifier, batch identifier, local
 authority, **Submitter email**, and batch type (and no longer shows batch validation result).
 Registration batches also show **Fees due** while queued and **Fees paid** when processing is
 complete (`PCN count × £11`). Linked Cases lists PCN cases that reference the batch.
@@ -273,8 +273,8 @@ curl --request POST http://localhost:4013/exception-cases \
   }'
 ```
 
-In Manage Case, open Case list → set case type to **TEC Exception** → open a row for History,
-Tasks, Roles and access, Case details, and Case File View.
+In Manage Case, open Case list → set case type to **TEC Exception** → open a row for Tasks,
+Roles and access, Case details, Case File View, and History.
 
 ### Prototype Tasks tab (local)
 

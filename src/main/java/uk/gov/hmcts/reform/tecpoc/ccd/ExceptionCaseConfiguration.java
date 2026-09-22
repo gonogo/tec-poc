@@ -83,6 +83,10 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
             .field(ExceptionCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(ExceptionCase::getAllDocuments, NEVER_SHOW);
 
+        // Explicit CaseHistory so History sits after Case File View (SDK otherwise prepends it).
+        builder.tab("CaseHistory", "History")
+            .field("caseHistory");
+
         builder.searchInputFields()
             .field(ExceptionCase::getPenaltyChargeNumber, "PCN");
 

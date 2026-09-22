@@ -13,9 +13,9 @@
   [:linked, "Linked Cases"],
   [:payment, "Payment History"]
 ] %>
-<%# CCD History is omitted from the usual shell; show it when that tab is active. %>
+<%# CCD History sits after Case File View; omit from the usual shell unless that tab is active. %>
 <% if active == :history %>
-<% tabs << [:history, "History"] %>
+<% tabs.insert(4, [:history, "History"]) %>
 <% end %>
 <% minimal = (defined?(minimal) && minimal) ? minimal : false %>
 <% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>

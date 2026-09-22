@@ -250,6 +250,10 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(TecCase::getAllDocuments, NEVER_SHOW);
 
+        // Explicit CaseHistory so History sits after Case File View (SDK otherwise prepends it).
+        builder.tab("CaseHistory", "History")
+            .field("caseHistory");
+
         builder.tab("caseLinks", "Linked Cases")
             .field(TecCase::getLinkedCasesComponentLauncher, null, "#ARGUMENT(LinkedCases)")
             .field(

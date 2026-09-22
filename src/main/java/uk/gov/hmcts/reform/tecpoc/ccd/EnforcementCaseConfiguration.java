@@ -86,6 +86,10 @@ public class EnforcementCaseConfiguration
             .field(EnforcementCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
             .field(EnforcementCase::getAllDocuments, NEVER_SHOW);
 
+        // Explicit CaseHistory so History sits after Case File View (SDK otherwise prepends it).
+        builder.tab("CaseHistory", "History")
+            .field("caseHistory");
+
         builder.tab("caseLinks", "Linked Cases")
             .field(EnforcementCase::getLinkedCasesComponentLauncher, null, "#ARGUMENT(LinkedCases)")
             .field(

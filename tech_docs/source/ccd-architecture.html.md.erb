@@ -189,7 +189,8 @@ Blockframe wireframes of the case tabs and Next steps journeys: [TEC PCN blockfr
 Caseworker review boards (including the expanded out-of-time validation failure journey):
 [Caseworker journeys](/caseworker-journeys.html). Field-type catalogue: [ExUI form elements](/exui-form-elements.html).
 
-`TecCaseConfiguration` generates six application tabs in addition to CCD's case-history tab:
+`TecCaseConfiguration` generates these tabs (History is declared explicitly as `CaseHistory` so it
+follows Case File View instead of the SDK default of prepending it):
 
 - **Tasks**: prototype task list for local UX exploration.
 - **Roles and access**: CCD shell tab so the label always appears in Manage Case. This is not ExUI's
@@ -215,6 +216,7 @@ Caseworker review boards (including the expanded out-of-time validation failure 
   Correspondence, Uncategorised) and registered via `builder.categories(...)` in
   `TecCaseConfiguration`. Documents appear when `TecCaseView` exposes `allDocuments` from
   `tec_case_document` with matching `category_id` values.
+- **History**: CCD case-event history (`CaseHistory` / `caseHistory`), placed after Case File View.
 - **Linked Cases**: ExUI `ComponentLauncher` + `caseLinks` collection (`#ARGUMENT(LinkedCases)`).
   Batch links are owned by the batch case (see below); a PCN can appear under ExUI **linked from**
   for more than one batch (e.g. registration and warrant auth) after each batch's `linkPcnCases`
@@ -263,7 +265,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 
 | Piece | Location / behaviour |
 | --- | --- |
-| Config | `BatchCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Batch details, Case File View, Linked Cases |
+| Config | `BatchCaseConfiguration` — tabs Tasks, Roles and access, Batch details, Case File View, History, Linked Cases |
 | States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
@@ -336,7 +338,7 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 
 | Piece | Location / behaviour |
 | --- | --- |
-| Config | `ExceptionCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Case details, Case File View |
+| Config | `ExceptionCaseConfiguration` — tabs Tasks, Roles and access, Case details, Case File View, History |
 | State | `OPEN` only (Reject item does not close the case) |
 | Persistence | `public.tec_exception_case` |
 | Case details | Form validation result `—`, Associated TEC case `—`, PCN (placeholders set in `ExceptionCaseView`) |
@@ -353,7 +355,7 @@ Reject reason radios (`ExceptionRejectReason`): **PCN could not be matched**, **
 
 | Piece | Location / behaviour |
 | --- | --- |
-| Config | `EnforcementCaseConfiguration` — tabs History (SDK), Tasks, Roles and access, Case details, Case File View, Linked Cases |
+| Config | `EnforcementCaseConfiguration` — tabs Tasks, Roles and access, Case details, Case File View, History, Linked Cases |
 | State | `OPEN` only; Status on Case details is `statusDisplay` from state (Batch pattern) |
 | Persistence | `public.tec_enforcement_case` / `public.tec_enforcement_case_document`; PCN FK `tec_case.enforcement_case_reference` |
 | Case details | Status, Local authority, Submitter email, Received via |
