@@ -42,7 +42,10 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
             "<p class=\"govuk-body\">Roles and access (CCD shell). "
                 + "The Manage Case Work Allocation tab is not wired for TEC in this PoC.</p>"
         );
-        batchCase.setCaseLinks(toCaseLinks(repository.findLinkedPcnCaseReferences(request.caseRef())));
+        batchCase.setCaseLinks(toCaseLinks(
+            repository.findLinkedPcnCaseReferences(request.caseRef()),
+            batchCase.getOperation()
+        ));
         batchCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return batchCase;
     }
@@ -51,10 +54,14 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
      * ExUI Linked Cases "linked to" reads {@code ListValue.id} as the linked case reference
      * ({@code getCaseViewV2(fieldValue.id)}), not {@code CaseReference}. Use the
      * PCN case reference as the collection id (same pattern as pcs-api).
-     * Reason text is the batch-registration message so batch "linked to" and PCN
+     * Reason text depends on batch operation so batch "linked to" and PCN
      * "linked from" (via getLinkedCases) show the same label.
      */
     static List<ListValue<CaseLink>> toCaseLinks(List<Long> pcnCaseReferences) {
+        return toCaseLinks(pcnCaseReferences, BatchOperation.REGISTRATION);
+    }
+
+    static List<ListValue<CaseLink>> toCaseLinks(List<Long> pcnCaseReferences, BatchOperation operation) {
         return pcnCaseReferences.stream()
             .map(ref -> {
                 String caseReference = Long.toString(ref);
@@ -63,7 +70,7 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
                     .value(CaseLink.builder()
                         .caseReference(caseReference)
                         .caseType(TecCaseConfiguration.CASE_TYPE)
-                        .reasonForLink(BatchRegistrationCaseLinks.reasonForLink())
+                        .reasonForLink(BatchRegistrationCaseLinks.reasonForLink(operation))
                         .build())
                     .build();
             })

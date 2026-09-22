@@ -42,6 +42,7 @@ class BatchCaseViewTest {
     void getCasePopulatesLinkedPcnCaseLinks() {
         BatchCase stored = new BatchCase();
         stored.setFileIdentifier("file-1");
+        stored.setOperation(BatchOperation.REGISTRATION);
         when(repository.find(99L)).thenReturn(stored);
         when(repository.findLinkedPcnCaseReferences(99L)).thenReturn(List.of(111L, 222L));
         when(repository.findDocuments(99L)).thenReturn(List.of());
@@ -58,6 +59,23 @@ class BatchCaseViewTest {
         var reason = result.getCaseLinks().get(0).getValue().getReasonForLink().get(0).getValue();
         assertThat(reason.getReason()).isEqualTo(BatchRegistrationCaseLinks.REASON_CODE);
         assertThat(reason.getDescription()).isEqualTo(BatchRegistrationCaseLinks.REASON);
+    }
+
+    @Test
+    void getCaseUsesWarrantAuthReasonForWarrantAuthBatch() {
+        BatchCase stored = new BatchCase();
+        stored.setOperation(BatchOperation.WARRANT_AUTH_REQUESTS);
+        when(repository.find(99L)).thenReturn(stored);
+        when(repository.findLinkedPcnCaseReferences(99L)).thenReturn(List.of(111L));
+        when(repository.findDocuments(99L)).thenReturn(List.of());
+
+        BatchCase result = view.getCase(
+            new CaseViewRequest<>(99L, BatchCaseState.QUEUED_FOR_PROCESSING)
+        );
+
+        var reason = result.getCaseLinks().get(0).getValue().getReasonForLink().get(0).getValue();
+        assertThat(reason.getDescription())
+            .isEqualTo(BatchRegistrationCaseLinks.reasonText(BatchOperation.WARRANT_AUTH_REQUESTS));
     }
 
     @Test

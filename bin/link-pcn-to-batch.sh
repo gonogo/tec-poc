@@ -30,8 +30,11 @@ usage() {
 Usage: ${0} <pcn-case-reference> <batch-case-reference>
 
 Link a TEC PCN case to a TEC Batch case:
-  1. PCN event linkBatchCase (History + batch_case_reference)
-  2. Batch event linkPcnCases with the full caseLinks collection so ExUI
+  1. Load the batch to read its operation (batch type)
+  2. PCN event linkBatchCase with batchLinkCase + batchLinkType
+     - registration → sets tec_case.batch_case_reference (Case details Batch case)
+     - other types → tec_batch_pcn_link membership only (does not change Batch case)
+  3. Batch event linkPcnCases with the full caseLinks collection so ExUI
      shows the PCN under the batch's "linked to" list and the batch under
      the PCN's "linked from" list, with Reason=CLRC007 (Other) and
      OtherDescription chosen from the batch's operation:
@@ -101,7 +104,26 @@ BATCH_CASE_REFERENCE="$(normalise_case_reference "${BATCH_CASE_REFERENCE_RAW}")"
 user_token="$("${SCRIPT_DIR}/get-local-idam-token.sh")"
 service_token="$("${SCRIPT_DIR}/get-local-s2s-token.sh" tec_api)"
 
-echo "Linking PCN case ${PCN_CASE_REFERENCE} to batch case ${BATCH_CASE_REFERENCE}..." >&2
+echo "Loading batch case ${BATCH_CASE_REFERENCE}..." >&2
+
+batch_case_response="$({
+  curl --silent --show-error --fail-with-body \
+    --connect-timeout 5 \
+    --max-time 120 \
+    --request GET "${CCD_URL}/cases/${BATCH_CASE_REFERENCE}" \
+    --header "Authorization: Bearer ${user_token}" \
+    --header "ServiceAuthorization: ${service_token}" \
+    --header 'experimental: true'
+} 2>&1)" || {
+  echo "Failed to load batch case ${BATCH_CASE_REFERENCE}" >&2
+  echo "${batch_case_response}" >&2
+  exit 1
+}
+
+batch_operation="$(jq --raw-output '.data.operation // empty' <<<"${batch_case_response}")"
+batch_link_reason="$(reason_for_batch_operation "${batch_operation}")"
+echo "Linking PCN case ${PCN_CASE_REFERENCE} to batch case ${BATCH_CASE_REFERENCE} (operation=${batch_operation})..." >&2
+echo "Using link reason: Other - ${batch_link_reason}" >&2
 
 event_trigger_url="${CCD_URL}/cases/${PCN_CASE_REFERENCE}/event-triggers/${EVENT_ID}"
 
@@ -130,6 +152,7 @@ submit_body="$(jq --null-input --compact-output \
   --arg eventId "${EVENT_ID}" \
   --arg eventToken "${event_token}" \
   --arg batchCaseReference "${BATCH_CASE_REFERENCE}" \
+  --arg batchLinkType "${batch_operation}" \
   '{
     event: {
       id: $eventId,
@@ -137,10 +160,11 @@ submit_body="$(jq --null-input --compact-output \
       description: "Link PCN case to batch case"
     },
     data: {
-      batchCase: {
+      batchLinkCase: {
         CaseReference: $batchCaseReference,
         CaseType: "TEC_BATCH"
-      }
+      },
+      batchLinkType: $batchLinkType
     },
     event_token: $eventToken
   }')"
@@ -163,6 +187,7 @@ submit_response="$({
 
 echo "Refreshing batch caseLinks (linked to) for case ${BATCH_CASE_REFERENCE}..." >&2
 
+# Reload batch so CaseView includes the PCN we just linked.
 batch_case_response="$({
   curl --silent --show-error --fail-with-body \
     --connect-timeout 5 \
@@ -172,16 +197,12 @@ batch_case_response="$({
     --header "ServiceAuthorization: ${service_token}" \
     --header 'experimental: true'
 } 2>&1)" || {
-  echo "Failed to load batch case ${BATCH_CASE_REFERENCE}" >&2
+  echo "Failed to reload batch case ${BATCH_CASE_REFERENCE}" >&2
   echo "${batch_case_response}" >&2
   exit 1
 }
 
-batch_operation="$(jq --raw-output '.data.operation // empty' <<<"${batch_case_response}")"
-batch_link_reason="$(reason_for_batch_operation "${batch_operation}")"
-echo "Using link reason for batch operation '${batch_operation}': Other - ${batch_link_reason}" >&2
-
-# CaseView returns caseLinks for all PCNs with this batch_case_reference.
+# CaseView returns caseLinks for all PCNs linked to this batch.
 case_links_json="$(jq --compact-output \
   --arg reason "${batch_link_reason}" \
   --arg reasonCode "${BATCH_LINK_REASON_CODE}" '

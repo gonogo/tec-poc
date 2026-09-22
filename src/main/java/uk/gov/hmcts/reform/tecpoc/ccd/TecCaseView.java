@@ -31,6 +31,9 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
     @Override
     public TecCase getCase(CaseViewRequest<CaseState> request) {
         TecCase tecCase = repository.find(request.caseRef());
+        // Event-only fields — never surface on Case details / case_link sync from CaseView.
+        tecCase.setBatchLinkCase(null);
+        tecCase.setBatchLinkType(null);
         tecCase.setTasksMarkdown(
             TecPrototypeTasks.markdownFor(request.caseRef(), request.state(), tecCase)
         );
@@ -49,6 +52,9 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         }
         populateEnforcementSection(tecCase);
         tecCase.setCaseLinks(toCaseLinks(tecCase));
+        tecCase.setWarrantAuthorisations(
+            toWarrantAuthorisations(repository.findWarrantAuthorisations(request.caseRef()))
+        );
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
     }
@@ -98,6 +104,27 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         return documents.stream()
             .map(TecCaseView::toListValue)
             .toList();
+    }
+
+    static List<ListValue<WarrantAuthorisation>> toWarrantAuthorisations(
+        List<TecCaseWarrantAuthorisation> authorisations
+    ) {
+        return authorisations.stream()
+            .map(TecCaseView::toWarrantAuthorisationListValue)
+            .toList();
+    }
+
+    private static ListValue<WarrantAuthorisation> toWarrantAuthorisationListValue(
+        TecCaseWarrantAuthorisation authorisation
+    ) {
+        WarrantAuthorisation value = new WarrantAuthorisation();
+        value.setDateOfIssue(authorisation.dateOfIssue());
+        value.setDateOfExpiry(authorisation.dateOfExpiry());
+        value.setStatus(authorisation.status());
+        return ListValue.<WarrantAuthorisation>builder()
+            .id(authorisation.id().toString())
+            .value(value)
+            .build();
     }
 
     private static ListValue<Document> toListValue(TecCaseDocument document) {

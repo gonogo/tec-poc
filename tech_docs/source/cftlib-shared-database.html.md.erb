@@ -39,6 +39,7 @@ Without CFTLib overrides, `application.yaml` defaults to PostgreSQL on `localhos
 | `tec.public.tec_case` | TEC application | The PCN business fields used by this proof of concept |
 | `tec.public.tec_batch` | TEC application | Batch metadata for case type `TEC_BATCH` |
 | `tec.public.tec_batch_document` | TEC application | Batch Case File View document metadata |
+| `tec.public.tec_batch_pcn_link` | TEC application | Non-registration batch ↔ PCN membership |
 | `tec.public.tec_exception_case` | TEC application | Exception case metadata for case type `TEC_EXCEPTION` |
 | `tec.public.tec_enforcement_case` | TEC application | Enforcement metadata for case type `TEC_ENFORCEMENT` |
 | `tec.public.tec_enforcement_case_document` | TEC application | Flat Case File View documents for enforcement cases |
@@ -58,7 +59,7 @@ TEC decentralised runtime (tec.ccd schema)
     |
     | invoke event handler or CaseView (TecCaseView / BatchCaseView / ExceptionCaseView / EnforcementCaseView)
     v
-TEC business persistence (tec.public.tec_case / tec_batch / tec_exception_case / tec_enforcement_case)
+TEC business persistence (tec.public.tec_case / tec_batch / tec_batch_pcn_link / tec_exception_case / tec_enforcement_case)
 ```
 
 ## TEC business table
@@ -91,9 +92,13 @@ Batch schema updates since then:
 | `V14__batch_file_identifier.sql` | Adds unique `file_identifier` (authority prefix must match batch identifier) |
 | `V15__batch_submitter_email.sql` | Adds mandatory `submitter_email` |
 | `V16__drop_batch_validation_result.sql` | Drops `batch_validation_result` / display columns |
-| `V17__pcn_batch_case_link.sql` | Adds optional `tec_case.batch_case_reference` FK to `tec_batch` |
+| `V17__pcn_batch_case_link.sql` | Adds optional `tec_case.batch_case_reference` FK to `tec_batch` (**registration** membership only; Case details **Batch case**) |
+| `V20__create_tec_batch_pcn_link.sql` | Adds `tec_batch_pcn_link` for non-registration batch ↔ PCN membership (warrant auth, etc.) |
 
-`BatchCaseRepository` owns the batch tables. CCD label **Email received at** maps to column `received_at`;
+`BatchCaseRepository` owns the batch tables including `tec_batch_pcn_link`. Registration membership is the
+`tec_case.batch_case_reference` FK; other batch types store membership only in `tec_batch_pcn_link` so a PCN
+can keep its registration batch and also belong to later warrant-auth (or other) batches.
+`BatchCaseView` rebuilds Linked Cases from both sources (union). CCD label **Email received at** maps to column `received_at`;
 the Batch details tab shows it only when received via is email. `ExceptionCaseRepository` owns
 `tec_exception_case`; Form validation result / Associated TEC case displays are view-only placeholders
 (`—`) and are not persisted. `EnforcementCaseRepository` owns `tec_enforcement_case` and
@@ -132,6 +137,8 @@ This separates the concerns:
 | --- | --- |
 | PCN business facts | `tec.public.tec_case` |
 | Batch business facts | `tec.public.tec_batch` / `tec.public.tec_batch_document` |
+| Non-registration batch ↔ PCN membership | `tec.public.tec_batch_pcn_link` |
+| Registration batch ↔ PCN membership | `tec.public.tec_case.batch_case_reference` |
 | Exception business facts | `tec.public.tec_exception_case` |
 | Decentralised CCD lifecycle and history | Runtime-owned tables in `tec.ccd` |
 | Central CCD orchestration and routing | CCD Data Store's `datastore` database |

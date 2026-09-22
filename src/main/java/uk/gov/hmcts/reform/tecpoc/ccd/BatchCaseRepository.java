@@ -106,13 +106,37 @@ public class BatchCaseRepository {
             });
     }
 
+    /**
+     * PCNs linked to this batch via registration FK and/or {@code tec_batch_pcn_link}.
+     */
     public List<Long> findLinkedPcnCaseReferences(long batchCaseReference) {
         return database.queryForList("""
             select case_reference
-              from tec_case
-             where batch_case_reference = :batchCaseReference
+              from (
+                select case_reference
+                  from tec_case
+                 where batch_case_reference = :batchCaseReference
+                union
+                select pcn_case_reference as case_reference
+                  from tec_batch_pcn_link
+                 where batch_case_reference = :batchCaseReference
+              ) linked
              order by case_reference asc
             """, Map.of("batchCaseReference", batchCaseReference), Long.class);
+    }
+
+    /**
+     * Records membership of a PCN in a non-registration batch ({@code tec_batch_pcn_link}).
+     * Idempotent for the same (batch, pcn) pair.
+     */
+    public void linkPcnCase(long batchCaseReference, long pcnCaseReference) {
+        database.update("""
+            insert into tec_batch_pcn_link (batch_case_reference, pcn_case_reference)
+            values (:batchCaseReference, :pcnCaseReference)
+            on conflict (batch_case_reference, pcn_case_reference) do nothing
+            """, new MapSqlParameterSource()
+            .addValue("batchCaseReference", batchCaseReference)
+            .addValue("pcnCaseReference", pcnCaseReference));
     }
 
     private MapSqlParameterSource parameters(long caseReference, BatchCase batchCase) {

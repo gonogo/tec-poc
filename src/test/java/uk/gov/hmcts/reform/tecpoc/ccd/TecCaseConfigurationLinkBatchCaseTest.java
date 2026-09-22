@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.tecpoc.ccd;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,29 +28,31 @@ class TecCaseConfigurationLinkBatchCaseTest {
     }
 
     @Test
-    void linkBatchCasePersistsReferenceWhenBatchExists() {
+    void linkBatchCasePersistsRegistrationFkWhenBatchExists() {
         when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.REGISTRATION));
+        when(repository.findBatchCaseReference(111L)).thenReturn(null);
 
-        TecCase data = new TecCase();
-        data.setBatchCase(CaseLink.builder()
-            .caseReference("222")
-            .caseType(BatchCaseConfiguration.CASE_TYPE)
-            .build());
+        TecCase data = linkPayload("222", BatchOperation.REGISTRATION);
 
         SubmitResponse<CaseState> response = linkBatchCase(111L, data);
 
         verify(repository).linkBatchCase(111L, 222L);
+        verify(batchCaseRepository, never()).linkPcnCase(222L, 111L);
         assertThat(response).isNotNull();
     }
 
     @Test
     void linkBatchCaseAcceptsHyphenatedReference() {
         when(batchCaseRepository.exists(1755000000000000L)).thenReturn(true);
+        when(batchCaseRepository.find(1755000000000000L)).thenReturn(batch(BatchOperation.REGISTRATION));
+        when(repository.findBatchCaseReference(111L)).thenReturn(null);
 
         TecCase data = new TecCase();
-        data.setBatchCase(CaseLink.builder()
+        data.setBatchLinkCase(CaseLink.builder()
             .caseReference("1755-0000-0000-0000")
             .build());
+        data.setBatchLinkType(BatchOperation.REGISTRATION);
 
         linkBatchCase(111L, data);
 
@@ -57,11 +60,74 @@ class TecCaseConfigurationLinkBatchCaseTest {
     }
 
     @Test
+    void linkBatchCaseWritesJoinTableForNonRegistrationWithoutTouchingFk() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.WARRANT_AUTH_REQUESTS));
+
+        TecCase data = linkPayload("222", BatchOperation.WARRANT_AUTH_REQUESTS);
+        // Must not send batchCase — that field is registration Case details only.
+        data.setBatchCase(CaseLink.builder()
+            .caseReference("999")
+            .caseType(BatchCaseConfiguration.CASE_TYPE)
+            .build());
+
+        linkBatchCase(111L, data);
+
+        verify(batchCaseRepository).linkPcnCase(222L, 111L);
+        verify(repository, never()).linkBatchCase(111L, 222L);
+        verify(repository, never()).linkBatchCase(111L, 999L);
+    }
+
+    @Test
+    void linkBatchCaseRejectsMissingBatchLinkCase() {
+        TecCase data = new TecCase();
+        data.setBatchLinkType(BatchOperation.REGISTRATION);
+
+        assertThatThrownBy(() -> linkBatchCase(111L, data))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("batchLinkCase.CaseReference is required");
+    }
+
+    @Test
+    void linkBatchCaseRejectsMissingBatchLinkType() {
+        TecCase data = new TecCase();
+        data.setBatchLinkCase(CaseLink.builder().caseReference("222").build());
+
+        assertThatThrownBy(() -> linkBatchCase(111L, data))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("batchLinkType is required");
+    }
+
+    @Test
+    void linkBatchCaseRejectsTypeMismatch() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.REGISTRATION));
+
+        TecCase data = linkPayload("222", BatchOperation.WARRANT_AUTH_REQUESTS);
+
+        assertThatThrownBy(() -> linkBatchCase(111L, data))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("does not match batch operation");
+    }
+
+    @Test
+    void linkBatchCaseRejectsRegistrationAlreadyLinkedElsewhere() {
+        when(batchCaseRepository.exists(222L)).thenReturn(true);
+        when(batchCaseRepository.find(222L)).thenReturn(batch(BatchOperation.REGISTRATION));
+        when(repository.findBatchCaseReference(111L)).thenReturn(888L);
+
+        TecCase data = linkPayload("222", BatchOperation.REGISTRATION);
+
+        assertThatThrownBy(() -> linkBatchCase(111L, data))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("already linked to batch case 888");
+    }
+
+    @Test
     void linkBatchCaseRejectsMissingBatch() {
         when(batchCaseRepository.exists(999L)).thenReturn(false);
 
-        TecCase data = new TecCase();
-        data.setBatchCase(CaseLink.builder().caseReference("999").build());
+        TecCase data = linkPayload("999", BatchOperation.REGISTRATION);
 
         assertThatThrownBy(() -> linkBatchCase(111L, data))
             .isInstanceOf(IllegalArgumentException.class)
@@ -72,6 +138,22 @@ class TecCaseConfigurationLinkBatchCaseTest {
     void parseCaseReferenceStripsHyphens() {
         assertThat(TecCaseConfiguration.parseCaseReference("1755-0000-0000-0001"))
             .isEqualTo(1755000000000001L);
+    }
+
+    private static TecCase linkPayload(String batchRef, BatchOperation type) {
+        TecCase data = new TecCase();
+        data.setBatchLinkCase(CaseLink.builder()
+            .caseReference(batchRef)
+            .caseType(BatchCaseConfiguration.CASE_TYPE)
+            .build());
+        data.setBatchLinkType(type);
+        return data;
+    }
+
+    private static BatchCase batch(BatchOperation operation) {
+        BatchCase batch = new BatchCase();
+        batch.setOperation(operation);
+        return batch;
     }
 
     @SuppressWarnings("unchecked")

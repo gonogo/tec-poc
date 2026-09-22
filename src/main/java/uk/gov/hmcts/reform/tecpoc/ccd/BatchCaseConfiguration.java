@@ -363,14 +363,19 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
 
     /**
      * Records standard {@code caseLinks} on the batch so CCD's {@code case_link} table
-     * (and ExUI "linked to" / PCN "linked from") include each PCN. Also ensures
-     * {@code tec_case.batch_case_reference} matches this batch.
+     * (and ExUI "linked to" / PCN "linked from") include each PCN. Registration batches
+     * also set {@code tec_case.batch_case_reference}; other batch types use
+     * {@code tec_batch_pcn_link}.
      */
     private SubmitResponse<BatchCaseState> linkPcnCases(EventPayload<BatchCase, BatchCaseState> event) {
         List<ListValue<CaseLink>> caseLinks = event.caseData().getCaseLinks();
         if (caseLinks == null || caseLinks.isEmpty()) {
             throw new IllegalArgumentException("caseLinks is required");
         }
+
+        BatchCase batch = repository.find(event.caseReference());
+        BatchOperation operation = batch.getOperation();
+        boolean registration = operation == BatchOperation.REGISTRATION;
 
         for (ListValue<CaseLink> entry : caseLinks) {
             if (entry == null || entry.getValue() == null || isBlank(entry.getValue().getCaseReference())) {
@@ -382,14 +387,18 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
                     "No TEC PCN case found for reference " + pcnCaseReference
                 );
             }
-            Long existingBatch = tecCaseRepository.findBatchCaseReference(pcnCaseReference);
-            if (existingBatch != null && existingBatch.longValue() != event.caseReference()) {
-                throw new IllegalArgumentException(
-                    "PCN case " + pcnCaseReference
-                        + " is already linked to batch case " + existingBatch
-                );
+            if (registration) {
+                Long existingBatch = tecCaseRepository.findBatchCaseReference(pcnCaseReference);
+                if (existingBatch != null && existingBatch.longValue() != event.caseReference()) {
+                    throw new IllegalArgumentException(
+                        "PCN case " + pcnCaseReference
+                            + " is already linked to batch case " + existingBatch
+                    );
+                }
+                tecCaseRepository.linkBatchCase(pcnCaseReference, event.caseReference());
+            } else {
+                repository.linkPcnCase(event.caseReference(), pcnCaseReference);
             }
-            tecCaseRepository.linkBatchCase(pcnCaseReference, event.caseReference());
         }
         return SubmitResponse.defaultResponse();
     }

@@ -118,6 +118,10 @@ case / work-basket do not keep ghost results):
 
 Then recreate cases with the seed scripts below.
 
+Full inventory of every script under `bin/`:
+[tech_docs/source/local-scripts.html.md.erb](tech_docs/source/local-scripts.html.md.erb)
+(or http://localhost:4568/local-scripts.html when tech docs are running).
+
 ## Create a PCN case
 
 With `bootWithCCD` running, create a valid TEC case using the local system user. Run any of the
@@ -133,10 +137,13 @@ an amount of `12345` pence. Set `AMOUNT_DUE`, `FILE_IDENTIFIER`, `BATCH_IDENTIFI
 
 To create the PCN already linked to an existing batch case (`TEC_BATCH`), pass the batch case
 reference as an argument or set `BATCH_CASE_REFERENCE` (hyphens optional). The script verifies the
-batch exists (and is `TEC_BATCH`) first, then creates the PCN and submits `linkBatchCase`:
+batch exists (and is `TEC_BATCH`) first, then creates the PCN and runs `link-pcn-to-batch.sh`
+(`linkBatchCase` with `batchLinkCase` + `batchLinkType`, then batch `linkPcnCases`). Behaviour
+depends on the batch type: registration sets Case details **Batch case**; other types use
+`tec_batch_pcn_link` only.
 
 ```bash
-./bin/create-tec-batch.sh   # note the batch caseReference from the response
+./bin/create-tec-batch.sh westminster   # note the batch caseReference from the response
 ./bin/create-tec-case.sh <batch-case-reference>
 # or
 BATCH_CASE_REFERENCE=<batch-case-reference> ./bin/create-tec-case.sh
@@ -206,19 +213,30 @@ Batches are a second CCD case type (`TEC_BATCH`, display name **TEC Batch**).
 **In Manage Case:** use primary nav **Upload batch file** to run the clerk `uploadBatch` wizard (see
 above). That creates a real batch case through CCD.
 
-**Via API / scripts** (hidden `createBatch` event — for seeding demos):
+**Via API / scripts** (hidden `createBatch` event — for seeding demos). No args shows help
+(unless `LOCAL_AUTHORITY` is set):
 
 ```bash
-./bin/create-tec-batch.sh
+./bin/create-tec-batch.sh westminster
+./bin/create-tec-batch.sh westminster warrantAuthRequests
 ./bin/create-tec-batch.sh manchesterCityCouncil
 ./bin/create-tec-batches.sh 6
+./bin/create-tec-batches.sh 3 registration
 ```
 
-Pass a FixedList local-authority code as the first argument (or set `LOCAL_AUTHORITY`). Other optional
-overrides: `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`, `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`,
-`SUBMITTER_EMAIL`, `TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
-`create-tec-batches.sh` rotates authorities unless `LOCAL_AUTHORITY` is set.
+Pass a FixedList local-authority code as the first argument (or set `LOCAL_AUTHORITY`). Optional
+second argument is the batch type / operation (`registration` default, or `OPERATION` if set):
+`registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`,
+`changeOfAddress`, `caseClosureRequests`. Other optional overrides: `FILE_IDENTIFIER`,
+`BATCH_IDENTIFIER`, `PCN_COUNT`, `RECEIVED_VIA`, `SUBMITTER_EMAIL`,
+`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
+`create-tec-batches.sh` requires a count; it rotates authorities and batch types unless
+`LOCAL_AUTHORITY` / `[batch-type]` / `OPERATION` is set.
 Completed batches get sample Inputs/Outputs documents attached for Case File View demos.
+To finish a queued batch with real Outputs files:
+`./bin/complete-batch-processing.sh <batch-ref> <file-1> <file-2>`.
+
+See [local-scripts.html](tech_docs/source/local-scripts.html.md.erb) for the full `bin/` inventory.
 
 In Manage Case, open Case list → set case type to **TEC Batch** → open a row for History, Tasks,
 Batch details, Case File View, and Linked Cases. Batch details shows file identifier, batch identifier, local
@@ -263,11 +281,15 @@ Tasks, Roles and access, Case details, and Case File View.
 The **Tasks** tab is a CCD collection tab backed by prototype data in `TecCaseView`, not Work Allocation.
 No extra docker services or Azure registry access are required.
 
-Create a case and move it to `CASE_ISSUED` to see sample tasks:
+Create a case and move it between states to see how Tasks change. Prefer
+`set-case-state.sh` for arbitrary jumps (including `CLOSED`); use
+`transition-to-case-issued.sh` when you want the real payment event:
 
 ```bash
 ./bin/create-tec-case.sh -
 ./bin/transition-to-case-issued.sh <case-reference-from-output>
+./bin/set-case-state.sh <case-reference> AWAITING_RESPONDENT_RESPONSE
+./bin/set-case-state.sh <case-reference> CLOSED
 ```
 
 Open the case in Manage Case as `tec-demo@test.com` to see the **Tasks** tab.
@@ -305,13 +327,13 @@ Refresh the case in Manage Case to see the file under the chosen Case File View 
 ### Link a PCN case to a batch case (local)
 
 With `bootWithCCD` running (restart after pulling so the `linkBatchCase` /
-`linkPcnCases` events and `V17` migration are loaded), link a PCN to the batch case
-that owns the data file.
+`linkPcnCases` events and `V17` / `V20` migrations are loaded), link a PCN to a batch case
+(registration, warrant auth, or other batch types).
 
 **At create time** (preferred for new seed data):
 
 ```bash
-./bin/create-tec-batch.sh
+./bin/create-tec-batch.sh westminster
 ./bin/create-tec-case.sh <batch-case-reference>
 ```
 
@@ -323,12 +345,27 @@ that owns the data file.
 
 Hyphens in either case reference are optional. Both paths:
 
-1. Submit PCN `linkBatchCase` (`CaseLink` to `TEC_BATCH`) — Case details **Batch case** and History
-2. Submit batch `linkPcnCases` with the full `caseLinks` collection and reason
-   **Linked as part of a batch of registrations** — ExUI Linked Cases shows the
-   PCN under the batch's **linked to** list and the batch under the PCN's **linked from** list
+1. Submit PCN `linkBatchCase` (`batchLinkCase` CaseLink to `TEC_BATCH` + `batchLinkType` matching
+   the batch operation — not Case details `batchCase`) — registration sets Case details **Batch
+   case** via `tec_case.batch_case_reference`; other types record membership in `tec_batch_pcn_link`
+   only and leave the registration **Batch case** link unchanged. History records the event either
+   way. Linking is additive: existing registration / Linked Cases entries remain.
+2. Submit batch `linkPcnCases` with the full `caseLinks` collection and Reason `CLRC007` (Other);
+   `OtherDescription` depends on the batch type (for example **Linked as part of a batch of
+   registrations** or **… warrant auth requests**) — ExUI Linked Cases shows the PCN under the
+   batch's **linked to** list and the batch under the PCN's **linked from** list (alongside any
+   other batches already linked)
 
-### Generate a sample TE9/PE3 application (local)
+If Reasons stay blank locally, run `./bin/fix-linked-case-reasons.sh` (nav proxy LOV stub) and
+restart the app so CaseView emits `CLRC007`.
+
+### Create an enforcement case (local)
+
+```bash
+./bin/create-tec-enforcement-case.sh <pcn-case-reference> [pcn-case-reference...]
+```
+
+Creates a `TEC_ENFORCEMENT` case, links the given PCNs, and attaches `fixtures/TE10.pdf`.
 
 With `bootWithCCD` running, generate application data for an existing case, submit the
 `recordApplication` event, fill the TE9/PE3 PDF template, and attach it under **Applications**:
@@ -363,6 +400,18 @@ reproducible random values. The script reuses the same Python venv as
 `generate-application.sh`. Attached PDFs are named from the section heading (for TE7, based on
 permission sought: `Application to file out of time.pdf` or
 `Application for extension of time.pdf`).
+
+### Apply a warrant authorisation (local)
+
+```bash
+./bin/apply-warrant-authorisation.sh <case-reference>
+DATE_OF_ISSUE=2026-09-22 DATE_OF_EXPIRY=2027-09-22 STATUS=active \
+  ./bin/apply-warrant-authorisation.sh <case-reference>
+```
+
+Submits the system `applyWarrantAuthorisation` event. Case details then shows a **Warrant
+authorisations** section listing each entry (date of issue, date of expiry, status). Defaults:
+issue = today, expiry = today + 1 year, status = `active` (`expired` / `cancelled` also accepted).
 
 Documents are stored by the local dm-store stub under `bin/.local-dm-store-data/`. If that stub
 was restarted before persistence was added, older folder entries can still appear while the viewer

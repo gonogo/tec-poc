@@ -27,11 +27,33 @@ public class TecCase {
     private String batchIdentifier;
 
     /**
-     * CCD link to the {@code TEC_BATCH} case that owns the uploaded data file.
+     * CCD link to the registration {@code TEC_BATCH} case (Case details only).
      * Persisted as {@code tec_case.batch_case_reference}; reconstructed by {@link TecCaseView}.
+     * Not used as the {@code linkBatchCase} event target — see {@link #batchLinkCase}.
      */
     @CCD(label = "Batch case")
     private CaseLink batchCase;
+
+    /**
+     * Target batch for the {@code linkBatchCase} event (any {@link BatchOperation}).
+     * Kept separate from {@link #batchCase} so non-registration links do not overwrite the
+     * registration Case details CaseLink or its CCD {@code case_link} row.
+     * Cleared by {@link TecCaseView} (event-only).
+     */
+    @CCD(label = "Linked batch case", searchable = false)
+    private CaseLink batchLinkCase;
+
+    /**
+     * Batch type for the {@code linkBatchCase} event. Must match the target batch's
+     * {@link BatchOperation}. Not shown on Case details.
+     */
+    @CCD(
+        label = "Batch link type",
+        typeOverride = FieldType.FixedList,
+        typeParameterOverride = "BatchOperation",
+        searchable = false
+    )
+    private BatchOperation batchLinkType;
 
     /**
      * Set to {@code Yes} by {@link TecCaseView} when this PCN is linked to a TEC Enforcement case.
@@ -302,6 +324,29 @@ public class TecCase {
     private String timeExtensionPrintFullName;
 
     /**
+     * Event-only field used by {@code setCaseState}. Value must be a {@link CaseState} name.
+     */
+    @CCD(label = "Target case state", searchable = false)
+    private String targetCaseState;
+
+    /**
+     * Event-only field used by {@code applyWarrantAuthorisation}.
+     */
+    @CCD(label = "Warrant authorisation", searchable = false)
+    private WarrantAuthorisation warrantAuthorisation;
+
+    /**
+     * Warrant authorisations shown on Case details. Populated by {@link TecCaseView}.
+     */
+    @CCD(
+        label = "Warrant authorisations",
+        typeOverride = FieldType.Collection,
+        typeParameterOverride = "WarrantAuthorisation"
+    )
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<ListValue<WarrantAuthorisation>> warrantAuthorisations;
+
+    /**
      * Case File View source documents. Populated by {@link TecCaseView}; not shown on Case details.
      */
     @CCD(label = "All documents", searchable = false)
@@ -321,6 +366,8 @@ public class TecCase {
      * Populated by {@link TecCaseView} from the enforcement CaseLink when set.
      * Batch links are owned by the batch case ({@code caseLinks} there) so the PCN
      * shows them under ExUI "linked from", not in this collection.
+     * Registration membership is {@code tec_case.batch_case_reference}; other batch
+     * types use {@code tec_batch_pcn_link}.
      */
     @CCD(
         label = "Linked cases",

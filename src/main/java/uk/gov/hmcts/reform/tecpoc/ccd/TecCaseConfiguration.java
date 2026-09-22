@@ -12,6 +12,7 @@ import uk.gov.hmcts.ccd.sdk.type.CaseLink;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -237,7 +238,13 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getTimeExtensionSignedAndDated, "timeExtensionForm=\"TE7\" OR timeExtensionForm=\"PE2\"")
             .field(TecCase::getTimeExtensionSignedBy, "timeExtensionForm=\"TE7\"")
             .field(TecCase::getTimeExtensionDateSigned, "timeExtensionForm=\"TE7\" OR timeExtensionForm=\"PE2\"")
-            .field(TecCase::getTimeExtensionPrintFullName, "timeExtensionForm=\"TE7\"");
+            .field(TecCase::getTimeExtensionPrintFullName, "timeExtensionForm=\"TE7\"")
+            .label(
+                "warrantAuthorisationsSection",
+                "warrantAuthorisations!=\"\"",
+                "## Warrant authorisations"
+            )
+            .field(TecCase::getWarrantAuthorisations, "warrantAuthorisations!=\"\"");
 
         builder.tab("caseFileView", "Case File View")
             .field(TecCase::getCaseFileView, null, "#ARGUMENT(CaseFileView)")
@@ -440,7 +447,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .grant(Permission.CRUD, UserRole.SYSTEM)
             .grant(Permission.R, UserRole.CLERK)
             .fields()
-            .mandatory(TecCase::getBatchCase);
+            .mandatory(TecCase::getBatchLinkCase)
+            .mandatory(TecCase::getBatchLinkType);
 
         builder.decentralisedEvent("linkEnforcementCase", this::linkEnforcementCase)
             .forStates(CaseState.values())
@@ -502,6 +510,23 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .optional(TecCase::getTimeExtensionSignedBy)
             .optional(TecCase::getTimeExtensionDateSigned)
             .optional(TecCase::getTimeExtensionPrintFullName);
+
+        builder.decentralisedEvent("applyWarrantAuthorisation", this::applyWarrantAuthorisation)
+            .forStates(CaseState.values())
+            .name("Apply warrant authorisation")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .grant(Permission.R, UserRole.CLERK)
+            .fields()
+            .mandatory(TecCase::getWarrantAuthorisation);
+
+        builder.decentralisedEvent("setCaseState", this::setCaseState)
+            .forStates(CaseState.values())
+            .name("Set case state")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM)
+            .fields()
+            .mandatory(TecCase::getTargetCaseState);
     }
 
     private SubmitResponse<CaseState> createTecCase(EventPayload<TecCase, CaseState> event) {
@@ -562,17 +587,39 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
     }
 
     private SubmitResponse<CaseState> linkBatchCase(EventPayload<TecCase, CaseState> event) {
-        CaseLink batchCase = event.caseData().getBatchCase();
-        if (batchCase == null || isBlank(batchCase.getCaseReference())) {
-            throw new IllegalArgumentException("batchCase.CaseReference is required");
+        CaseLink batchLinkCase = event.caseData().getBatchLinkCase();
+        if (batchLinkCase == null || isBlank(batchLinkCase.getCaseReference())) {
+            throw new IllegalArgumentException("batchLinkCase.CaseReference is required");
         }
-        long batchCaseReference = parseCaseReference(batchCase.getCaseReference());
+        BatchOperation batchLinkType = event.caseData().getBatchLinkType();
+        if (batchLinkType == null) {
+            throw new IllegalArgumentException("batchLinkType is required");
+        }
+        long batchCaseReference = parseCaseReference(batchLinkCase.getCaseReference());
         if (!batchCaseRepository.exists(batchCaseReference)) {
             throw new IllegalArgumentException(
                 "No TEC_BATCH case found for reference " + batchCaseReference
             );
         }
-        repository.linkBatchCase(event.caseReference(), batchCaseReference);
+        BatchCase batch = batchCaseRepository.find(batchCaseReference);
+        if (batch.getOperation() != batchLinkType) {
+            throw new IllegalArgumentException(
+                "batchLinkType " + batchLinkType
+                    + " does not match batch operation " + batch.getOperation()
+            );
+        }
+        if (batchLinkType == BatchOperation.REGISTRATION) {
+            Long existingBatch = repository.findBatchCaseReference(event.caseReference());
+            if (existingBatch != null && existingBatch.longValue() != batchCaseReference) {
+                throw new IllegalArgumentException(
+                    "PCN case " + event.caseReference()
+                        + " is already linked to batch case " + existingBatch
+                );
+            }
+            repository.linkBatchCase(event.caseReference(), batchCaseReference);
+        } else {
+            batchCaseRepository.linkPcnCase(batchCaseReference, event.caseReference());
+        }
         return SubmitResponse.defaultResponse();
     }
 
@@ -627,6 +674,42 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
     private SubmitResponse<CaseState> editPe2Application(EventPayload<TecCase, CaseState> event) {
         repository.editPe2Application(event.caseReference(), event.caseData());
         return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> applyWarrantAuthorisation(EventPayload<TecCase, CaseState> event) {
+        WarrantAuthorisation authorisation = event.caseData().getWarrantAuthorisation();
+        if (authorisation == null) {
+            throw new IllegalArgumentException("warrantAuthorisation is required");
+        }
+        if (authorisation.getDateOfIssue() == null) {
+            throw new IllegalArgumentException("warrantAuthorisation.dateOfIssue is required");
+        }
+        if (authorisation.getDateOfExpiry() == null) {
+            throw new IllegalArgumentException("warrantAuthorisation.dateOfExpiry is required");
+        }
+        if (authorisation.getStatus() == null) {
+            throw new IllegalArgumentException("warrantAuthorisation.status is required");
+        }
+        repository.insertWarrantAuthorisation(event.caseReference(), authorisation);
+        return SubmitResponse.defaultResponse();
+    }
+
+    private SubmitResponse<CaseState> setCaseState(EventPayload<TecCase, CaseState> event) {
+        String raw = event.caseData().getTargetCaseState();
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("targetCaseState is required");
+        }
+        CaseState target;
+        try {
+            target = CaseState.valueOf(raw.trim());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                "Unknown targetCaseState '" + raw + "'. Use one of: "
+                    + Arrays.toString(CaseState.values()),
+                ex
+            );
+        }
+        return response(target);
     }
 
     private static boolean isBlank(String value) {

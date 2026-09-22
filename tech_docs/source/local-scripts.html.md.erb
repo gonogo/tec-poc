@@ -1,0 +1,118 @@
+---
+title: Local bin scripts
+weight: 35
+---
+
+# Local bin scripts
+
+Scripts under `bin/` seed demos, drive CCD events, and manage the local CFTLib stack. Most print
+usage when run with no arguments or `-h` / `--help`.
+
+How-to walkthroughs also live in the repository README. This page is the inventory of every
+script in `bin/`.
+
+## Stack lifecycle
+
+| Script | Purpose |
+| --- | --- |
+| `bin/stop-boot-with-ccd.sh` | Stop bootWithCCD Java processes, local stubs/proxies, design/tech docs servers, and CFTLib Docker containers; free required ports |
+| `bin/restart-boot-with-ccd.sh` | Stop then start `./gradlew bootWithCCD` again |
+| `bin/start-design-docs.sh` | Middleman design docs on **:4567** (also started by `bootWithCCD`) |
+| `bin/start-tech-docs.sh` | Middleman tech docs on **:4568** (also started by `bootWithCCD`) |
+| `bin/start-local-dm-store.sh` | Start `bin/local-dm-store-stub.py` on **:4506** for Case Document AM uploads |
+| `bin/local-dm-store-stub.py` | Minimal dm-store stub; persists binaries under `bin/.local-dm-store-data/` |
+| `bin/start-xui-manage-batches-proxy.sh` | Reverse-proxy Manage Cases on **:3000** → XUI on **:3002** (Upload batch file nav + CaseLinkingReasonCode LOV stub) |
+| `bin/restart-xui-manage-batches-proxy.sh` | Restart the nav proxy only |
+| `bin/xui-manage-batches-proxy.py` | Implementation of the nav / LOV proxy (started by the scripts above) |
+| `bin/fix-linked-case-reasons.sh` | Restart the nav proxy and print steps so ExUI Linked Cases **Reasons** resolve `CLRC007` |
+
+See also [ExUI primary navigation](/exui-navigation.html).
+
+## Auth helpers
+
+Used by other scripts; rarely invoked directly.
+
+| Script | Purpose |
+| --- | --- |
+| `bin/get-local-idam-token.sh` | IDAM access token for the local TEC system user (`tec-system@test.com`) |
+| `bin/get-local-s2s-token.sh` | S2S service token (pass service name, e.g. `tec_api`) |
+
+## Clear and re-seed
+
+| Script | Purpose |
+| --- | --- |
+| `bin/clear-tec-cases.sh` | Delete all local TEC case data from Postgres (`tec` + `datastore`) and Elasticsearch TEC aliases. `--yes` skips confirmation |
+
+## Create cases
+
+| Script | Usage summary | Purpose |
+| --- | --- | --- |
+| `bin/create-tec-batch.sh` | `<local-authority> [batch-type]` | Create one `TEC_BATCH` via `POST /batches`. No args shows help (unless `LOCAL_AUTHORITY` is set). Batch types: `registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`, `changeOfAddress`, `caseClosureRequests` |
+| `bin/create-tec-batches.sh` | `<count> [batch-type]` | Create many batches (rotates authority / type / state unless fixed). No args shows help |
+| `bin/create-tec-case.sh` | `<batch-case-reference\|->` | Create one `TEC` PCN. Pass `-` for unlinked; pass a batch ref (or `BATCH_CASE_REFERENCE`) to link after create |
+| `bin/create-tec-cases.sh` | `<batch-case-reference\|->` | Bulk randomised PCNs (`CASE_COUNT`, default 20) |
+| `bin/create-gm-tec-cases.sh` | `<batch-case-reference\|->` | PCNs for each Greater Manchester authority (`CASES_PER_AUTHORITY`, default 10) |
+| `bin/create-tec-exception-case.sh` | (optional env overrides) | Create one `TEC_EXCEPTION` via `POST /exception-cases` |
+| `bin/create-tec-enforcement-case.sh` | `<pcn-ref> [pcn-ref...]` | Create `TEC_ENFORCEMENT`, link the given PCNs, attach `fixtures/TE10.pdf` |
+| `bin/assert-batch-case-exists.sh` | `<batch-case-reference>` | Verify a CCD case exists and is `TEC_BATCH` (used by the create/link scripts) |
+
+### Create batch examples
+
+```bash
+./bin/create-tec-batch.sh westminster
+./bin/create-tec-batch.sh westminster warrantAuthRequests
+./bin/create-tec-batches.sh 6
+./bin/create-tec-batches.sh 3 registration
+LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-batch.sh
+```
+
+Optional env overrides for batch create include `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`,
+`PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `SUBMITTER_EMAIL`,
+`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`),
+and `ATTACH_SAMPLE_DOCUMENTS`.
+
+## Link and transition
+
+| Script | Usage summary | Purpose |
+| --- | --- | --- |
+| `bin/link-pcn-to-batch.sh` | `<pcn-case-reference> <batch-case-reference>` | Loads batch operation; PCN `linkBatchCase` (`batchLinkCase` + `batchLinkType`, not Case details `batchCase`) then batch `linkPcnCases` (ExUI **linked to** / **linked from**). Registration sets `batch_case_reference`; other types use `tec_batch_pcn_link` without changing Case details **Batch case**. Additive: existing registration / Linked Cases links remain. Reason `OtherDescription` depends on the batch type |
+| `bin/transition-to-case-issued.sh` | `<pcn-case-reference>` | Fire `registrationPaymentSucceeded` so a PCN reaches `CASE_ISSUED` |
+| `bin/set-case-state.sh` | `<pcn-case-reference> <state>` | Fire `setCaseState` to jump a PCN to any state (`PENDING_CASE_ISSUED`, `CASE_ISSUED`, `AWAITING_RESPONDENT_RESPONSE`, `CLOSED`) |
+| `bin/complete-batch-processing.sh` | `<batch-ref> <output-file-1> <output-file-2>` | Attach two Outputs documents and move a batch to `PROCESSING_COMPLETE` |
+
+Link reason text (LOV `CLRC007` = Other) by batch type:
+
+| Batch type | Default `OtherDescription` |
+| --- | --- |
+| `registration` | Linked as part of a batch of registrations |
+| `warrantAuthRequests` | Linked as part of a batch of warrant auth requests |
+| `warrantReissueRequests` | Linked as part of a batch of warrant reissue requests |
+| `outOfTimeDecisions` | Linked as part of a batch of out-of-time decisions |
+| `changeOfAddress` | Linked as part of a batch of change of address |
+| `caseClosureRequests` | Linked as part of a batch of case closure requests |
+
+Override with `BATCH_REGISTRATION_REASON`, `BATCH_WARRANT_AUTH_REASON`, and the other `BATCH_*_REASON` env vars, or `BATCH_LINK_REASON_CODE` for the LOV key.
+
+A PCN may be linked to a registration batch and later to other batch types (e.g. warrant auth). Case details
+**Batch case** stays on the registration batch; Linked Cases **linked from** lists each linked batch.
+
+## Documents and applications
+
+| Script | Usage summary | Purpose |
+| --- | --- | --- |
+| `bin/attach-case-file-document.sh` | `<case-ref> <folder> <file-path>` | Upload via Case Document AM and attach to Case File View (`CASE_TYPE_ID` for non-PCN types) |
+| `bin/generate-application.sh` | `<case-ref> <in\|out of time> <TE9\|PE3>` | `recordApplication`, fill PDF, attach under Applications |
+| `bin/generate-time-extension.sh` | `<case-ref> <TE7\|PE2>` | `recordTimeExtension`, fill PDF, attach under Applications |
+| `bin/apply-warrant-authorisation.sh` | `<case-ref>` | `applyWarrantAuthorisation` — appends a warrant authorisation (issue/expiry/status) to the PCN |
+
+Optional env for warrant authorisation: `DATE_OF_ISSUE`, `DATE_OF_EXPIRY` (YYYY-MM-DD),
+`STATUS` (`active` \| `expired` \| `cancelled`; default `active`). Defaults: issue = today,
+expiry = today + 1 year.
+
+## Runtime artefacts (not scripts)
+
+These are created by the scripts and are gitignored / local-only:
+
+- `bin/.venv-generate-application` — Python venv for PDF filling
+- `bin/.local-dm-store-data/` — persisted dm-store binaries
+- `bin/*.pid` / `bin/*.log` — process ids and logs for docs servers, nav proxy, and dm-store stub

@@ -8,6 +8,7 @@ Prefer these files over inventing CCD / ExUI topology. They are the GOV.UK Tech 
 | --- | --- |
 | Decentralised CCD architecture | [`tech_docs/source/ccd-architecture.html.md.erb`](tech_docs/source/ccd-architecture.html.md.erb) |
 | CFTLib / database ownership | [`tech_docs/source/cftlib-shared-database.html.md.erb`](tech_docs/source/cftlib-shared-database.html.md.erb) |
+| Local `bin/` scripts inventory | [`tech_docs/source/local-scripts.html.md.erb`](tech_docs/source/local-scripts.html.md.erb) |
 | ExUI Upload batch file nav (local proxy) | [`tech_docs/source/exui-navigation.html.md.erb`](tech_docs/source/exui-navigation.html.md.erb) |
 | ExUI Upload batch file architect proposal | [`tech_docs/source/exui-manage-batches-plan.html.md.erb`](tech_docs/source/exui-manage-batches-plan.html.md.erb) |
 | Example menuConfigs JSON | [`tech_docs/source/exui-header-config.example.json`](tech_docs/source/exui-header-config.example.json) |

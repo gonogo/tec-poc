@@ -61,11 +61,74 @@ class TecCaseConfigurationTest {
         assertThat(response.getEventMetadata()).isNull();
     }
 
+    @Test
+    void applyWarrantAuthorisationPersistsAuthorisation() {
+        WarrantAuthorisation authorisation = new WarrantAuthorisation();
+        authorisation.setDateOfIssue(java.time.LocalDate.of(2026, 9, 22));
+        authorisation.setDateOfExpiry(java.time.LocalDate.of(2027, 9, 22));
+        authorisation.setStatus(WarrantAuthorisationStatus.ACTIVE);
+
+        TecCase data = new TecCase();
+        data.setWarrantAuthorisation(authorisation);
+
+        SubmitResponse<CaseState> response = applyWarrantAuthorisation(10L, data);
+
+        verify(repository).insertWarrantAuthorisation(10L, authorisation);
+        assertThat(response.getState()).isNull();
+    }
+
+    @Test
+    void setCaseStateReturnsRequestedState() {
+        TecCase data = new TecCase();
+        data.setTargetCaseState("CLOSED");
+
+        SubmitResponse<CaseState> response = setCaseState(11L, data);
+
+        assertThat(response.getState()).isEqualTo(CaseState.CLOSED);
+    }
+
+    @Test
+    void setCaseStateRequiresTarget() {
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> setCaseState(12L, new TecCase())
+        );
+    }
+
+    @Test
+    void setCaseStateRejectsUnknownState() {
+        TecCase data = new TecCase();
+        data.setTargetCaseState("NOT_A_STATE");
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> setCaseState(13L, data)
+        );
+    }
+
     @SuppressWarnings("unchecked")
     private SubmitResponse<CaseState> verifyFormValidation(long caseReference, TecCase data) {
         return (SubmitResponse<CaseState>) ReflectionTestUtils.invokeMethod(
             configuration,
             "verifyFormValidation",
+            new EventPayload<>(caseReference, data, null)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private SubmitResponse<CaseState> applyWarrantAuthorisation(long caseReference, TecCase data) {
+        return (SubmitResponse<CaseState>) ReflectionTestUtils.invokeMethod(
+            configuration,
+            "applyWarrantAuthorisation",
+            new EventPayload<>(caseReference, data, null)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private SubmitResponse<CaseState> setCaseState(long caseReference, TecCase data) {
+        return (SubmitResponse<CaseState>) ReflectionTestUtils.invokeMethod(
+            configuration,
+            "setCaseState",
             new EventPayload<>(caseReference, data, null)
         );
     }

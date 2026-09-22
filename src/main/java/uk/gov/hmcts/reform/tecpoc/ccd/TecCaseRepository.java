@@ -586,6 +586,41 @@ public class TecCaseRepository {
             });
     }
 
+    public UUID insertWarrantAuthorisation(long caseReference, WarrantAuthorisation authorisation) {
+        UUID id = UUID.randomUUID();
+        database.update("""
+            insert into tec_case_warrant_authorisation (
+                id, case_reference, date_of_issue, date_of_expiry, status
+            ) values (
+                :id, :caseReference, :dateOfIssue, :dateOfExpiry, :status
+            )
+            """, new MapSqlParameterSource()
+            .addValue("id", id)
+            .addValue("caseReference", caseReference)
+            .addValue("dateOfIssue", authorisation.getDateOfIssue())
+            .addValue("dateOfExpiry", authorisation.getDateOfExpiry())
+            .addValue("status", authorisation.getStatus().name()));
+        return id;
+    }
+
+    public List<TecCaseWarrantAuthorisation> findWarrantAuthorisations(long caseReference) {
+        return database.query("""
+            select id, date_of_issue, date_of_expiry, status
+              from tec_case_warrant_authorisation
+             where case_reference = :caseReference
+             order by date_of_issue asc, created_at asc, id asc
+            """, Map.of("caseReference", caseReference), (resultSet, rowNumber) -> {
+                Date dateOfIssue = resultSet.getDate("date_of_issue");
+                Date dateOfExpiry = resultSet.getDate("date_of_expiry");
+                return new TecCaseWarrantAuthorisation(
+                    resultSet.getObject("id", UUID.class),
+                    dateOfIssue == null ? null : dateOfIssue.toLocalDate(),
+                    dateOfExpiry == null ? null : dateOfExpiry.toLocalDate(),
+                    WarrantAuthorisationStatus.valueOf(resultSet.getString("status"))
+                );
+            });
+    }
+
     private MapSqlParameterSource parameters(long caseReference, TecCase tecCase) {
         return new MapSqlParameterSource()
             .addValue("caseReference", caseReference)
