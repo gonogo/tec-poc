@@ -105,6 +105,129 @@ state matrix. Prefer **real lifecycle scripts** where they exist; use
 
 Explanations on the design page are short and aimed at designers: what to look at in ExUI.
 
+When you change which demos exist, update this table so it stays aligned with
+`seed_catalogue()` in the script.
+
+## Customising the catalogue
+
+The live catalogue is **not** a separate config file. Edit
+`bin/seed-demo-catalogue.sh` — specifically the `seed_catalogue()` function.
+Each demo is a short **recipe** (calls to existing `bin/*.sh`) followed by a
+**`record_entry`** so the case appears on the design docs page.
+
+After any change, re-run with the stack up:
+
+```bash
+./bin/seed-demo-catalogue.sh
+```
+
+That clears (unless `--skip-clear`), recreates cases, and rewrites the generated
+partial. Refresh [Local demo cases](http://localhost:4567/local-demo-cases.html).
+
+### `record_entry` fields
+
+```bash
+record_entry \
+  "<id>" \
+  "<title shown on the design page>" \
+  "<TEC|TEC_BATCH|TEC_EXCEPTION>" \
+  "<state label>" \
+  "<caseReference>" \
+  "<short explanation for designers>"
+```
+
+| Argument | Notes |
+| --- | --- |
+| `id` | Stable slug; becomes HTML anchor `#demo-<id>` on the design page. Prefer kebab-case |
+| `title` | Human heading in the table |
+| case type | `TEC`, `TEC_BATCH`, or `TEC_EXCEPTION` |
+| state | CCD state name (or the value returned by a mutate script) |
+| case reference | From `require_ref` / create-script JSON |
+| explanation | One or two sentences: what to open in ExUI, not CCD event IDs |
+
+### Helpers already in the script
+
+| Helper | Purpose |
+| --- | --- |
+| `require_ref <script> [args…]` | Run a create script; print `caseReference` or exit |
+| `state_from_json_cmd <fallback> <script> [args…]` | Run a mutate script that prints JSON; print `.state` (or fallback) |
+| `unique_batch_identifier` | New `RAB######` id matching create-batch validation |
+| `record_entry …` | Append one row to the in-memory catalogue (later written to the partial) |
+
+Typical PCN patterns:
+
+```bash
+# Leave create default (PENDING_CASE_ISSUED)
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+record_entry "pcn-pending-case-issued" "…" "TEC" "PENDING_CASE_ISSUED" "${ref}" "…"
+
+# Real lifecycle
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
+record_entry "pcn-case-issued" "…" "TEC" "${state}" "${ref}" "…"
+
+# Prototype-only state
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
+  "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
+record_entry "pcn-awaiting-la-oot" "…" "TEC" "${state}" "${ref}" "…"
+
+# Create + link to a batch (side-effects depend on batch type)
+BATCH_IDENTIFIER="$(unique_batch_identifier)"
+batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
+record_entry "pcn-refer-enforcement" "…" "TEC" "REFER_FOR_ENFORCEMENT" "${ref}" "…"
+```
+
+Pass env into a helper the same way as a normal command:
+
+```bash
+state="$(
+  STATUS=active state_from_json_cmd WARRANT_AUTHORISATION_ISSUED \
+    "${SCRIPT_DIR}/apply-warrant-authorisation.sh" "${ref}"
+)"
+```
+
+### Add, change, or remove a demo
+
+1. **Change** — edit that block’s recipe and/or `record_entry` title / explanation / state.
+2. **Remove** — delete (or comment out) the whole block in `seed_catalogue()`.
+3. **Add** — copy a similar block; compose only scripts from
+   [Local bin scripts](/local-scripts.html). Call `record_entry` so the row is emitted.
+4. Prefer **real lifecycle** scripts (`transition-to-case-issued.sh`,
+   `apply-warrant-authorisation.sh`, batch link via create) where they exist; use
+   `set-case-state.sh` for prototype-only PCN states.
+5. Keep **`id`s stable** if designers bookmark `#demo-…` anchors.
+6. Update the [scenario catalogue](#scenario-catalogue) table on this page when the set of demos changes.
+7. Do **not** hand-edit `design_docs/source/partials/_local_demo_case_links.html.erb` —
+   it is gitignored and overwritten on every seed.
+
+### Light tuning without editing recipes
+
+| Mechanism | Effect |
+| --- | --- |
+| `REGISTRATION_PCN_COUNT` | PCNs created for `batch-registration-with-pcns` (default `3`) |
+| `EXUI_BASE_URL` | Base URL for case links (default `http://localhost:3000`) |
+| `DESIGN_DOCS_URL` | Printed at end of the run |
+| `TEC_API_URL` | Health check / create APIs (default `http://localhost:4013`) |
+| `--skip-clear` / `SKIP_CLEAR=true` | Re-seed without `clear-tec-cases.sh` (refs accumulate; usually avoid) |
+
+```bash
+REGISTRATION_PCN_COUNT=5 ./bin/seed-demo-catalogue.sh
+./bin/seed-demo-catalogue.sh --skip-clear
+```
+
+### Implementation pitfalls
+
+- **Batch identifiers** must match `^R[A-Z]{2,3}[0-9]{6}$` (use `unique_batch_identifier`, or set
+  `BATCH_IDENTIFIER` / `FILE_IDENTIFIER` consistently when overriding).
+- **Progress on stderr**, machine data on stdout from create scripts — keep that split so
+  `require_ref` / `jq` stay reliable.
+- When writing JSON with `jq` and only `--arg` / `--argjson` (no stdin payload), use
+  `--null-input` so an interactive TTY does not hang waiting for input.
+- Stack must match current source (Definition Store + API). Stale `bootWithCCD` runs can reject
+  newer batch types or `CaseState` values — restart with `./bin/restart-boot-with-ccd.sh`.
+
 ## Orchestrator behaviour
 
 Script: `bin/seed-demo-catalogue.sh`.
