@@ -53,7 +53,6 @@ Used by other scripts; rarely invoked directly.
 | `bin/create-tec-cases.sh` | `<batch-case-reference\|->` | Bulk randomised PCNs (`CASE_COUNT`, default 20) |
 | `bin/create-gm-tec-cases.sh` | `<batch-case-reference\|->` | PCNs for each Greater Manchester authority (`CASES_PER_AUTHORITY`, default 10) |
 | `bin/create-tec-exception-case.sh` | (optional env overrides) | Create one `TEC_EXCEPTION` via `POST /exception-cases` |
-| `bin/create-tec-enforcement-case.sh` | `<pcn-ref> [pcn-ref...]` | Create `TEC_ENFORCEMENT`, link the given PCNs, attach `fixtures/TE10.pdf` |
 | `bin/assert-batch-case-exists.sh` | `<batch-case-reference>` | Verify a CCD case exists and is `TEC_BATCH` (used by the create/link scripts) |
 
 ### Create batch examples

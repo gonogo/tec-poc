@@ -15,7 +15,6 @@ readonly ES_TEC_ALIASES=(
   tec_cases
   tec_batch_cases
   tec_exception_cases
-  tec_enforcement_cases
 )
 
 ASSUME_YES=false
@@ -30,7 +29,7 @@ Usage: ${SCRIPT_NAME} [OPTIONS]
 Permanently delete all TEC case data from the local CFTLib Postgres and
 Elasticsearch so you can re-seed without restarting the stack. Clears:
 
-  - tec.public business tables (PCN, batch, exception, enforcement + documents + warrant authorisations)
+  - tec.public business tables (PCN, batch, exception + documents + warrant authorisations)
   - tec.ccd decentralised lifecycle rows for jurisdiction TEC
   - datastore.public CCD orchestration rows for jurisdiction TEC
     (including case_link / Linked Cases)
@@ -224,8 +223,6 @@ print_counts() {
   echo "    tec_batch_document:    $(count_or_zero tec 'SELECT count(*) FROM tec_batch_document')"
   echo "    tec_batch_pcn_link:    $(count_or_zero tec 'SELECT count(*) FROM tec_batch_pcn_link')"
   echo "    tec_exception_case:    $(count_or_zero tec 'SELECT count(*) FROM tec_exception_case')"
-  echo "    tec_enforcement_case:  $(count_or_zero tec 'SELECT count(*) FROM tec_enforcement_case')"
-  echo "    tec_enforcement_case_document: $(count_or_zero tec 'SELECT count(*) FROM tec_enforcement_case_document')"
   echo "  tec.ccd:"
   echo "    case_data (TEC):       $(count_or_zero tec "SELECT count(*) FROM ccd.case_data WHERE jurisdiction = 'TEC'")"
   echo "  datastore.public:"
@@ -271,11 +268,9 @@ TRUNCATE TABLE
   tec_case_warrant_authorisation,
   tec_batch_pcn_link,
   tec_batch_document,
-  tec_enforcement_case_document,
   tec_case,
   tec_exception_case,
-  tec_batch,
-  tec_enforcement_case
+  tec_batch
 RESTART IDENTITY CASCADE;
 
 DELETE FROM ccd.case_data WHERE jurisdiction = 'TEC';

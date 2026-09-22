@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CCDDefinitionGenerator;
 import uk.gov.hmcts.reform.tecpoc.ccd.BatchCaseConfiguration;
 import uk.gov.hmcts.reform.tecpoc.ccd.CaseState;
-import uk.gov.hmcts.reform.tecpoc.ccd.EnforcementCaseConfiguration;
 import uk.gov.hmcts.reform.tecpoc.ccd.ExceptionCaseConfiguration;
 import uk.gov.hmcts.reform.tecpoc.ccd.TecCaseConfiguration;
 import uk.gov.hmcts.reform.tecpoc.ccd.UserRole;
@@ -57,11 +56,10 @@ public class TecCftLibConfiguration implements CFTLibConfigurer {
         );
 
         definitionGenerator.generateAllCaseTypesToJSON(new File("build/ccd-definition"));
-        // Import TEC before TEC_BATCH / TEC_EXCEPTION / TEC_ENFORCEMENT so Definition Store / ExUI prefer PCN cases first.
+        // Import TEC before TEC_BATCH / TEC_EXCEPTION so Definition Store / ExUI prefer PCN cases first.
         lib.importJsonDefinition(new File("build/ccd-definition/" + TecCaseConfiguration.CASE_TYPE));
         lib.importJsonDefinition(new File("build/ccd-definition/" + BatchCaseConfiguration.CASE_TYPE));
         lib.importJsonDefinition(new File("build/ccd-definition/" + ExceptionCaseConfiguration.CASE_TYPE));
-        lib.importJsonDefinition(new File("build/ccd-definition/" + EnforcementCaseConfiguration.CASE_TYPE));
 
         lib.createProfile(
             DEMO_USER,

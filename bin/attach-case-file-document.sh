@@ -34,7 +34,7 @@ Attach a file to a TEC case so it appears in the Case File View folder.
   applications ("Applications")
   correspondence ("Correspondence")
   uncategorisedDocuments ("Uncategorised")
-  flat | none | ""  (no folder — for TEC_ENFORCEMENT flat Case File View)
+  flat | none | ""  (no folder — documents without a Case File View category)
 
 Optional environment variables:
   CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION,

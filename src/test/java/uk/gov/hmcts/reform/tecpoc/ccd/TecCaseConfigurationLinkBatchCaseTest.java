@@ -24,7 +24,7 @@ class TecCaseConfigurationLinkBatchCaseTest {
     void setUp() {
         repository = mock(TecCaseRepository.class);
         batchCaseRepository = mock(BatchCaseRepository.class);
-        configuration = new TecCaseConfiguration(repository, batchCaseRepository, mock(EnforcementCaseRepository.class));
+        configuration = new TecCaseConfiguration(repository, batchCaseRepository);
     }
 
     @Test

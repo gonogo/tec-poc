@@ -55,34 +55,6 @@ public class TecCase {
     )
     private BatchOperation batchLinkType;
 
-    /**
-     * Set to {@code Yes} by {@link TecCaseView} when this PCN is linked to a TEC Enforcement case.
-     * Drives show-conditions for the Enforcement section on Case details.
-     */
-    @CCD(label = "Enforcement linked", searchable = false)
-    private String enforcementLinked;
-
-    /**
-     * CCD link to the owning {@code TEC_ENFORCEMENT} case.
-     * Persisted as {@code tec_case.enforcement_case_reference}; reconstructed by {@link TecCaseView}.
-     */
-    @CCD(label = "Enforcement case")
-    private CaseLink enforcementCase;
-
-    /**
-     * Enforcement case status for the Case details Enforcement section.
-     * Populated by {@link TecCaseView} when linked.
-     */
-    @CCD(label = "Status", searchable = false)
-    private String enforcementStatusDisplay;
-
-    /**
-     * Enforcement case created date for the Case details Enforcement section.
-     * Populated by {@link TecCaseView} when linked.
-     */
-    @CCD(label = "Date created", searchable = false)
-    private LocalDate enforcementCreatedDate;
-
     @CCD(label = "Penalty charge number")
     private String penaltyChargeNumber;
 
@@ -363,7 +335,6 @@ public class TecCase {
 
     /**
      * Standard CCD Linked Cases collection. Field id must remain {@code caseLinks}.
-     * Populated by {@link TecCaseView} from the enforcement CaseLink when set.
      * Batch links are owned by the batch case ({@code caseLinks} there) so the PCN
      * shows them under ExUI "linked from", not in this collection.
      * Registration membership is {@code tec_case.batch_case_reference}; other batch

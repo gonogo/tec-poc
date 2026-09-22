@@ -107,7 +107,7 @@ Journey detail: [tech_docs/source/ccd-architecture.html.md.erb](tech_docs/source
 
 ## Clear TEC cases
 
-With `bootWithCCD` running, wipe all local TEC case data (PCN, batch, exception, enforcement)
+With `bootWithCCD` running, wipe all local TEC case data (PCN, batch, exception)
 from the `tec` and `datastore` databases **and** the Elasticsearch search indices (so ExUI Find
 case / work-basket do not keep ghost results):
 
@@ -359,13 +359,7 @@ Hyphens in either case reference are optional. Both paths:
 If Reasons stay blank locally, run `./bin/fix-linked-case-reasons.sh` (nav proxy LOV stub) and
 restart the app so CaseView emits `CLRC007`.
 
-### Create an enforcement case (local)
-
-```bash
-./bin/create-tec-enforcement-case.sh <pcn-case-reference> [pcn-case-reference...]
-```
-
-Creates a `TEC_ENFORCEMENT` case, links the given PCNs, and attaches `fixtures/TE10.pdf`.
+### Generate a sample TE9/PE3 application (local)
 
 With `bootWithCCD` running, generate application data for an existing case, submit the
 `recordApplication` event, fill the TE9/PE3 PDF template, and attach it under **Applications**:

@@ -20,8 +20,7 @@ class TecCaseConfigurationTest {
         repository = mock(TecCaseRepository.class);
         configuration = new TecCaseConfiguration(
             repository,
-            mock(BatchCaseRepository.class),
-            mock(EnforcementCaseRepository.class)
+            mock(BatchCaseRepository.class)
         );
     }
 
