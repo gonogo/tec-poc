@@ -91,6 +91,7 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field("rolesAndAccessMarkdown", NEVER_SHOW);
 
         builder.tab("caseDetails", "Case details")
+            .field(TecCase::getStatusDisplay)
             .label("registrationSection", null, "## Registration")
             .field(TecCase::getFileIdentifier)
             .field(TecCase::getBatchIdentifier)

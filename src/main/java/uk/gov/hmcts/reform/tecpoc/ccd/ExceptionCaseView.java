@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CaseView;
 import uk.gov.hmcts.ccd.sdk.CaseViewRequest;
+import uk.gov.hmcts.ccd.sdk.api.CCD;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
@@ -25,6 +26,7 @@ public class ExceptionCaseView implements CaseView<ExceptionCase, ExceptionCaseS
     @Override
     public ExceptionCase getCase(CaseViewRequest<ExceptionCaseState> request) {
         ExceptionCase exceptionCase = repository.find(request.caseRef());
+        exceptionCase.setStatusDisplay(stateLabel(request.state()));
         exceptionCase.setFormValidationResultDisplay(PLACEHOLDER_DISPLAY);
         exceptionCase.setAssociatedTecCaseDisplay(PLACEHOLDER_DISPLAY);
         exceptionCase.setTasksMarkdown(
@@ -36,5 +38,17 @@ public class ExceptionCaseView implements CaseView<ExceptionCase, ExceptionCaseS
         );
         exceptionCase.setAllDocuments(List.<ListValue<Document>>of());
         return exceptionCase;
+    }
+
+    static String stateLabel(ExceptionCaseState state) {
+        try {
+            CCD ccd = ExceptionCaseState.class.getField(state.name()).getAnnotation(CCD.class);
+            if (ccd != null && ccd.label() != null && !ccd.label().isBlank()) {
+                return ccd.label();
+            }
+        } catch (NoSuchFieldException ignored) {
+            // fall through
+        }
+        return state.name();
     }
 }

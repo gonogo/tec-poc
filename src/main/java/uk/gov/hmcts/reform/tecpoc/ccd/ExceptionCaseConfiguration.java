@@ -75,6 +75,7 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
             .field("rolesAndAccessMarkdown", NEVER_SHOW);
 
         builder.tab("caseDetails", "Case details")
+            .field(ExceptionCase::getStatusDisplay)
             .field(ExceptionCase::getFormValidationResultDisplay)
             .field(ExceptionCase::getAssociatedTecCaseDisplay)
             .field(ExceptionCase::getPenaltyChargeNumber);

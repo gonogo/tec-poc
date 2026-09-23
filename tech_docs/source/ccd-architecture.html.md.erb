@@ -217,7 +217,8 @@ follows Case File View instead of the SDK default of prepending it):
 - **Roles and access**: CCD shell tab so the label always appears in Manage Case. This is not ExUI's
   Work Allocation / case access management UI (that is prepended only when WA is enabled for the
   jurisdiction).
-- **Case details**: a **Registration** section containing identifiers (including a **Batch case**
+- **Case details**: view-only **State** at the top (from CCD state via `TecCaseView`), then a
+  **Registration** section containing identifiers (including a **Batch case**
   `CaseLink` to the related registration `TEC_BATCH` case when `batch_case_reference` is set), local authority, respondent lines, vehicle/offence details,
   certificate date, amount, and registration workflow fields (payment status/reference, closure reason, registration
   document and date); an application section headed by form and timeliness
@@ -317,7 +318,7 @@ Fields appear in this order:
 
 | Field | Notes |
 | --- | --- |
-| Status | View-only label from CCD state (`Queued for processing` / `Processing started` / `Processing complete`) |
+| State | View-only label from CCD state (`Queued for processing` / `Processing started` / `Processing complete`) |
 | File identifier | Persisted; authority prefix must match batch identifier |
 | Batch identifier | Persisted |
 | Local authority | Persisted `FixedList` |
@@ -362,7 +363,7 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 | Config | `ExceptionCaseConfiguration` — tabs Tasks, Roles and access, Case details, Case File View, History |
 | State | `EXCEPTION_PENDING_REVIEW` only (Reject item does not close the case) |
 | Persistence | `public.tec_exception_case` |
-| Case details | Form validation result `—`, Associated TEC case `—`, PCN (placeholders set in `ExceptionCaseView`) |
+| Case details | **State** (from CCD state), Form validation result `—`, Associated TEC case `—`, PCN (placeholders set in `ExceptionCaseView`) |
 | Case File View | Same folder categories as PCN (`ExceptionCaseFileCategory`); empty until documents are attached |
 | Search / work basket inputs | PCN |
 | Search results | Case reference, **State**, PCN |

@@ -16,6 +16,13 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 public class ExceptionCase {
 
     /**
+     * Case-view display for CCD state. Populated by {@link ExceptionCaseView} so ExUI can show
+     * State at the top of Case details (state itself is not case data).
+     */
+    @CCD(label = "State")
+    private String statusDisplay;
+
+    /**
      * Always populated by {@link ExceptionCaseView} as {@code —} for the PoC.
      */
     @CCD(label = "Form validation result", searchable = false)

@@ -20,6 +20,13 @@ import uk.gov.hmcts.ccd.sdk.type.ListValue;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TecCase {
 
+    /**
+     * Case-view display for CCD state. Populated by {@link TecCaseView} so ExUI can show
+     * State at the top of Case details (state itself is not case data).
+     */
+    @CCD(label = "State")
+    private String statusDisplay;
+
     @CCD(label = "File identifier")
     private String fileIdentifier;
 

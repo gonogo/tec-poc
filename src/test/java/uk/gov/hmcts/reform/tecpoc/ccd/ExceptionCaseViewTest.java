@@ -30,6 +30,7 @@ class ExceptionCaseViewTest {
         );
 
         assertThat(result.getPenaltyChargeNumber()).isEqualTo("AB1234567A0");
+        assertThat(result.getStatusDisplay()).isEqualTo("Exception pending review");
         assertThat(result.getFormValidationResultDisplay())
             .isEqualTo(ExceptionCaseView.PLACEHOLDER_DISPLAY);
         assertThat(result.getAssociatedTecCaseDisplay())
@@ -47,5 +48,11 @@ class ExceptionCaseViewTest {
     @Test
     void caseTypeIdsIncludesTecException() {
         assertThat(view.caseTypeIds()).containsExactly(ExceptionCaseConfiguration.CASE_TYPE);
+    }
+
+    @Test
+    void stateLabelMatchesCcdAnnotation() {
+        assertThat(ExceptionCaseView.stateLabel(ExceptionCaseState.EXCEPTION_PENDING_REVIEW))
+            .isEqualTo("Exception pending review");
     }
 }

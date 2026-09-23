@@ -37,5 +37,6 @@ class TecCaseViewLinkedCasesTest {
         TecCase result = view.getCase(new CaseViewRequest<>(111L, CaseState.CASE_ISSUED));
 
         assertThat(result.getCaseLinks()).isEmpty();
+        assertThat(result.getStatusDisplay()).isEqualTo("Case Issued");
     }
 }

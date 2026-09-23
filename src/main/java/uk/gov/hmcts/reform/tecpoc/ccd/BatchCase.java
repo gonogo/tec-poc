@@ -101,9 +101,9 @@ public class BatchCase {
 
     /**
      * Case-view display for CCD state. Populated by {@link BatchCaseView} so ExUI can show
-     * status at the top of Case details (state itself is not case data).
+     * State at the top of Case details (state itself is not case data).
      */
-    @CCD(label = "Status")
+    @CCD(label = "State")
     private String statusDisplay;
 
     /**

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.ccd.sdk.CaseView;
 import uk.gov.hmcts.ccd.sdk.CaseViewRequest;
+import uk.gov.hmcts.ccd.sdk.api.CCD;
 import uk.gov.hmcts.ccd.sdk.type.Document;
 import uk.gov.hmcts.ccd.sdk.type.ListValue;
 
@@ -29,6 +30,7 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         // Event-only fields — never surface on Case details / case_link sync from CaseView.
         tecCase.setBatchLinkCase(null);
         tecCase.setBatchLinkType(null);
+        tecCase.setStatusDisplay(stateLabel(request.state()));
         tecCase.setTasksMarkdown(
             TecPrototypeTasks.markdownFor(request.caseRef(), request.state(), tecCase)
         );
@@ -53,6 +55,22 @@ public class TecCaseView implements CaseView<TecCase, CaseState> {
         );
         tecCase.setAllDocuments(toAllDocuments(repository.findDocuments(request.caseRef())));
         return tecCase;
+    }
+
+    static String stateLabel(CaseState state) {
+        return ccdLabel(state);
+    }
+
+    private static String ccdLabel(Enum<?> state) {
+        try {
+            CCD ccd = state.getClass().getField(state.name()).getAnnotation(CCD.class);
+            if (ccd != null && ccd.label() != null && !ccd.label().isBlank()) {
+                return ccd.label();
+            }
+        } catch (NoSuchFieldException ignored) {
+            // fall through
+        }
+        return state.name();
     }
 
     static List<ListValue<Document>> toAllDocuments(List<TecCaseDocument> documents) {
