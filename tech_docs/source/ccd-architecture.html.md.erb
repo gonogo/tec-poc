@@ -288,7 +288,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | Piece | Location / behaviour |
 | --- | --- |
 | Config | `BatchCaseConfiguration` — tabs Tasks, Roles and access, Batch details, Case File View, History, Linked Cases |
-| States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` |
+| States | `QUEUED_FOR_PROCESSING` → `PROCESSING_STARTED` → `PROCESSING_COMPLETE` / `PROCESSING_FAILED` |
 | Persistence | `public.tec_batch` + `public.tec_batch_document` |
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
 | Search / work basket inputs | File identifier, batch identifier, local authority, **Submitter email**, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
@@ -296,7 +296,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | Work-basket results | Case reference, file identifier, local authority, submitter email, batch type, PCN count, **State** (far right) |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Upload batch file | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
-| Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument`, `linkPcnCases` |
+| Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `failBatchProcessing`, `attachBatchDocument`, `linkPcnCases` |
 
 #### Batch details presentation
 
@@ -318,7 +318,7 @@ Fields appear in this order:
 
 | Field | Notes |
 | --- | --- |
-| State | View-only label from CCD state (`Queued for processing` / `Processing started` / `Processing complete`) |
+| State | View-only label from CCD state (`Queued for processing` / `Processing started` / `Processing complete` / `Processing failed`) |
 | File identifier | Persisted; authority prefix must match batch identifier |
 | Batch identifier | Persisted |
 | Local authority | Persisted `FixedList` |

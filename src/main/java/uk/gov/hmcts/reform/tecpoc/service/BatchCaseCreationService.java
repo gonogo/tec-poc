@@ -26,6 +26,7 @@ public class BatchCaseCreationService {
     private static final String CREATE_EVENT_ID = "createBatch";
     private static final String START_PROCESSING_EVENT_ID = "startBatchProcessing";
     private static final String COMPLETE_PROCESSING_EVENT_ID = "completeBatchProcessing";
+    private static final String FAIL_PROCESSING_EVENT_ID = "failBatchProcessing";
     private static final String ATTACH_DOCUMENT_EVENT_ID = "attachBatchDocument";
 
     private final CoreCaseDataApi coreCaseDataApi;
@@ -62,7 +63,8 @@ public class BatchCaseCreationService {
 
         BatchCaseState targetState = request.resolvedTargetState();
         if (targetState == BatchCaseState.PROCESSING_STARTED
-            || targetState == BatchCaseState.PROCESSING_COMPLETE) {
+            || targetState == BatchCaseState.PROCESSING_COMPLETE
+            || targetState == BatchCaseState.PROCESSING_FAILED) {
             state = triggerTransition(
                 authorisation,
                 serviceAuthorisation,
@@ -78,6 +80,15 @@ public class BatchCaseCreationService {
                 caseReference,
                 COMPLETE_PROCESSING_EVENT_ID,
                 "Batch processing complete"
+            );
+        }
+        if (targetState == BatchCaseState.PROCESSING_FAILED) {
+            state = triggerTransition(
+                authorisation,
+                serviceAuthorisation,
+                caseReference,
+                FAIL_PROCESSING_EVENT_ID,
+                "Batch processing failed"
             );
         }
 

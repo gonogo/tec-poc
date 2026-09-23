@@ -89,19 +89,23 @@ state matrix. Prefer **real lifecycle scripts** where they exist; use
 `bin/set-case-state.sh` only for prototype-only PCN states (see
 [CCD architecture — States and events](/ccd-architecture.html#states-and-events)).
 
-| Id | Type | Demonstrates | Recipe sketch |
-| --- | --- | --- | --- |
-| `pcn-pending-case-issued` | `TEC` | Fresh registration, payment pending | `create-tec-case.sh -` (leave default state) |
-| `pcn-case-issued` | `TEC` | After registration payment | create → `transition-to-case-issued.sh` |
-| `pcn-awaiting-la-oot` | `TEC` | Prototype OOT / LA response Tasks | create → `set-case-state.sh … AWAITING_LA_OOT_RESPONSE` |
-| `pcn-warrant-issued` | `TEC` | Warrant authorisation on case | create → `apply-warrant-authorisation.sh` (`STATUS=active`) |
-| `pcn-warrant-expired` | `TEC` | Expired warrant | create → `STATUS=expired apply-warrant-authorisation.sh` |
-| `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | `create-tec-batch.sh … transferRequest` → `create-tec-case.sh "${BATCH_REF}"` |
-| `pcn-closed` | `TEC` | Closure-request link side-effect | `create-tec-batch.sh … caseClosureRequests` → create with batch ref |
-| `batch-registration-with-pcns` | `TEC_BATCH` + linked `TEC` | Registration batch + Linked Cases | `create-tec-batch.sh` → `CASE_COUNT=n create-tec-cases.sh "${BATCH_REF}"` |
-| `batch-queued` | `TEC_BATCH` | Queued for processing | `TARGET_STATE=QUEUED_FOR_PROCESSING create-tec-batch.sh …` |
-| `batch-processing-complete` | `TEC_BATCH` | Processing complete | `TARGET_STATE=PROCESSING_COMPLETE create-tec-batch.sh …` |
-| `exception-pending-review` | `TEC_EXCEPTION` | Exception review Tasks | `create-tec-exception-case.sh` |
+| Id | Type | Demonstrates | Documents | Recipe sketch |
+| --- | --- | --- | --- | --- |
+| `pcn-pending-case-issued` | `TEC` | Fresh registration, payment pending | none | `create-tec-case.sh -` |
+| `pcn-case-issued` | `TEC` | After registration payment | Applications: in-time TE9 | create → `transition-to-case-issued.sh` → `generate-application.sh … "in time" TE9` |
+| `pcn-awaiting-la-oot` | `TEC` | Prototype OOT / LA response Tasks | Applications: OOT TE9 + TE7 | generate OOT TE9 + TE7 → `set-case-state.sh … AWAITING_LA_OOT_RESPONSE` |
+| `pcn-warrant-issued` | `TEC` | Warrant authorisation on case | none | create → `apply-warrant-authorisation.sh` (`STATUS=active`) |
+| `pcn-warrant-expired` | `TEC` | Expired warrant | none | create → `STATUS=expired apply-warrant-authorisation.sh` |
+| `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | On transfer **batch** Inputs: `Batch file.xlsx` + `TE10.png` | `create-tec-batch.sh … transferRequest` → attach → link PCN |
+| `pcn-closed` | `TEC` | Closure-request link side-effect | On closure **batch** Inputs: `Batch file.xlsx` | `create-tec-batch.sh … caseClosureRequests` → attach → link PCN |
+| `batch-registration-with-pcns` | `TEC_BATCH` + linked `TEC` | Registration batch + Linked Cases | Inputs: `Batch file.xlsx` | create batch → attach → `create-tec-cases.sh` |
+| `batch-queued` | `TEC_BATCH` | Queued for processing | Inputs: `Batch file.xlsx` | `TARGET_STATE=QUEUED_FOR_PROCESSING` → attach |
+| `batch-processing-complete` | `TEC_BATCH` | Processing complete | Inputs: `Batch file.xlsx`; Outputs: `PE3.pdf` | `TARGET_STATE=PROCESSING_COMPLETE` → attach |
+| `batch-processing-failed` | `TEC_BATCH` | Processing failed | Inputs: `Batch file.xlsx` | `TARGET_STATE=PROCESSING_FAILED` → attach |
+| `exception-pending-review` | `TEC_EXCEPTION` | Exception review Tasks | none (no attach event yet) | `create-tec-exception-case.sh` |
+
+Every seeded `TEC_BATCH` gets `bin/templates/Batch file.xlsx` under Inputs via
+`attach_standard_batch_inputs`. Transfer-request batches also get `TE10.png`.
 
 Explanations on the design page are short and aimed at designers: what to look at in ExUI.
 
@@ -153,6 +157,15 @@ record_entry \
 | `state_from_json_cmd <fallback> <script> [args…]` | Run a mutate script that prints JSON; print `.state` (or fallback) |
 | `unique_batch_identifier` | New `RAB######` id matching create-batch validation |
 | `record_entry …` | Append one row to the in-memory catalogue (later written to the partial) |
+| `attach_pcn_doc <ref> <folder> <file>` | `attach-case-file-document.sh` for PCN CFV folders |
+| `attach_batch_doc <ref> <inputs\|outputs> <file>` | Same with `CASE_TYPE_ID=TEC_BATCH` / `EVENT_ID=attachBatchDocument` |
+| `attach_standard_batch_inputs <batch-ref> [batch-type]` | Always attaches `Batch file.xlsx` → Inputs; also `TE10.png` when type is `transferRequest` |
+| `gen_application <ref> <in time\|out of time> <TE9\|PE3>` | `generate-application.sh` (Applications) |
+| `gen_time_extension <ref> <TE7\|PE2>` | `generate-time-extension.sh` (Applications) |
+
+Quote template paths that contain spaces, e.g. `"${TEMPLATES_DIR}/Batch file.xlsx"`.
+The attach script starts the local dm-store stub if needed. Exception cases have no
+attach event yet — leave their CFV empty.
 
 Typical PCN patterns:
 
@@ -161,20 +174,24 @@ Typical PCN patterns:
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
 record_entry "pcn-pending-case-issued" "…" "TEC" "PENDING_CASE_ISSUED" "${ref}" "…"
 
-# Real lifecycle
+# Real lifecycle + application PDF
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
 state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
+gen_application "${ref}" "in time" TE9
 record_entry "pcn-case-issued" "…" "TEC" "${state}" "${ref}" "…"
 
-# Prototype-only state
+# Prototype-only state with OOT application pair
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+gen_application "${ref}" "out of time" TE9
+gen_time_extension "${ref}" TE7
 state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
   "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
 record_entry "pcn-awaiting-la-oot" "…" "TEC" "${state}" "${ref}" "…"
 
-# Create + link to a batch (side-effects depend on batch type)
+# Batch with standard Inputs (and TE10 for transferRequest)
 BATCH_IDENTIFIER="$(unique_batch_identifier)"
 batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
+attach_standard_batch_inputs "${batch_ref}" transferRequest
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
 record_entry "pcn-refer-enforcement" "…" "TEC" "REFER_FOR_ENFORCEMENT" "${ref}" "…"
 ```

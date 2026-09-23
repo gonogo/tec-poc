@@ -68,7 +68,7 @@ LOCAL_AUTHORITY=manchesterCityCouncil ./bin/create-tec-batch.sh
 
 Optional env overrides for batch create include `FILE_IDENTIFIER`, `BATCH_IDENTIFIER`,
 `PCN_COUNT`, `OPERATION`, `RECEIVED_VIA`, `SUBMITTER_EMAIL`,
-`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`),
+`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE` | `PROCESSING_FAILED`),
 and `ATTACH_SAMPLE_DOCUMENTS`.
 
 ## Link and transition
@@ -101,7 +101,7 @@ A PCN may be linked to a registration batch and later to other batch types (e.g.
 
 | Script | Usage summary | Purpose |
 | --- | --- | --- |
-| `bin/attach-case-file-document.sh` | `<case-ref> <folder> <file-path>` | Upload via Case Document AM and attach to Case File View (`CASE_TYPE_ID` for non-PCN types) |
+| `bin/attach-case-file-document.sh` | `<case-ref> <folder> <file-path>` | Upload via Case Document AM and attach to Case File View. PCN folders by default. For batches: `CASE_TYPE_ID=TEC_BATCH EVENT_ID=attachBatchDocument` and folder `inputs` / `outputs` (payload field `batchFileDocument`) |
 | `bin/generate-application.sh` | `<case-ref> <in\|out of time> <TE9\|PE3>` | `recordApplication`, fill PDF, attach under Applications |
 | `bin/generate-time-extension.sh` | `<case-ref> <TE7\|PE2>` | `recordTimeExtension`, fill PDF, attach under Applications |
 | `bin/apply-warrant-authorisation.sh` | `<case-ref>` | `applyWarrantAuthorisation` — appends a warrant authorisation (issue/expiry/status) to the PCN; `STATUS=active` → `WARRANT_AUTHORISATION_ISSUED`, `expired` → `WARRANT_AUTHORISATION_EXPIRED`, `cancelled` → state unchanged |

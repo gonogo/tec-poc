@@ -229,7 +229,7 @@ second argument is the batch type / operation (`registration` default, or `OPERA
 `registration`, `warrantAuthRequests`, `warrantReissueRequests`, `outOfTimeDecisions`,
 `changeOfAddress`, `caseClosureRequests`, `transferRequest`. Other optional overrides: `FILE_IDENTIFIER`,
 `BATCH_IDENTIFIER`, `PCN_COUNT`, `RECEIVED_VIA`, `SUBMITTER_EMAIL`,
-`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE`).
+`TARGET_STATE` (`QUEUED_FOR_PROCESSING` | `PROCESSING_STARTED` | `PROCESSING_COMPLETE` | `PROCESSING_FAILED`).
 `create-tec-batches.sh` requires a count; it rotates authorities and batch types unless
 `LOCAL_AUTHORITY` / `[batch-type]` / `OPERATION` is set.
 Completed batches get sample Inputs/Outputs documents attached for Case File View demos.

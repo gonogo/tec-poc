@@ -40,6 +40,8 @@ class BatchCaseViewDocumentsTest {
             .isEqualTo("Processing started");
         assertThat(BatchCaseView.statusLabel(BatchCaseState.PROCESSING_COMPLETE))
             .isEqualTo("Processing complete");
+        assertThat(BatchCaseView.statusLabel(BatchCaseState.PROCESSING_FAILED))
+            .isEqualTo("Processing failed");
     }
 
     @Test
@@ -62,6 +64,9 @@ class BatchCaseViewDocumentsTest {
         ).isEqualTo("200");
         assertThat(
             BatchCaseView.pcnProcessedCountDisplay(BatchCaseState.PROCESSING_COMPLETE, batchCase)
+        ).isEqualTo("200");
+        assertThat(
+            BatchCaseView.pcnProcessedCountDisplay(BatchCaseState.PROCESSING_FAILED, batchCase)
         ).isEqualTo("200");
     }
 
@@ -104,6 +109,13 @@ class BatchCaseViewDocumentsTest {
         BatchCaseView.applyFees(registrationStarted, BatchCaseState.PROCESSING_STARTED);
         assertThat(registrationStarted.getFeesDue()).isNull();
         assertThat(registrationStarted.getFeesPaid()).isNull();
+
+        BatchCase registrationFailed = new BatchCase();
+        registrationFailed.setOperation(BatchOperation.REGISTRATION);
+        registrationFailed.setPcnCount(200);
+        BatchCaseView.applyFees(registrationFailed, BatchCaseState.PROCESSING_FAILED);
+        assertThat(registrationFailed.getFeesDue()).isNull();
+        assertThat(registrationFailed.getFeesPaid()).isNull();
     }
 
     @Test

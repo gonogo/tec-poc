@@ -226,6 +226,7 @@ ATTACH_RESPONSE="$("${SCRIPT_DIR}/attach-case-file-document.sh" \
   "Applications" \
   "${PDF_PATH}")"
 
+PDF_BASENAME="$(basename -- "${PDF_PATH}")"
 jq --null-input \
   --arg caseReference "${CASE_REFERENCE}" \
   --arg form "${FORM_CODE}" \

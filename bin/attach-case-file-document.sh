@@ -28,13 +28,19 @@ Usage: ${0} <case-reference> <folder> <file-path>
 
 Attach a file to a TEC case so it appears in the Case File View folder.
 
-<folder> may be a category id or label:
+<folder> may be a category id or label.
+
+PCN / Exception (CASE_TYPE_ID=TEC, default EVENT_ID=attachCaseFileDocument):
   hearingDocuments ("Hearing documents")
   ordersAndNoticesOfHearings ("Orders and notices of hearings")
   applications ("Applications")
   correspondence ("Correspondence")
   uncategorisedDocuments ("Uncategorised")
   flat | none | ""  (no folder — documents without a Case File View category)
+
+Batch (CASE_TYPE_ID=TEC_BATCH EVENT_ID=attachBatchDocument):
+  inputs ("Inputs")
+  outputs ("Outputs")
 
 Optional environment variables:
   CCD_DATA_STORE_URL, CASE_DOCUMENT_AM_URL, DOCUMENT_CLASSIFICATION,
@@ -73,6 +79,12 @@ resolve_category_id() {
     uncategoriseddocuments|uncategorised|"uncategorised documents")
       printf '%s\n' "uncategorisedDocuments"
       ;;
+    inputs)
+      printf '%s\n' "inputs"
+      ;;
+    outputs)
+      printf '%s\n' "outputs"
+      ;;
     flat|none|"")
       printf '%s\n' ""
       ;;
@@ -83,6 +95,12 @@ resolve_category_id() {
       ;;
   esac
 }
+
+# Batch attach event uses batchFileDocument; PCN uses caseFileDocument.
+DOCUMENT_FIELD="caseFileDocument"
+if [[ "${CASE_TYPE_ID}" == "TEC_BATCH" || "${EVENT_ID}" == "attachBatchDocument" ]]; then
+  DOCUMENT_FIELD="batchFileDocument"
+fi
 
 CATEGORY_ID="$(resolve_category_id "${FOLDER}")"
 FILENAME="$(basename -- "${FILE_PATH}")"
@@ -194,6 +212,7 @@ if [[ -z "${CATEGORY_ID}" ]]; then
   submit_body="$(jq --null-input --compact-output \
     --arg eventId "${EVENT_ID}" \
     --arg eventToken "${event_token}" \
+    --arg documentField "${DOCUMENT_FIELD}" \
     --arg documentUrl "${document_url}" \
     --arg documentBinaryUrl "${document_binary_url}" \
     --arg documentFilename "${FILENAME}" \
@@ -205,7 +224,7 @@ if [[ -z "${CATEGORY_ID}" ]]; then
         description: "Attach case file document"
       },
       data: {
-        caseFileDocument: {
+        ($documentField): {
           document_url: $documentUrl,
           document_binary_url: $documentBinaryUrl,
           document_filename: $documentFilename,
@@ -218,6 +237,7 @@ else
   submit_body="$(jq --null-input --compact-output \
     --arg eventId "${EVENT_ID}" \
     --arg eventToken "${event_token}" \
+    --arg documentField "${DOCUMENT_FIELD}" \
     --arg documentUrl "${document_url}" \
     --arg documentBinaryUrl "${document_binary_url}" \
     --arg documentFilename "${FILENAME}" \
@@ -230,7 +250,7 @@ else
         description: "Attach case file document"
       },
       data: {
-        caseFileDocument: {
+        ($documentField): {
           document_url: $documentUrl,
           document_binary_url: $documentBinaryUrl,
           document_filename: $documentFilename,

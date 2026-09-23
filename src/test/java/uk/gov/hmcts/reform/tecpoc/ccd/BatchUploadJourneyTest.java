@@ -148,6 +148,22 @@ class BatchUploadJourneyTest {
     }
 
     @Test
+    void failBatchProcessingFails() {
+        BatchCase data = new BatchCase();
+
+        @SuppressWarnings("unchecked")
+        SubmitResponse<BatchCaseState> response =
+            (SubmitResponse<BatchCaseState>) ReflectionTestUtils.invokeMethod(
+                configuration,
+                "failBatchProcessing",
+                eventPayload(55L, data)
+            );
+
+        verify(repository, never()).create(anyLong(), org.mockito.ArgumentMatchers.any());
+        assertThat(response.getState()).isEqualTo(BatchCaseState.PROCESSING_FAILED);
+    }
+
+    @Test
     void uploadBatchRejectsMissingDeclaration() {
         BatchCase data = new BatchCase();
         data.setBatchTypeSelection(BatchTypeOption.REGISTRATION);

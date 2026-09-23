@@ -82,6 +82,7 @@ public class BatchCaseView implements CaseView<BatchCase, BatchCaseState> {
             case QUEUED_FOR_PROCESSING -> "Queued for processing";
             case PROCESSING_STARTED -> "Processing started";
             case PROCESSING_COMPLETE -> "Processing complete";
+            case PROCESSING_FAILED -> "Processing failed";
         };
     }
 

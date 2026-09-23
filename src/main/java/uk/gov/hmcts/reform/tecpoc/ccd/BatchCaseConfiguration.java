@@ -282,6 +282,12 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .showCondition(NEVER_SHOW)
             .grant(Permission.CRUD, UserRole.SYSTEM);
 
+        builder.decentralisedEvent("failBatchProcessing", this::failBatchProcessing)
+            .forStates(BatchCaseState.PROCESSING_STARTED, BatchCaseState.PROCESSING_FAILED)
+            .name("Batch processing failed")
+            .showCondition(NEVER_SHOW)
+            .grant(Permission.CRUD, UserRole.SYSTEM);
+
         builder.decentralisedEvent("attachBatchDocument", this::attachBatchDocument)
             .forStates(BatchCaseState.values())
             .name("Attach batch document")
@@ -355,6 +361,12 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
         EventPayload<BatchCase, BatchCaseState> event
     ) {
         return response(BatchCaseState.PROCESSING_COMPLETE);
+    }
+
+    private SubmitResponse<BatchCaseState> failBatchProcessing(
+        EventPayload<BatchCase, BatchCaseState> event
+    ) {
+        return response(BatchCaseState.PROCESSING_FAILED);
     }
 
     private SubmitResponse<BatchCaseState> attachBatchDocument(EventPayload<BatchCase, BatchCaseState> event) {

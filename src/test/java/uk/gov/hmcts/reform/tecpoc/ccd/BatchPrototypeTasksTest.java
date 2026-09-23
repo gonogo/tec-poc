@@ -33,4 +33,16 @@ class BatchPrototypeTasksTest {
         );
         assertThat(html).contains("Review batch outputs");
     }
+
+    @Test
+    void shouldShowFailedTask() {
+        BatchCase batchCase = new BatchCase();
+        batchCase.setPcnCount(500);
+        String html = BatchPrototypeTasks.markdownFor(
+            1234L,
+            BatchCaseState.PROCESSING_FAILED,
+            batchCase
+        );
+        assertThat(html).contains("Investigate processing failure");
+    }
 }

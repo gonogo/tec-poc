@@ -70,6 +70,16 @@ final class BatchPrototypeTasks {
             ));
         }
 
+        if (state == BatchCaseState.PROCESSING_FAILED) {
+            tasks.add(new PrototypeTask(
+                "Investigate processing failure",
+                "High",
+                LocalDate.now().plusDays(1),
+                DEMO_USER,
+                List.of("Reassign", "Unassign", "Go to task")
+            ));
+        }
+
         return tasks;
     }
 

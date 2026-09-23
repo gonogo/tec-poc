@@ -6,6 +6,7 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 readonly PARTIAL_PATH="${REPO_ROOT}/design_docs/source/partials/_local_demo_case_links.html.erb"
 readonly JSON_PATH="${SCRIPT_DIR}/.demo-catalogue.json"
+readonly TEMPLATES_DIR="${SCRIPT_DIR}/templates"
 
 TEC_API_URL="${TEC_API_URL:-http://localhost:4013}"
 EXUI_BASE_URL="${EXUI_BASE_URL:-http://localhost:3000}"
@@ -115,6 +116,52 @@ state_from_json_cmd() {
   else
     printf '%s\n' "${state}"
   fi
+}
+
+attach_pcn_doc() {
+  local case_reference="$1"
+  local folder="$2"
+  local file_path="$3"
+  echo "  attaching $(basename -- "${file_path}") → ${folder} on PCN ${case_reference}..." >&2
+  "${SCRIPT_DIR}/attach-case-file-document.sh" \
+    "${case_reference}" "${folder}" "${file_path}" >/dev/null
+}
+
+attach_batch_doc() {
+  local case_reference="$1"
+  local folder="$2"
+  local file_path="$3"
+  echo "  attaching $(basename -- "${file_path}") → ${folder} on batch ${case_reference}..." >&2
+  CASE_TYPE_ID=TEC_BATCH EVENT_ID=attachBatchDocument \
+    "${SCRIPT_DIR}/attach-case-file-document.sh" \
+    "${case_reference}" "${folder}" "${file_path}" >/dev/null
+}
+
+# Every seeded batch gets Batch file.xlsx under Inputs; transferRequest also gets TE10.png.
+attach_standard_batch_inputs() {
+  local batch_ref="$1"
+  local batch_type="${2:-}"
+  attach_batch_doc "${batch_ref}" inputs "${TEMPLATES_DIR}/Batch file.xlsx"
+  if [[ "${batch_type}" == "transferRequest" ]]; then
+    attach_batch_doc "${batch_ref}" inputs "${TEMPLATES_DIR}/TE10.png"
+  fi
+}
+
+gen_application() {
+  local case_reference="$1"
+  local timing="$2"
+  local form="$3"
+  echo "  generating ${timing} ${form} application on ${case_reference}..." >&2
+  "${SCRIPT_DIR}/generate-application.sh" \
+    "${case_reference}" "${timing}" "${form}" >/dev/null
+}
+
+gen_time_extension() {
+  local case_reference="$1"
+  local form="$2"
+  echo "  generating ${form} time extension on ${case_reference}..." >&2
+  "${SCRIPT_DIR}/generate-time-extension.sh" \
+    "${case_reference}" "${form}" >/dev/null
 }
 
 record_entry() {
@@ -233,21 +280,24 @@ seed_catalogue() {
     "TEC" \
     "PENDING_CASE_ISSUED" \
     "${ref}" \
-    "Fresh registration with payment still pending. Check Tasks and Case details for the default create state."
+    "Fresh registration with payment still pending. Check Tasks and Case details for the default create state. Case File View is empty."
 
   echo "Seeding pcn-case-issued..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
   state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
+  gen_application "${ref}" "in time" TE9
   record_entry \
     "pcn-case-issued" \
     "PCN — case issued" \
     "TEC" \
     "${state}" \
     "${ref}" \
-    "After registration payment succeeded. Compare Tasks with the pending-payment case."
+    "After registration payment succeeded. Case File View → Applications has an in-time TE9."
 
   echo "Seeding pcn-awaiting-la-oot..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
   state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
     "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
   record_entry \
@@ -256,7 +306,7 @@ seed_catalogue() {
     "TEC" \
     "${state}" \
     "${ref}" \
-    "Prototype out-of-time / local authority response state (via setCaseState). Useful for Tasks tab review."
+    "Prototype out-of-time / LA response state. Case File View → Applications has out-of-time TE9 and TE7."
 
   echo "Seeding pcn-warrant-issued..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
@@ -290,20 +340,20 @@ seed_catalogue() {
   export BATCH_IDENTIFIER
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
   batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
+  attach_standard_batch_inputs "${batch_ref}" transferRequest
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
-  # create-tec-case already links; state should be REFER_FOR_ENFORCEMENT from linkBatchCase.
-  # Record intended demo state (link stdout is suppressed by create-tec-case).
   record_entry \
     "pcn-refer-enforcement" \
     "PCN — refer for enforcement" \
     "TEC" \
     "REFER_FOR_ENFORCEMENT" \
     "${ref}" \
-    "Linked to a transfer-request batch. State moves to Refer for Enforcement; check Linked Cases on the PCN and batch."
+    "Linked to a transfer-request batch (Case File View Inputs: Batch file.xlsx and TE10.png). State is Refer for Enforcement; check Linked Cases."
 
   echo "Seeding pcn-closed..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
   batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster caseClosureRequests)"
+  attach_standard_batch_inputs "${batch_ref}" caseClosureRequests
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
   record_entry \
     "pcn-closed" \
@@ -311,11 +361,12 @@ seed_catalogue() {
     "TEC" \
     "CLOSED" \
     "${ref}" \
-    "Linked to a case-closure-requests batch. State is Closed; Linked Cases shows the closure batch."
+    "Linked to a case-closure-requests batch (Inputs: Batch file.xlsx). State is Closed; Linked Cases shows the closure batch."
 
   echo "Seeding batch-registration-with-pcns (${REGISTRATION_PCN_COUNT} PCNs)..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
   batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster registration)"
+  attach_standard_batch_inputs "${batch_ref}" registration
   CASE_COUNT="${REGISTRATION_PCN_COUNT}" \
     "${SCRIPT_DIR}/create-tec-cases.sh" "${batch_ref}" >/dev/null
   record_entry \
@@ -324,7 +375,7 @@ seed_catalogue() {
     "TEC_BATCH" \
     "QUEUED_FOR_PROCESSING" \
     "${batch_ref}" \
-    "Registration batch with ${REGISTRATION_PCN_COUNT} linked PCNs. Open Linked Cases / linked to, and a linked PCN Case details Batch case field."
+    "Registration batch with ${REGISTRATION_PCN_COUNT} linked PCNs. Case File View Inputs has Batch file.xlsx; check Linked Cases."
 
   echo "Seeding batch-queued..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
@@ -332,13 +383,14 @@ seed_catalogue() {
     TARGET_STATE=QUEUED_FOR_PROCESSING \
       require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster warrantAuthRequests
   )"
+  attach_standard_batch_inputs "${batch_ref}" warrantAuthRequests
   record_entry \
     "batch-queued" \
     "Batch — queued for processing" \
     "TEC_BATCH" \
     "QUEUED_FOR_PROCESSING" \
     "${batch_ref}" \
-    "Warrant-auth batch still queued. Compare Tasks with a processing-complete batch."
+    "Warrant-auth batch still queued. Case File View Inputs has Batch file.xlsx."
 
   echo "Seeding batch-processing-complete..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
@@ -346,13 +398,30 @@ seed_catalogue() {
     TARGET_STATE=PROCESSING_COMPLETE \
       require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster warrantAuthRequests
   )"
+  attach_standard_batch_inputs "${batch_ref}" warrantAuthRequests
+  attach_batch_doc "${batch_ref}" outputs "${TEMPLATES_DIR}/PE3.pdf"
   record_entry \
     "batch-processing-complete" \
     "Batch — processing complete" \
     "TEC_BATCH" \
     "PROCESSING_COMPLETE" \
     "${batch_ref}" \
-    "Warrant-auth batch marked processing complete (sample output documents attached on create)."
+    "Warrant-auth batch marked processing complete. Inputs: Batch file.xlsx; Outputs: PE3.pdf."
+
+  echo "Seeding batch-processing-failed..." >&2
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  batch_ref="$(
+    TARGET_STATE=PROCESSING_FAILED \
+      require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster warrantAuthRequests
+  )"
+  attach_standard_batch_inputs "${batch_ref}" warrantAuthRequests
+  record_entry \
+    "batch-processing-failed" \
+    "Batch — processing failed" \
+    "TEC_BATCH" \
+    "PROCESSING_FAILED" \
+    "${batch_ref}" \
+    "Warrant-auth batch that failed during processing. Case File View Inputs has Batch file.xlsx."
 
   echo "Seeding exception-pending-review..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-exception-case.sh")"
@@ -362,7 +431,7 @@ seed_catalogue() {
     "TEC_EXCEPTION" \
     "EXCEPTION_PENDING_REVIEW" \
     "${ref}" \
-    "Exception case for review Tasks. Use Case list filtered to TEC Exception."
+    "Exception case for review Tasks (no Case File View attach event yet). Use Case list filtered to TEC Exception."
 }
 
 main() {

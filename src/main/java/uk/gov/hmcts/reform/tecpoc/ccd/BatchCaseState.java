@@ -11,5 +11,8 @@ public enum BatchCaseState {
     PROCESSING_STARTED,
 
     @CCD(label = "Processing complete", hint = "### Batch number: ${[CASE_REFERENCE]}")
-    PROCESSING_COMPLETE
+    PROCESSING_COMPLETE,
+
+    @CCD(label = "Processing failed", hint = "### Batch number: ${[CASE_REFERENCE]}")
+    PROCESSING_FAILED
 }

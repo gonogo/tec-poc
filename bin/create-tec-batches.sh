@@ -82,7 +82,7 @@ fi
 AUTHORITY_CODES=(TE AB WM LE BR CK)
 OPERATIONS=(registration warrantAuthRequests warrantReissueRequests outOfTimeDecisions changeOfAddress caseClosureRequests transferRequest)
 RECEIVED_VIA=(email upload)
-TARGET_STATES=(QUEUED_FOR_PROCESSING PROCESSING_STARTED PROCESSING_COMPLETE)
+TARGET_STATES=(QUEUED_FOR_PROCESSING PROCESSING_STARTED PROCESSING_COMPLETE PROCESSING_FAILED)
 LOCAL_AUTHORITIES=(westminster manchesterCityCouncil birminghamCityCouncil leedsCityCouncil bristolCityCouncil)
 
 for ((index = 0; index < COUNT; index++)); do
