@@ -164,6 +164,11 @@ gen_time_extension() {
     "${case_reference}" "${form}" >/dev/null
 }
 
+# N244 application notice — only for OOT-appeal catalogue states.
+attach_n244() {
+  attach_pcn_doc "$1" Applications "${TEMPLATES_DIR}/N244_0622.pdf"
+}
+
 link_pcn_to_batch() {
   local pcn_ref="$1"
   local batch_ref="$2"
@@ -419,6 +424,106 @@ seed_catalogue() {
     "${state}" \
     "${ref}" \
     "Linked Cases shows the shared registration batch and an out-of-time decisions companion. Applications has OOT TE9 and TE7."
+
+  echo "Seeding pcn-pending-oot-appeal-payment..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd PENDING_OOT_APPEAL_PAYMENT \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" PENDING_OOT_APPEAL_PAYMENT)"
+  attach_n244 "${ref}"
+  record_entry \
+    "pcn-pending-oot-appeal-payment" \
+    "PCN — pending OOT appeal payment" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows registration and an out-of-time decisions companion. Applications has OOT TE9, TE7, and N244_0622.pdf."
+
+  echo "Seeding pcn-oot-appeal-payment-confirmed..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd OOT_APPEAL_PAYMENT_CONFIRMED \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" OOT_APPEAL_PAYMENT_CONFIRMED)"
+  attach_n244 "${ref}"
+  record_entry \
+    "pcn-oot-appeal-payment-confirmed" \
+    "PCN — OOT appeal payment confirmed" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows registration and an out-of-time decisions companion. Applications has OOT TE9, TE7, and N244_0622.pdf."
+
+  echo "Seeding pcn-pending-oot-appeal-decision..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd PENDING_OOT_APPEAL_DECISION \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" PENDING_OOT_APPEAL_DECISION)"
+  attach_n244 "${ref}"
+  record_entry \
+    "pcn-pending-oot-appeal-decision" \
+    "PCN — pending OOT appeal decision" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows registration and an out-of-time decisions companion. Applications has OOT TE9, TE7, and N244_0622.pdf."
+
+  echo "Seeding pcn-oot-appeal-refused..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd OOT_APPEAL_REFUSED \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" OOT_APPEAL_REFUSED)"
+  attach_n244 "${ref}"
+  record_entry \
+    "pcn-oot-appeal-refused" \
+    "PCN — OOT appeal refused" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows registration and an out-of-time decisions companion. Applications has OOT TE9, TE7, and N244_0622.pdf."
+
+  echo "Seeding pcn-case-revoked-oot-appeal-accepted..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd CASE_REVOKED_OOT_APPEAL_ACCEPTED \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" CASE_REVOKED_OOT_APPEAL_ACCEPTED)"
+  attach_n244 "${ref}"
+  record_entry \
+    "pcn-case-revoked-oot-appeal-accepted" \
+    "PCN — case revoked OOT appeal accepted" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows registration and an out-of-time decisions companion. Applications has OOT TE9, TE7, and N244_0622.pdf."
 
   echo "Seeding pcn-warrant-issued..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"

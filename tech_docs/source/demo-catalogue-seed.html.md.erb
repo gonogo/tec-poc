@@ -103,6 +103,11 @@ state matrix. Prefer **real lifecycle scripts** where they exist; use
 | `pcn-case-issued` | `TEC` | After registration payment | Applications: in-time TE9 | create → link registration → `transition-to-case-issued.sh` → TE9 |
 | `pcn-awaiting-la-oot` | `TEC` | Waiting for LA OOT response (no OOT decision batch yet) | Applications: OOT TE9 + TE7 | create → link registration only → OOT apps → `AWAITING_LA_OOT_RESPONSE` |
 | `pcn-pending-refusal-decision` | `TEC` | OOT decision batch already associated | Applications: OOT TE9 + TE7; companion Inputs | create → link registration → create/attach `outOfTimeDecisions` → link → `PENDING_REFUSAL_DECISION` |
+| `pcn-pending-oot-appeal-payment` | `TEC` | OOT appeal awaiting payment | Applications: OOT TE9 + TE7 + `N244_0622.pdf`; companion Inputs | create → link registration → create/attach `outOfTimeDecisions` → link → OOT apps → `PENDING_OOT_APPEAL_PAYMENT` → attach N244 |
+| `pcn-oot-appeal-payment-confirmed` | `TEC` | OOT appeal payment confirmed | Applications: OOT TE9 + TE7 + `N244_0622.pdf`; companion Inputs | same as above → `OOT_APPEAL_PAYMENT_CONFIRMED` → attach N244 |
+| `pcn-pending-oot-appeal-decision` | `TEC` | OOT appeal awaiting decision | Applications: OOT TE9 + TE7 + `N244_0622.pdf`; companion Inputs | same as above → `PENDING_OOT_APPEAL_DECISION` → attach N244 |
+| `pcn-oot-appeal-refused` | `TEC` | OOT appeal refused | Applications: OOT TE9 + TE7 + `N244_0622.pdf`; companion Inputs | same as above → `OOT_APPEAL_REFUSED` → attach N244 |
+| `pcn-case-revoked-oot-appeal-accepted` | `TEC` | Case revoked after OOT appeal accepted | Applications: OOT TE9 + TE7 + `N244_0622.pdf`; companion Inputs | same as above → `CASE_REVOKED_OOT_APPEAL_ACCEPTED` → attach N244 |
 | `pcn-warrant-issued` | `TEC` | Active warrant | none | create → link registration + shared warrant-auth complete → `STATUS=active` warrant |
 | `pcn-warrant-expired` | `TEC` | Expired warrant + reissue batch | companion Inputs | create → link registration + warrant-auth → create/attach `warrantReissueRequests` → link → expired warrant |
 | `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | On transfer **batch** Inputs: `Batch file.xlsx` + `TE10.png` | create → link registration → create/attach `transferRequest` → link |
@@ -113,10 +118,12 @@ Seed order: shared batches first (so link targets exist), then catalogue PCNs (c
 created inline before each type-specific link), then filler PCNs on the shared registration
 batch. Every catalogue PCN links to `batch-registration-processed`. `AWAITING_LA_OOT_RESPONSE`
 is registration-only for Linked Cases — the LA response that will arrive *via* an
-`outOfTimeDecisions` batch is not linked yet; that link appears on `PENDING_REFUSAL_DECISION`.
+`outOfTimeDecisions` batch is not linked yet; that link appears on `PENDING_REFUSAL_DECISION`
+and the five OOT-appeal demos (each also attaches `N244_0622.pdf` under Applications).
 
 Every seeded `TEC_BATCH` gets `bin/templates/Batch file.xlsx` under Inputs via
 `attach_standard_batch_inputs`. Transfer-request batches also get `TE10.png`.
+`N244_0622.pdf` is attached only on the five OOT-appeal PCN demos via `attach_n244`.
 
 Explanations on the design page are short and aimed at designers: what to look at in ExUI.
 
@@ -174,6 +181,7 @@ record_entry \
 | `attach_standard_batch_inputs <batch-ref> [batch-type]` | Always attaches `Batch file.xlsx` → Inputs; also `TE10.png` when type is `transferRequest` |
 | `gen_application <ref> <in time\|out of time> <TE9\|PE3>` | `generate-application.sh` (Applications) |
 | `gen_time_extension <ref> <TE7\|PE2>` | `generate-time-extension.sh` (Applications) |
+| `attach_n244 <ref>` | Attaches `N244_0622.pdf` → Applications (OOT-appeal demos only) |
 
 Quote template paths that contain spaces, e.g. `"${TEMPLATES_DIR}/Batch file.xlsx"`.
 The attach script starts the local dm-store stub if needed. Exception cases have no
@@ -202,6 +210,20 @@ gen_time_extension "${ref}" TE7
 state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
   "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
 record_entry "pcn-awaiting-la-oot" "…" "TEC" "${state}" "${ref}" "…"
+
+# OOT appeal (N244) — registration + outOfTimeDecisions companion + OOT apps + N244
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+BATCH_IDENTIFIER="$(unique_batch_identifier)"
+companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+link_pcn_to_batch "${ref}" "${companion_ref}"
+gen_application "${ref}" "out of time" TE9
+gen_time_extension "${ref}" TE7
+state="$(state_from_json_cmd PENDING_OOT_APPEAL_PAYMENT \
+  "${SCRIPT_DIR}/set-case-state.sh" "${ref}" PENDING_OOT_APPEAL_PAYMENT)"
+attach_n244 "${ref}"
+record_entry "pcn-pending-oot-appeal-payment" "…" "TEC" "${state}" "${ref}" "…"
 
 # Transfer companion: create batch before link; registration link first
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
