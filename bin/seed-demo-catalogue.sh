@@ -34,7 +34,7 @@ Optional environment variables:
   EXUI_BASE_URL (default: http://localhost:3000)
   DESIGN_DOCS_URL (default: http://localhost:4567/local-demo-cases.html)
   SKIP_CLEAR (default: false)
-  REGISTRATION_PCN_COUNT (default: 3) — PCNs linked to the registration batch demo
+  REGISTRATION_PCN_COUNT (default: 3) — filler PCNs linked to the shared processed registration batch
 
 See tech docs: Local demo catalogue seed.
 EOF
@@ -164,6 +164,13 @@ gen_time_extension() {
     "${case_reference}" "${form}" >/dev/null
 }
 
+link_pcn_to_batch() {
+  local pcn_ref="$1"
+  local batch_ref="$2"
+  echo "  linking ${pcn_ref} → ${batch_ref}..." >&2
+  "${SCRIPT_DIR}/link-pcn-to-batch.sh" "${pcn_ref}" "${batch_ref}" >/dev/null
+}
+
 record_entry() {
   local id="$1"
   local title="$2"
@@ -271,111 +278,41 @@ write_json() {
 
 seed_catalogue() {
   local ref batch_ref state
+  local reg_batch_ref warrant_auth_complete_ref companion_ref
 
-  echo "Seeding pcn-pending-case-issued..." >&2
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
-  record_entry \
-    "pcn-pending-case-issued" \
-    "PCN — pending case issued" \
-    "TEC" \
-    "PENDING_CASE_ISSUED" \
-    "${ref}" \
-    "Fresh registration with payment still pending. Check Tasks and Case details for the default create state. Case File View is empty."
-
-  echo "Seeding pcn-case-issued..." >&2
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
-  state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
-  gen_application "${ref}" "in time" TE9
-  record_entry \
-    "pcn-case-issued" \
-    "PCN — case issued" \
-    "TEC" \
-    "${state}" \
-    "${ref}" \
-    "After registration payment succeeded. Case File View → Applications has an in-time TE9."
-
-  echo "Seeding pcn-awaiting-la-oot..." >&2
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
-  gen_application "${ref}" "out of time" TE9
-  gen_time_extension "${ref}" TE7
-  state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
-    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
-  record_entry \
-    "pcn-awaiting-la-oot" \
-    "PCN — awaiting LA OOT response" \
-    "TEC" \
-    "${state}" \
-    "${ref}" \
-    "Prototype out-of-time / LA response state. Case File View → Applications has out-of-time TE9 and TE7."
-
-  echo "Seeding pcn-warrant-issued..." >&2
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
-  state="$(
-    STATUS=active state_from_json_cmd WARRANT_AUTHORISATION_ISSUED \
-      "${SCRIPT_DIR}/apply-warrant-authorisation.sh" "${ref}"
-  )"
-  record_entry \
-    "pcn-warrant-issued" \
-    "PCN — warrant authorisation issued" \
-    "TEC" \
-    "${state}" \
-    "${ref}" \
-    "Warrant authorisations section on Case details with an active warrant; state is Warrant Authorisation Issued."
-
-  echo "Seeding pcn-warrant-expired..." >&2
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
-  state="$(
-    STATUS=expired state_from_json_cmd WARRANT_AUTHORISATION_EXPIRED \
-      "${SCRIPT_DIR}/apply-warrant-authorisation.sh" "${ref}"
-  )"
-  record_entry \
-    "pcn-warrant-expired" \
-    "PCN — warrant authorisation expired" \
-    "TEC" \
-    "${state}" \
-    "${ref}" \
-    "Same warrant UI with an expired status for comparison with the active warrant case."
-
-  echo "Seeding pcn-refer-enforcement..." >&2
   export BATCH_IDENTIFIER
-  BATCH_IDENTIFIER="$(unique_batch_identifier)"
-  batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
-  attach_standard_batch_inputs "${batch_ref}" transferRequest
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
-  record_entry \
-    "pcn-refer-enforcement" \
-    "PCN — refer for enforcement" \
-    "TEC" \
-    "REFER_FOR_ENFORCEMENT" \
-    "${ref}" \
-    "Linked to a transfer-request batch (Case File View Inputs: Batch file.xlsx and TE10.png). State is Refer for Enforcement; check Linked Cases."
 
-  echo "Seeding pcn-closed..." >&2
-  BATCH_IDENTIFIER="$(unique_batch_identifier)"
-  batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster caseClosureRequests)"
-  attach_standard_batch_inputs "${batch_ref}" caseClosureRequests
-  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
-  record_entry \
-    "pcn-closed" \
-    "PCN — closed" \
-    "TEC" \
-    "CLOSED" \
-    "${ref}" \
-    "Linked to a case-closure-requests batch (Inputs: Batch file.xlsx). State is Closed; Linked Cases shows the closure batch."
+  # --- Shared batches (must exist before any PCN that links to them) ---
 
-  echo "Seeding batch-registration-with-pcns (${REGISTRATION_PCN_COUNT} PCNs)..." >&2
+  echo "Seeding batch-registration-processed..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
-  batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster registration)"
+  reg_batch_ref="$(
+    TARGET_STATE=PROCESSING_COMPLETE \
+      require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster registration
+  )"
+  attach_standard_batch_inputs "${reg_batch_ref}" registration
+  record_entry \
+    "batch-registration-processed" \
+    "Batch — registration processed (shared)" \
+    "TEC_BATCH" \
+    "PROCESSING_COMPLETE" \
+    "${reg_batch_ref}" \
+    "Shared processed registration batch. Every catalogue PCN links here (Case details Batch case + Linked Cases). Filler PCNs are added at the end of the seed."
+
+  echo "Seeding batch-registration-queued..." >&2
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  batch_ref="$(
+    TARGET_STATE=QUEUED_FOR_PROCESSING \
+      require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster registration
+  )"
   attach_standard_batch_inputs "${batch_ref}" registration
-  CASE_COUNT="${REGISTRATION_PCN_COUNT}" \
-    "${SCRIPT_DIR}/create-tec-cases.sh" "${batch_ref}" >/dev/null
   record_entry \
-    "batch-registration-with-pcns" \
-    "Batch — registration with linked PCNs" \
+    "batch-registration-queued" \
+    "Batch — registration queued (unlinked)" \
     "TEC_BATCH" \
     "QUEUED_FOR_PROCESSING" \
     "${batch_ref}" \
-    "Registration batch with ${REGISTRATION_PCN_COUNT} linked PCNs. Case File View Inputs has Batch file.xlsx; check Linked Cases."
+    "Registration batch still queued with no linked PCNs. Case File View Inputs has Batch file.xlsx; Linked Cases is empty."
 
   echo "Seeding batch-queued..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
@@ -390,23 +327,23 @@ seed_catalogue() {
     "TEC_BATCH" \
     "QUEUED_FOR_PROCESSING" \
     "${batch_ref}" \
-    "Warrant-auth batch still queued. Case File View Inputs has Batch file.xlsx."
+    "Warrant-auth batch still queued and unlinked. Case File View Inputs has Batch file.xlsx."
 
   echo "Seeding batch-processing-complete..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
-  batch_ref="$(
+  warrant_auth_complete_ref="$(
     TARGET_STATE=PROCESSING_COMPLETE \
       require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster warrantAuthRequests
   )"
-  attach_standard_batch_inputs "${batch_ref}" warrantAuthRequests
-  attach_batch_doc "${batch_ref}" outputs "${TEMPLATES_DIR}/PE3.pdf"
+  attach_standard_batch_inputs "${warrant_auth_complete_ref}" warrantAuthRequests
+  attach_batch_doc "${warrant_auth_complete_ref}" outputs "${TEMPLATES_DIR}/PE3.pdf"
   record_entry \
     "batch-processing-complete" \
     "Batch — processing complete" \
     "TEC_BATCH" \
     "PROCESSING_COMPLETE" \
-    "${batch_ref}" \
-    "Warrant-auth batch marked processing complete. Inputs: Batch file.xlsx; Outputs: PE3.pdf."
+    "${warrant_auth_complete_ref}" \
+    "Processed warrant-auth batch (Inputs: Batch file.xlsx; Outputs: PE3.pdf). Warrant PCN demos link here."
 
   echo "Seeding batch-processing-failed..." >&2
   BATCH_IDENTIFIER="$(unique_batch_identifier)"
@@ -421,7 +358,137 @@ seed_catalogue() {
     "TEC_BATCH" \
     "PROCESSING_FAILED" \
     "${batch_ref}" \
-    "Warrant-auth batch that failed during processing. Case File View Inputs has Batch file.xlsx."
+    "Warrant-auth batch that failed during processing and has no linked PCNs. Case File View Inputs has Batch file.xlsx."
+
+  # --- Catalogue PCNs (create → link registration → type-specific → mutate) ---
+
+  echo "Seeding pcn-pending-case-issued..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  record_entry \
+    "pcn-pending-case-issued" \
+    "PCN — pending case issued" \
+    "TEC" \
+    "PENDING_CASE_ISSUED" \
+    "${ref}" \
+    "Fresh registration with payment still pending. Linked Cases shows the shared processed registration batch. Case File View is empty."
+
+  echo "Seeding pcn-case-issued..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
+  gen_application "${ref}" "in time" TE9
+  record_entry \
+    "pcn-case-issued" \
+    "PCN — case issued" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "After registration payment succeeded. Linked Cases shows the shared registration batch; Applications has an in-time TE9."
+
+  echo "Seeding pcn-awaiting-la-oot..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
+  record_entry \
+    "pcn-awaiting-la-oot" \
+    "PCN — awaiting LA OOT response" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Waiting for an LA out-of-time response (not yet linked to an outOfTimeDecisions batch). Linked Cases shows registration only; Applications has OOT TE9 and TE7."
+
+  echo "Seeding pcn-pending-refusal-decision..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster outOfTimeDecisions)"
+  attach_standard_batch_inputs "${companion_ref}" outOfTimeDecisions
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  gen_application "${ref}" "out of time" TE9
+  gen_time_extension "${ref}" TE7
+  state="$(state_from_json_cmd PENDING_REFUSAL_DECISION \
+    "${SCRIPT_DIR}/set-case-state.sh" "${ref}" PENDING_REFUSAL_DECISION)"
+  record_entry \
+    "pcn-pending-refusal-decision" \
+    "PCN — pending refusal decision" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Linked Cases shows the shared registration batch and an out-of-time decisions companion. Applications has OOT TE9 and TE7."
+
+  echo "Seeding pcn-warrant-issued..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  link_pcn_to_batch "${ref}" "${warrant_auth_complete_ref}"
+  state="$(
+    STATUS=active state_from_json_cmd WARRANT_AUTHORISATION_ISSUED \
+      "${SCRIPT_DIR}/apply-warrant-authorisation.sh" "${ref}"
+  )"
+  record_entry \
+    "pcn-warrant-issued" \
+    "PCN — warrant authorisation issued" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Active warrant on Case details. Linked Cases shows the shared registration batch and the processed warrant-auth batch."
+
+  echo "Seeding pcn-warrant-expired..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  link_pcn_to_batch "${ref}" "${warrant_auth_complete_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster warrantReissueRequests)"
+  attach_standard_batch_inputs "${companion_ref}" warrantReissueRequests
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  state="$(
+    STATUS=expired state_from_json_cmd WARRANT_AUTHORISATION_EXPIRED \
+      "${SCRIPT_DIR}/apply-warrant-authorisation.sh" "${ref}"
+  )"
+  record_entry \
+    "pcn-warrant-expired" \
+    "PCN — warrant authorisation expired" \
+    "TEC" \
+    "${state}" \
+    "${ref}" \
+    "Expired warrant for comparison. Linked Cases shows registration, processed warrant-auth, and a warrant-reissue companion batch."
+
+  echo "Seeding pcn-refer-enforcement..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
+  attach_standard_batch_inputs "${companion_ref}" transferRequest
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  record_entry \
+    "pcn-refer-enforcement" \
+    "PCN — refer for enforcement" \
+    "TEC" \
+    "REFER_FOR_ENFORCEMENT" \
+    "${ref}" \
+    "Linked Cases shows the shared registration batch and a transfer-request companion (Inputs: Batch file.xlsx and TE10.png). State is Refer for Enforcement."
+
+  echo "Seeding pcn-closed..." >&2
+  ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+  link_pcn_to_batch "${ref}" "${reg_batch_ref}"
+  BATCH_IDENTIFIER="$(unique_batch_identifier)"
+  companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster caseClosureRequests)"
+  attach_standard_batch_inputs "${companion_ref}" caseClosureRequests
+  link_pcn_to_batch "${ref}" "${companion_ref}"
+  record_entry \
+    "pcn-closed" \
+    "PCN — closed" \
+    "TEC" \
+    "CLOSED" \
+    "${ref}" \
+    "Linked Cases shows the shared registration batch and a case-closure-requests companion (Inputs: Batch file.xlsx). State is Closed."
+
+  echo "Seeding filler PCNs on shared registration (${REGISTRATION_PCN_COUNT})..." >&2
+  CASE_COUNT="${REGISTRATION_PCN_COUNT}" \
+    "${SCRIPT_DIR}/create-tec-cases.sh" "${reg_batch_ref}" >/dev/null
 
   echo "Seeding exception-pending-review..." >&2
   ref="$(require_ref "${SCRIPT_DIR}/create-tec-exception-case.sh")"

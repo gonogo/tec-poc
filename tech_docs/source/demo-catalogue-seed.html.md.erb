@@ -74,7 +74,10 @@ PCN_REF="$(./bin/create-tec-case.sh "${BATCH_REF}" | jq -r '.caseReference')"
 
 Passing a batch ref into `create-tec-case.sh` / `create-tec-cases.sh` links after create
 (see [Local bin scripts — Link and transition](/local-scripts.html#link-and-transition)).
-No separate link step is required for that path.
+The catalogue usually creates PCNs with `-`, then calls `link-pcn-to-batch.sh` (via the
+`link_pcn_to_batch` helper) so a PCN can join the shared registration batch **and** any
+type-specific companions. Filler PCNs for the shared registration batch still use
+`create-tec-cases.sh "${reg_batch_ref}"`.
 
 ExUI deep link shape (nav proxy, not `:3002`):
 
@@ -91,18 +94,26 @@ state matrix. Prefer **real lifecycle scripts** where they exist; use
 
 | Id | Type | Demonstrates | Documents | Recipe sketch |
 | --- | --- | --- | --- | --- |
-| `pcn-pending-case-issued` | `TEC` | Fresh registration, payment pending | none | `create-tec-case.sh -` |
-| `pcn-case-issued` | `TEC` | After registration payment | Applications: in-time TE9 | create → `transition-to-case-issued.sh` → `generate-application.sh … "in time" TE9` |
-| `pcn-awaiting-la-oot` | `TEC` | Prototype OOT / LA response Tasks | Applications: OOT TE9 + TE7 | generate OOT TE9 + TE7 → `set-case-state.sh … AWAITING_LA_OOT_RESPONSE` |
-| `pcn-warrant-issued` | `TEC` | Warrant authorisation on case | none | create → `apply-warrant-authorisation.sh` (`STATUS=active`) |
-| `pcn-warrant-expired` | `TEC` | Expired warrant | none | create → `STATUS=expired apply-warrant-authorisation.sh` |
-| `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | On transfer **batch** Inputs: `Batch file.xlsx` + `TE10.png` | `create-tec-batch.sh … transferRequest` → attach → link PCN |
-| `pcn-closed` | `TEC` | Closure-request link side-effect | On closure **batch** Inputs: `Batch file.xlsx` | `create-tec-batch.sh … caseClosureRequests` → attach → link PCN |
-| `batch-registration-with-pcns` | `TEC_BATCH` + linked `TEC` | Registration batch + Linked Cases | Inputs: `Batch file.xlsx` | create batch → attach → `create-tec-cases.sh` |
-| `batch-queued` | `TEC_BATCH` | Queued for processing | Inputs: `Batch file.xlsx` | `TARGET_STATE=QUEUED_FOR_PROCESSING` → attach |
-| `batch-processing-complete` | `TEC_BATCH` | Processing complete | Inputs: `Batch file.xlsx`; Outputs: `PE3.pdf` | `TARGET_STATE=PROCESSING_COMPLETE` → attach |
-| `batch-processing-failed` | `TEC_BATCH` | Processing failed | Inputs: `Batch file.xlsx` | `TARGET_STATE=PROCESSING_FAILED` → attach |
+| `batch-registration-processed` | `TEC_BATCH` | Shared processed registration; all catalogue PCNs link here | Inputs: `Batch file.xlsx` | `TARGET_STATE=PROCESSING_COMPLETE` registration → attach; filler PCNs via `create-tec-cases.sh` at end |
+| `batch-registration-queued` | `TEC_BATCH` | Queued registration with **no** linked PCNs | Inputs: `Batch file.xlsx` | `TARGET_STATE=QUEUED_FOR_PROCESSING` registration → attach only |
+| `batch-queued` | `TEC_BATCH` | Warrant-auth queued (unlinked) | Inputs: `Batch file.xlsx` | `TARGET_STATE=QUEUED_FOR_PROCESSING` warrantAuthRequests → attach |
+| `batch-processing-complete` | `TEC_BATCH` | Warrant-auth processed; warrant PCN demos link here | Inputs: `Batch file.xlsx`; Outputs: `PE3.pdf` | `TARGET_STATE=PROCESSING_COMPLETE` warrantAuthRequests → attach → outputs |
+| `batch-processing-failed` | `TEC_BATCH` | Warrant-auth failed (unlinked) | Inputs: `Batch file.xlsx` | `TARGET_STATE=PROCESSING_FAILED` warrantAuthRequests → attach |
+| `pcn-pending-case-issued` | `TEC` | Fresh registration, payment pending | none | create `-` → `link_pcn_to_batch` → shared registration |
+| `pcn-case-issued` | `TEC` | After registration payment | Applications: in-time TE9 | create → link registration → `transition-to-case-issued.sh` → TE9 |
+| `pcn-awaiting-la-oot` | `TEC` | Waiting for LA OOT response (no OOT decision batch yet) | Applications: OOT TE9 + TE7 | create → link registration only → OOT apps → `AWAITING_LA_OOT_RESPONSE` |
+| `pcn-pending-refusal-decision` | `TEC` | OOT decision batch already associated | Applications: OOT TE9 + TE7; companion Inputs | create → link registration → create/attach `outOfTimeDecisions` → link → `PENDING_REFUSAL_DECISION` |
+| `pcn-warrant-issued` | `TEC` | Active warrant | none | create → link registration + shared warrant-auth complete → `STATUS=active` warrant |
+| `pcn-warrant-expired` | `TEC` | Expired warrant + reissue batch | companion Inputs | create → link registration + warrant-auth → create/attach `warrantReissueRequests` → link → expired warrant |
+| `pcn-refer-enforcement` | `TEC` | Transfer-request link side-effect | On transfer **batch** Inputs: `Batch file.xlsx` + `TE10.png` | create → link registration → create/attach `transferRequest` → link |
+| `pcn-closed` | `TEC` | Closure-request link side-effect | On closure **batch** Inputs: `Batch file.xlsx` | create → link registration → create/attach `caseClosureRequests` → link |
 | `exception-pending-review` | `TEC_EXCEPTION` | Exception review Tasks | none (no attach event yet) | `create-tec-exception-case.sh` |
+
+Seed order: shared batches first (so link targets exist), then catalogue PCNs (companions
+created inline before each type-specific link), then filler PCNs on the shared registration
+batch. Every catalogue PCN links to `batch-registration-processed`. `AWAITING_LA_OOT_RESPONSE`
+is registration-only for Linked Cases — the LA response that will arrive *via* an
+`outOfTimeDecisions` batch is not linked yet; that link appears on `PENDING_REFUSAL_DECISION`.
 
 Every seeded `TEC_BATCH` gets `bin/templates/Batch file.xlsx` under Inputs via
 `attach_standard_batch_inputs`. Transfer-request batches also get `TE10.png`.
@@ -157,6 +168,7 @@ record_entry \
 | `state_from_json_cmd <fallback> <script> [args…]` | Run a mutate script that prints JSON; print `.state` (or fallback) |
 | `unique_batch_identifier` | New `RAB######` id matching create-batch validation |
 | `record_entry …` | Append one row to the in-memory catalogue (later written to the partial) |
+| `link_pcn_to_batch <pcn-ref> <batch-ref>` | `link-pcn-to-batch.sh` (batch must already exist) |
 | `attach_pcn_doc <ref> <folder> <file>` | `attach-case-file-document.sh` for PCN CFV folders |
 | `attach_batch_doc <ref> <inputs\|outputs> <file>` | Same with `CASE_TYPE_ID=TEC_BATCH` / `EVENT_ID=attachBatchDocument` |
 | `attach_standard_batch_inputs <batch-ref> [batch-type]` | Always attaches `Batch file.xlsx` → Inputs; also `TE10.png` when type is `transferRequest` |
@@ -167,32 +179,37 @@ Quote template paths that contain spaces, e.g. `"${TEMPLATES_DIR}/Batch file.xls
 The attach script starts the local dm-store stub if needed. Exception cases have no
 attach event yet — leave their CFV empty.
 
-Typical PCN patterns:
+Typical PCN patterns (assume `reg_batch_ref` is the shared processed registration batch):
 
 ```bash
-# Leave create default (PENDING_CASE_ISSUED)
+# Registration link only (PENDING_CASE_ISSUED)
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+link_pcn_to_batch "${ref}" "${reg_batch_ref}"
 record_entry "pcn-pending-case-issued" "…" "TEC" "PENDING_CASE_ISSUED" "${ref}" "…"
 
 # Real lifecycle + application PDF
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+link_pcn_to_batch "${ref}" "${reg_batch_ref}"
 state="$(state_from_json_cmd CASE_ISSUED "${SCRIPT_DIR}/transition-to-case-issued.sh" "${ref}")"
 gen_application "${ref}" "in time" TE9
 record_entry "pcn-case-issued" "…" "TEC" "${state}" "${ref}" "…"
 
-# Prototype-only state with OOT application pair
+# Awaiting LA OOT — registration only (no outOfTimeDecisions link yet)
 ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+link_pcn_to_batch "${ref}" "${reg_batch_ref}"
 gen_application "${ref}" "out of time" TE9
 gen_time_extension "${ref}" TE7
 state="$(state_from_json_cmd AWAITING_LA_OOT_RESPONSE \
   "${SCRIPT_DIR}/set-case-state.sh" "${ref}" AWAITING_LA_OOT_RESPONSE)"
 record_entry "pcn-awaiting-la-oot" "…" "TEC" "${state}" "${ref}" "…"
 
-# Batch with standard Inputs (and TE10 for transferRequest)
+# Transfer companion: create batch before link; registration link first
+ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" -)"
+link_pcn_to_batch "${ref}" "${reg_batch_ref}"
 BATCH_IDENTIFIER="$(unique_batch_identifier)"
-batch_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
-attach_standard_batch_inputs "${batch_ref}" transferRequest
-ref="$(require_ref "${SCRIPT_DIR}/create-tec-case.sh" "${batch_ref}")"
+companion_ref="$(require_ref "${SCRIPT_DIR}/create-tec-batch.sh" westminster transferRequest)"
+attach_standard_batch_inputs "${companion_ref}" transferRequest
+link_pcn_to_batch "${ref}" "${companion_ref}"
 record_entry "pcn-refer-enforcement" "…" "TEC" "REFER_FOR_ENFORCEMENT" "${ref}" "…"
 ```
 
@@ -212,8 +229,9 @@ state="$(
 3. **Add** — copy a similar block; compose only scripts from
    [Local bin scripts](/local-scripts.html). Call `record_entry` so the row is emitted.
 4. Prefer **real lifecycle** scripts (`transition-to-case-issued.sh`,
-   `apply-warrant-authorisation.sh`, batch link via create) where they exist; use
-   `set-case-state.sh` for prototype-only PCN states.
+   `apply-warrant-authorisation.sh`, `link-pcn-to-batch.sh`) where they exist; use
+   `set-case-state.sh` for prototype-only PCN states. Create any type-specific batch
+   **before** linking to it; seed shared batches before PCNs that reference them.
 5. Keep **`id`s stable** if designers bookmark `#demo-…` anchors.
 6. Update the [scenario catalogue](#scenario-catalogue) table on this page when the set of demos changes.
 7. Do **not** hand-edit `design_docs/source/partials/_local_demo_case_links.html.erb` —
@@ -223,7 +241,7 @@ state="$(
 
 | Mechanism | Effect |
 | --- | --- |
-| `REGISTRATION_PCN_COUNT` | PCNs created for `batch-registration-with-pcns` (default `3`) |
+| `REGISTRATION_PCN_COUNT` | Filler PCNs linked to `batch-registration-processed` (default `3`) |
 | `EXUI_BASE_URL` | Base URL for case links (default `http://localhost:3000`) |
 | `DESIGN_DOCS_URL` | Printed at end of the run |
 | `TEC_API_URL` | Health check / create APIs (default `http://localhost:4013`) |
