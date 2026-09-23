@@ -5,7 +5,7 @@
   (Your cases, result count, table).
   Locals:
     compact — true → standard 320px frame, 4-column table
-              (default: wide frame, 7 columns)
+              (default: wide frame, 6 columns)
     caption — frame label
 %>
 <% compact = (defined?(compact) && compact) ? compact : false %>
@@ -15,16 +15,15 @@
   head_cells = [
     '<span class="bf-table__cell bf-table__cell--head bf-table__cell--callout" title="Case Number (column)">Case Number</span>',
     '<span class="bf-table__cell bf-table__cell--head" title="Penalty charge number (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 90%"></span></span>',
-    '<span class="bf-table__cell bf-table__cell--head" title="Local authority (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 70%"></span></span>',
-    '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 1 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 80%"></span></span>'
+    '<span class="bf-table__cell bf-table__cell--head" title="Local authority (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 70%"></span></span>'
   ]
   unless compact
     head_cells += [
-      '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 2 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 65%"></span></span>',
-      '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 3 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 55%"></span></span>',
+      '<span class="bf-table__cell bf-table__cell--head" title="Respondent details 1 (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 80%"></span></span>',
       '<span class="bf-table__cell bf-table__cell--head" title="Vehicle registration number (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 75%"></span></span>'
     ]
   end
+  head_cells << '<span class="bf-table__cell bf-table__cell--head" title="State (column)"><span class="bf-table__bar bf-table__bar--head" style="width: 50%"></span></span>'
 
   row_bars = ->(widths) {
     widths.map { |w|
@@ -32,20 +31,20 @@
     }.join
   }
 
-  # Remaining columns after Case Number: 3 compact, 6 full.
+  # Remaining columns after Case Number: 3 compact, 5 full.
   row_widths = if compact
     [
-      [85, 70, 60],
-      [70, 55, 80],
-      [60, 75, 50],
-      [45, 80, 70]
+      [85, 70, 50],
+      [70, 55, 65],
+      [60, 75, 45],
+      [45, 80, 55]
     ]
   else
     [
-      [85, 70, 60, 90, 45, 55],
-      [70, 55, 80, 65, 50, 40],
-      [60, 75, 50, 85, 35, 70],
-      [45, 80, 70, 55, 60, 50]
+      [85, 70, 55, 75, 50],
+      [70, 55, 65, 50, 60],
+      [60, 75, 45, 85, 40],
+      [45, 80, 70, 55, 55]
     ]
   end
 

@@ -100,7 +100,8 @@ public class ExceptionCaseConfiguration implements CCDConfig<ExceptionCase, Exce
 
         builder.workBasketResultFields()
             .caseReferenceField()
-            .field(ExceptionCase::getPenaltyChargeNumber, "PCN");
+            .field(ExceptionCase::getPenaltyChargeNumber, "PCN")
+            .field("[STATE]", "State");
     }
 
     private void configureCaseFileCategories(

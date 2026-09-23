@@ -163,8 +163,7 @@ public class BatchCaseConfiguration implements CCDConfig<BatchCase, BatchCaseSta
             .field(BatchCase::getSubmitterEmail, "Submitter email")
             .field(BatchCase::getOperation, "Batch type")
             .field(BatchCase::getPcnCount, "Number of PCNs in batch")
-            .field(BatchCase::getReceivedVia, "Received via")
-            .field(BatchCase::getReceivedAt, "Email received at");
+            .field("[STATE]", "State");
     }
 
     private void configureEvents(DecentralisedConfigBuilder<BatchCase, BatchCaseState, UserRole> builder) {

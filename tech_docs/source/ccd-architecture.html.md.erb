@@ -249,7 +249,8 @@ follows Case File View instead of the SDK default of prepending it):
 Search and work-basket inputs are penalty charge number and local authority (CCD `FixedList` of the 2023
 England councils — ExUI has no generic autosuggest for this control). **Search** results include the case
 reference, **State**, penalty charge number, local authority, respondent lines 1–3 and vehicle registration
-number. Work-basket (Case list) result columns omit State and otherwise match those fields.
+number. Work-basket (Case list) result columns are case reference, penalty charge number, local authority,
+respondent line 1, vehicle registration number, and **State** (far right).
 
 The tab configuration is static CCD metadata. `TecCaseView` supplies the current values at runtime by loading the row
 whose `case_reference` matches the CCD reference. ExUI and API clients call CCD; they do not call `TecCaseView`
@@ -291,7 +292,7 @@ navigation via `menuConfigs` — see [exui-manage-batches-plan](/exui-manage-bat
 | File folders | Inputs, Outputs (`BatchFileCategory`) |
 | Search / work basket inputs | File identifier, batch identifier, local authority, **Submitter email**, **Batch type** (`FixedList` of `BatchOperation`; ExUI empty option = any), received via |
 | Search results | Case reference, **State**, file identifier, local authority, submitter email, batch type, PCN count, received via, **Email received at** |
-| Work-basket results | Same as search results except State is omitted |
+| Work-basket results | Case reference, file identifier, local authority, submitter email, batch type, PCN count, **State** (far right) |
 | Create API | `POST /batches` (`bin/create-tec-batch.sh`) via hidden `createBatch` |
 | Clerk Upload batch file | Visible `uploadBatch` multi-page event (nav deep link `/cases/case-create/TEC/TEC_BATCH/uploadBatch`) |
 | Hidden events | `createBatch`, `startBatchProcessing`, `completeBatchProcessing`, `attachBatchDocument`, `linkPcnCases` |
@@ -365,7 +366,7 @@ present, and lands in `QUEUED_FOR_PROCESSING`.
 | Case File View | Same folder categories as PCN (`ExceptionCaseFileCategory`); empty until documents are attached |
 | Search / work basket inputs | PCN |
 | Search results | Case reference, **State**, PCN |
-| Work-basket results | Case reference, PCN (State omitted, same pattern as `TEC` / `TEC_BATCH`) |
+| Work-basket results | Case reference, PCN, **State** (far right) |
 | Create API | `POST /exception-cases` (`bin/create-tec-exception-case.sh`) via hidden `createExceptionCase` |
 | Clerk events | `rejectItem` (mandatory radio + optional comment → History description), `editPcn` |
 

@@ -271,9 +271,8 @@ public class TecCaseConfiguration implements CCDConfig<TecCase, CaseState, UserR
             .field(TecCase::getPenaltyChargeNumber, "Penalty charge number")
             .field(TecCase::getLocalAuthority, "Local authority")
             .field(TecCase::getRespondentDetails1, "Respondent details 1")
-            .field(TecCase::getRespondentDetails2, "Respondent details 2")
-            .field(TecCase::getRespondentDetails3, "Respondent details 3")
-            .field(TecCase::getVehicleRegistrationNumber, "Vehicle registration number");
+            .field(TecCase::getVehicleRegistrationNumber, "Vehicle registration number")
+            .field("[STATE]", "State");
     }
 
     private void configureEvents(DecentralisedConfigBuilder<TecCase, CaseState, UserRole> builder) {
