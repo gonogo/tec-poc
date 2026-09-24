@@ -1,0 +1,101 @@
+---
+title: Where TEC sits in HMCTS
+weight: 15
+---
+
+# Where TEC sits in HMCTS
+
+This page is the orientation for the proof of concept: the wider TEC service, the shared HMCTS platform it sits on, and which common components this repository actually uses. Implementation detail (case types, events, create/read flows, local ports) is in [TEC decentralised CCD architecture](/ccd-architecture.html).
+
+This repository is local-only. It does not deploy the production topology described below.
+
+## Executive summary
+
+The Traffic Enforcement Centre (TEC) is the HMCTS court that turns unpaid penalty charge notices (PCNs) from local authorities into enforceable court orders, then handles the respondent applications, warrants, and closures that follow.
+
+This proof of concept models that work as three case types on the shared HMCTS case platform, and runs them locally with the same platform libraries a real service would use. Caseworkers use **Manage Cases**. TEC owns the business data (the PCN, the batch, the exception). The platform owns identity, access, the case API, event history, and the screens.
+
+The point of the POC is that integration, not a finished product. States, events, and roles here are illustrative and aligned with a future-state service blueprint. Only part of the PCN lifecycle is implemented.
+
+## The service this stands in for
+
+TEC work in this model is:
+
+- Local authorities send **batches** of PCNs: registration, warrant requests, change of address, closure, transfer for enforcement, and similar operations.
+- Each accepted PCN becomes a **TEC case**. The blueprint state catalogue runs from pending issue, through payment and registration, to respondent response, out-of-time applications, warrant authorisation, enforcement referral, or closure.
+- Respondents use the statutory forms already in the model: TE9 and PE3 applications, and TE7 and PE2 time extensions. Those arrive as OCR-extracted fields plus scanned documents.
+- Items that cannot be matched become **exception** cases for a clerk to reject or correct.
+
+What actually runs today is a thin slice of that catalogue: create a PCN, mark payment succeeded, authorise registration, attach documents, link batches, record or edit applications, apply a warrant, and jump state with a prototype helper. The Tasks tab is prototype HTML so the screens can be walked through. Real Work Allocation is not connected. The full state list and which events are implemented are in [States and events](/ccd-architecture.html#states-and-events).
+
+## Where a TEC service would sit
+
+HMCTS Reform services share one case platform. Each jurisdiction is a Spring Boot application plus a case definition. Caseworkers use one web application, **Manage Cases** (internally ExUI or XUI).
+
+TEC would be another jurisdiction on that platform, id `TEC`, in the same position as services such as divorce, probate, and money claims. Intake and batch pipelines would call a small TEC API. Manage Cases and other clients call only the platform case API, which then calls back into TEC.
+
+```text
+Local authority / intake systems
+        |
+        v
+   TEC API  (this POC)
+        |
+        v
+   CCD Data Store          shared case API, access, events
+        |
+        v
+   TEC decentralised runtime
+        |
+        v
+   TEC database            PCN, batch, and exception rows
+
+Caseworkers --> Manage Cases (ExUI) --> CCD Data Store --> TEC
+```
+
+The split implemented here:
+
+```text
+The Java CCD configuration describes the contract.
+CCD remains the case API and event orchestrator.
+TEC owns the business data and handles delegated persistence.
+CFTLib makes the integration runnable locally.
+```
+
+## The platform
+
+**CFT** in this repository means that shared HMCTS case platform. **CFTLib** ([rse-cft-lib](https://github.com/hmcts/rse-cft-lib)) is the local stand-in: it runs real CCD service code in one JVM and uses Docker for supporting infrastructure, so every platform service does not need its own container. `./gradlew bootWithCCD` starts that stack. CFTLib is not deployed.
+
+The pattern under test is **decentralised CCD**. In the older model the whole case lived as JSON in the central data store. Here the data store still validates access and events and issues the case reference, then delegates persistence to TEC. TEC keeps relational tables and projects them back into the shape Manage Cases expects. Database ownership is in [CFTLib database layout](/cftlib-shared-database.html).
+
+## Common components
+
+| Component | Role on the HMCTS platform | What this POC does with it |
+| --- | --- | --- |
+| CCD Definition Store | Holds the case-type definition (states, events, roles, tabs, search fields) | Definitions are generated from Java by the CCD SDK and imported on local startup |
+| CCD Data Store | Case API: access control, start/submit events, routing | Every create goes through it; it calls back to TEC |
+| CCD SDK (`hmcts.ccd.sdk`, decentralised mode) | Definition-as-code, plus the callback runtime | Embedded in the TEC app at `/ccd-persistence/**` |
+| ExUI / Manage Cases | Shared caseworker UI | Docker container, with a local proxy that adds **Upload batch file** to primary navigation |
+| IDAM | Identity and roles | Local simulator. Roles: system, clerk (`caseworker-tec`), local authority |
+| S2S | Service-to-service tokens | Local simulator, so TEC can call the data store |
+| Case Document AM and dm-store | Document storage and the in-case viewer | Local stub, so Case File View can open a file |
+| CCD User Profile | Profiles Manage Cases uses for signed-in users | Created for the demo clerk and local-authority users |
+| Reference data | Lookups such as case-link reasons | Used so Linked Cases can show a reason |
+| Elasticsearch | Case-list search index | Present in the local stack; runtime indexing is turned off |
+| Payments (ccpay) | Case payment history | A shared viewer field is on the PCN case; payments are not wired for TEC |
+| Work Allocation | Task lists and assignment | Not used. The Tasks tab is prototype markup |
+
+Caseworkers do not call TEC’s database or its view classes. They use Manage Cases, which calls CCD, which calls TEC. The local service list and sign-in accounts are in the repository README. Component responsibilities and the create/read sequences are in [TEC decentralised CCD architecture](/ccd-architecture.html).
+
+## What this repository contains
+
+Three case types, all in jurisdiction `TEC`:
+
+| Case type id | Display name | Purpose |
+| --- | --- | --- |
+| `TEC` | TEC PCN | The penalty charge case |
+| `TEC_BATCH` | TEC Batch | An uploaded file from a local authority. Clerks and local-authority users start **Upload batch file** from primary navigation |
+| `TEC_EXCEPTION` | TEC Exception | An item that could not be matched. Local-authority users cannot see these |
+
+Two local audiences are configured: a clerk and a Greater Manchester local-authority user. Local-authority access to PCN and batch cases is limited by case-access category to that user’s authorities.
+
+Design docs (grey-box screens and caseworker journeys) run separately from these tech docs. See the repository README for how to start both.

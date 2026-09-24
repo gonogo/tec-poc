@@ -3,7 +3,7 @@
 This codebase is a local sandbox for experimentation around CCD config and its effect upon Manage Cases.
 
 Functionality is underpinned by runtime supplied by [rse-cft-lib](https://github.com/hmcts/rse-cft-lib). See
-(AI-generated) doc
+[Where TEC sits in HMCTS](tech_docs/source/hmcts-context.html.md.erb) for the wider service, the shared platform, and the common components in use,
 [TEC decentralised CCD architecture](tech_docs/source/ccd-architecture.html.md.erb) for the build-time and local runtime architecture, and
 [CFTLib Shared Database](tech_docs/source/cftlib-shared-database.html.md.erb) for a description of the decentralised CCD datamodel.
 Rendered versions are on the tech docs site at http://localhost:4568 (for example

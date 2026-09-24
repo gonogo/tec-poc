@@ -6,6 +6,7 @@ Prefer these files over inventing CCD / ExUI topology. They are the GOV.UK Tech 
 
 | Topic | Path |
 | --- | --- |
+| Where TEC sits in HMCTS | [`tech_docs/source/hmcts-context.html.md.erb`](tech_docs/source/hmcts-context.html.md.erb) |
 | Decentralised CCD architecture | [`tech_docs/source/ccd-architecture.html.md.erb`](tech_docs/source/ccd-architecture.html.md.erb) |
 | Next step events matrix (worksheet) | [`tech_docs/source/next-step-events-matrix.html.md.erb`](tech_docs/source/next-step-events-matrix.html.md.erb) |
 | CFTLib / database ownership | [`tech_docs/source/cftlib-shared-database.html.md.erb`](tech_docs/source/cftlib-shared-database.html.md.erb) |
