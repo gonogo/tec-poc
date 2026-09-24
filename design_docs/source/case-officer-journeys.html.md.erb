@@ -1,0 +1,31 @@
+---
+title: Case officer journeys
+weight: 51
+---
+
+# Case officer journeys
+
+Journey boards for case officer review work. Frames reuse [TEC PCN blockframes](/tec-pcn-blockframes.html) and [ExUI form elements](/exui-form-elements.html). Yellow outline (`highlight`) and link-blue (`callout`) mark the control that starts each step. Hover blocks for element names.
+
+## Journey: Review OOT decision
+
+The case officer opens a case from **My work**, reviews it on **Case details**, and chooses **Agree with OOT refusal** or **Overturn OOT refusal** from Next step. The next screen asks them to confirm. Submitting returns them to Case details with a success banner under the Manage Cases bar.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_my_tasks_minimal", locals: { caption: "1. My work — My tasks", compact: true, highlight_case: true } %><p class="bf-journey__note">The journey starts on My work. The case officer selects the task and clicks the <strong>case number</strong>.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Case link</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "2. TEC PCN — Case details", highlight_next_step: true } %><p class="bf-journey__note">They open the case on the <strong>Case details</strong> tab and choose <strong>Agree with OOT refusal</strong> or <strong>Overturn OOT refusal</strong> from Next step.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next step</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_co_oot_review", locals: { caption: "3. Agree with OOT refusal", decision: :agree } %><p class="bf-journey__note">The screen is titled <strong>Agree with OOT refusal</strong>. The Yes/No question asks whether they are sure they want to Agree with the out of time refusal.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">or</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_co_oot_review", locals: { caption: "4. Overturn OOT refusal", decision: :overturn } %><p class="bf-journey__note">The screen is titled <strong>Overturn OOT refusal</strong>. The Yes/No question asks whether they are sure they want to overturn the out of time refusal.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "5. TEC PCN — Case details", success_banner: "You have agreed with the out of time refusal" } %><p class="bf-journey__note">Submitting returns them to <strong>Case details</strong>. A success banner under the Manage Cases bar confirms the decision: agreed with the out of time refusal, or the refusal was overturned.</p></div>
+</div>
+
+## Related
+
+- Blockframe primitives and catalogue: [TEC PCN blockframes](/tec-pcn-blockframes.html)
+- Field-type controls: [ExUI form elements](/exui-form-elements.html)
+- Caseworker review journeys: [Caseworker journeys](/caseworker-journeys.html)
+- Local authority upload and out-of-time review: [Local authority journeys](/local-authority-journeys.html)
