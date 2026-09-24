@@ -1,10 +1,22 @@
 <%#
-  Tab strip for TEC PCN case view.
+  Tab strip for TEC case views.
   Locals:
     active        — :tasks | :roles | :case_details | :case_file | :linked | :payment | :history
     minimal       — empty tab bars (no labels)
     highlight_tab — tab key to yellow-outline (journey focus)
+    variant       — :batch uses the TEC Batch tab set (Batch details, History always shown)
 %>
+<% variant = (defined?(variant) && variant) ? variant.to_sym : nil %>
+<% if variant == :batch %>
+<% tabs = [
+  [:tasks, "Tasks"],
+  [:roles, "Roles and access"],
+  [:case_details, "Batch details"],
+  [:case_file, "Case File View"],
+  [:history, "History"],
+  [:linked, "Linked Cases"]
+] %>
+<% else %>
 <% tabs = [
   [:tasks, "Tasks"],
   [:roles, "Roles and access"],
@@ -16,6 +28,7 @@
 <%# CCD History sits after Case File View; omit from the usual shell unless that tab is active. %>
 <% if active == :history %>
 <% tabs.insert(4, [:history, "History"]) %>
+<% end %>
 <% end %>
 <% minimal = (defined?(minimal) && minimal) ? minimal : false %>
 <% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>

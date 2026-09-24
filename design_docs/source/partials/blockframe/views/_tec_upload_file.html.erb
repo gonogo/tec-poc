@@ -1,0 +1,18 @@
+<%#
+  Upload batch file — uploadFile.
+  Locals: caption, nav
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — Upload a file" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form">',
+  partial("partials/blockframe/text", locals: { size: :title, label: "Upload batch file", callout: true }),
+  partial("partials/blockframe/field", locals: {
+    type: :document,
+    label: "Upload a file",
+    title: "Upload a file — Document"
+  }),
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>

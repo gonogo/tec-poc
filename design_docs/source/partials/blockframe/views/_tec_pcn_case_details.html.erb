@@ -5,10 +5,14 @@
     caption
     validation_errors — when true, show out-of-time TE9/TE7 pair with Form invalid callouts
     highlight_tab
+    highlight_next_step — yellow outline on the Next step dropdown
+    nav — passed to chrome (e.g. :local_authority)
 %>
 <% caption = (defined?(caption) && caption) ? caption : "TEC PCN — Case details" %>
 <% validation_errors = (defined?(validation_errors) && validation_errors) ? validation_errors : false %>
 <% highlight_tab = (defined?(highlight_tab) && highlight_tab) ? highlight_tab : nil %>
+<% highlight_next_step = (defined?(highlight_next_step) && highlight_next_step) ? highlight_next_step : false %>
+<% nav = (defined?(nav) && nav) ? nav : nil %>
 <% application_title = validation_errors ? "Witness statement — Out of time (TE9)" : "Witness statement — In time" %>
 <% time_extension_title = validation_errors ? "Application to file out of time (TE7)" : "Application to file out of time" %>
 <% validation_value = validation_errors ?
@@ -50,4 +54,4 @@
   '<div class="bf-kv" title="Signed and dated"><span class="bf-kv__key">Signed and dated</span><span class="bf-kv__value" style="width: 42%"></span></div>',
   "</div>"
 ].join %>
-<%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_details, body: body, highlight_tab: highlight_tab } %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, active: :case_details, body: body, highlight_tab: highlight_tab, highlight_next_step: highlight_next_step, nav: nav } %>

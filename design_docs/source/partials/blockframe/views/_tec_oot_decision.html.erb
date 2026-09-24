@@ -1,0 +1,30 @@
+<%#
+  Accept or refuse an out-of-time application (design-only event).
+  Locals:
+    caption
+    decision — :accept (default) | :refuse
+    nav
+%>
+<% decision = (defined?(decision) && decision) ? decision.to_sym : :accept %>
+<% accepting = decision != :refuse %>
+<% page_title = accepting ? "Accept OOT application" : "Refuse OOT application" %>
+<% question = accepting ?
+  "Are you sure you want to accept the out of time application?" :
+  "Are you sure you want to refuse the out of time application?" %>
+<% caption = (defined?(caption) && caption) ? caption : "Event — #{page_title}" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form bf-form--full">',
+  partial("partials/blockframe/text", locals: { size: :title, label: page_title, callout: true }),
+  partial("partials/blockframe/field", locals: {
+    type: :yes_or_no,
+    label: question,
+    title: "#{question} — YesOrNo",
+    options: ["Yes", "No"],
+    selected: -1,
+    callout: true
+  }),
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>

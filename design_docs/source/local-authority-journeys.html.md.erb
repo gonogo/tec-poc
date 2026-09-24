@@ -1,0 +1,57 @@
+---
+title: Local authority journeys
+weight: 52
+---
+
+# Local authority journeys
+
+Journey boards for local authority work in Manage Cases. Frames reuse [TEC PCN blockframes](/tec-pcn-blockframes.html) and [ExUI form elements](/exui-form-elements.html). Yellow outline (`highlight`) and link-blue (`callout`) mark the control that starts each step. Hover blocks for element names.
+
+Local authority primary navigation shows **Upload batch file** and Find case. Create case is omitted.
+
+## Journey: Upload a batch file
+
+The authority starts from the case list, opens **Upload batch file**, and completes the `uploadBatch` wizard: select batch type (`selectBatchType`), guidance, file upload, the invalid-data page, statement of truth, check your answers, then the confirmation. They land on the new batch case.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_cases_list_minimal", locals: { caption: "1. Case list", compact: true, highlight_nav: :upload_batch, nav: :local_authority } %><p class="bf-journey__note">The journey starts on the case list. The authority chooses <strong>Upload batch file</strong> in the header.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Upload batch file</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_select_batch_type", locals: { caption: "2. Upload batch file — Select batch type" } %><p class="bf-journey__note">They select the type of application on <strong>selectBatchType</strong>.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_guidance", locals: { caption: "3. Before you start" } %><p class="bf-journey__note">Guidance for the selected batch type, then they continue.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_file", locals: { caption: "4. Upload batch file — Upload a file" } %><p class="bf-journey__note">They upload the batch file.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_validation_results", locals: { caption: "5. Some data cannot be processed" } %><p class="bf-journey__note">PCNs with invalid data are listed and will be removed from the batch.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_statement_of_truth", locals: { caption: "6. Statement of truth" } %><p class="bf-journey__note">They read the contempt warning and tick the statement of truth.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Continue</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_check_answers", locals: { caption: "7. Check your answers" } %><p class="bf-journey__note">They check the batch type, file, and statement of truth, then submit.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_upload_confirmation", locals: { caption: "8. Confirmation" } %><p class="bf-journey__note">Confirmation shows the case number. The batch is processed overnight, and excluded PCNs are in an exception report on the batch case.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Batch case</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_batch_case_details", locals: { caption: "9. TEC Batch — Batch details" } %><p class="bf-journey__note">They open the batch case on the <strong>Batch details</strong> tab.</p></div>
+</div>
+
+## Journey: Review out of time application
+
+The authority filters the case list by state, opens a PCN case on **Case details**, and chooses **Accept OOT application** or **Refuse OOT application** from Next step. The next screen asks them to confirm. After submit they see a confirmation headed for that decision.
+
+<div class="bf-journey">
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_cases_list_minimal", locals: { caption: "1. Case list", compact: true, highlight_state: true, nav: :local_authority } %><p class="bf-journey__note">The journey starts on the case list. They use the <strong>State</strong> filter to find cases awaiting an out-of-time decision.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Open case</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_pcn_case_details", locals: { caption: "2. TEC PCN — Case details", highlight_next_step: true, nav: :local_authority } %><p class="bf-journey__note">They open the case on the <strong>Case details</strong> tab and choose <strong>Accept OOT application</strong> or <strong>Refuse OOT application</strong> from Next step.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Next step</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_oot_decision", locals: { caption: "3. Accept OOT application", decision: :accept } %><p class="bf-journey__note">The screen is titled <strong>Accept OOT application</strong>. The Yes/No question asks whether they are sure they want to accept the out of time application.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">or</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_oot_decision", locals: { caption: "4. Refuse OOT application", decision: :refuse } %><p class="bf-journey__note">The screen is titled <strong>Refuse OOT application</strong>. The Yes/No question asks whether they are sure they want to refuse the out of time application.</p></div>
+<div class="bf-journey__arrow"><span aria-hidden="true">→</span><span class="bf-journey__arrow-label">Submit</span></div>
+<div class="bf-journey__step"><%= partial "partials/blockframe/views/tec_oot_confirmation", locals: { caption: "5. Confirmation", decision: :accept } %><p class="bf-journey__note">The confirmation heading follows the decision: <strong>Out of time application accepted</strong> or <strong>Out of time application refused</strong>.</p></div>
+</div>
+
+## Related
+
+- Blockframe primitives and catalogue: [TEC PCN blockframes](/tec-pcn-blockframes.html)
+- Field-type controls: [ExUI form elements](/exui-form-elements.html)
+- Caseworker review journeys: [Caseworker journeys](/caseworker-journeys.html)
+- Emails to local authorities and respondents: [Email notifications](/email-notifications.html)

@@ -1,0 +1,16 @@
+<%#
+  Upload batch file — ExUI Check your answers.
+  Locals: caption, nav
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — Check your answers" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form bf-form--full">',
+  partial("partials/blockframe/text", locals: { size: :title, label: "Check your answers", callout: true }),
+  '<div class="bf-kv" title="Select batch type"><span class="bf-kv__key">Select batch type</span><span class="bf-kv__value bf-callout" title="Registration">Registration</span></div>',
+  '<div class="bf-kv" title="Upload a file"><span class="bf-kv__key">Upload a file</span><span class="bf-kv__value bf-callout" title="Uploaded file">batch-file.csv</span></div>',
+  '<div class="bf-kv" title="Statement of truth"><span class="bf-kv__key">Statement of truth</span><span class="bf-kv__value bf-callout" title="I believe that the facts stated in this batch request are true.">I believe that the facts stated in this batch request are true.</span></div>',
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Submit">Submit</span></div>',
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>

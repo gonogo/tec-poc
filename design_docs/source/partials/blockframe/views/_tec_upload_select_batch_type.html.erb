@@ -1,0 +1,30 @@
+<%#
+  Upload batch file — selectBatchType.
+  Locals: caption, nav
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — Select batch type" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form bf-form--full">',
+  partial("partials/blockframe/text", locals: { size: :title, label: "Upload batch file", callout: true }),
+  partial("partials/blockframe/text", locals: { size: :medium, label: "Select the type of batch you want to create.", callout: true }),
+  partial("partials/blockframe/field", locals: {
+    type: :fixed_radio_list,
+    label: "Select batch type",
+    title: "Select batch type — FixedRadioList",
+    options: [
+      "Registration — Create new PCN registrations from an uploaded batch file",
+      "Warrant auth requests — Submit PCNs for warrant authorisation",
+      "Warrant reissue requests — Request reissue of warrants for PCNs",
+      "Out-of-time decisions — Submit out-of-time application decisions",
+      "Change of address — Update respondent addresses from a batch file",
+      "Case closure requests — Request closure of PCN cases in bulk",
+      "Transfer request — Request transfer of PCNs for enforcement"
+    ],
+    selected: -1,
+    callout: true
+  }),
+  '<div class="bf-actions"><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>

@@ -183,6 +183,11 @@ $bf-exui-light: #ffffff;
   }
 }
 
+.bf-exui__nav-link--highlight {
+  outline: 2px solid $bf-highlight;
+  outline-offset: 1px;
+}
+
 .bf-exui__search {
   display: flex;
   align-items: center;
@@ -257,6 +262,11 @@ $bf-exui-light: #ffffff;
     transform: translateY(-35%);
     pointer-events: none;
   }
+}
+
+.bf-exui__next-step-select--highlight {
+  outline: 2px solid $bf-highlight;
+  outline-offset: 1px;
 }
 
 .bf-exui__go {
@@ -1196,6 +1206,40 @@ $bf-link-callout: #1a65a6;
   max-width: 72%;
 }
 
+.bf-form--full {
+  width: 100%;
+  max-width: 100%;
+}
+
+.bf-form--full .bf-field__option {
+  align-items: flex-start;
+}
+
+.bf-form--full .bf-field__option-text:not(:empty) {
+  flex-shrink: 1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
+  line-height: 1.3;
+}
+
+.bf-copy {
+  margin: 0;
+  color: $bf-callout-on-light;
+  font-size: 6.5px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.bf-form--full .bf-table__value {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  font-size: 6px;
+  line-height: 1.25;
+}
+
 // Isolated ExUI field-type tiles (no event chrome).
 .bf-elements {
   display: flex;
@@ -1325,6 +1369,11 @@ $bf-link-callout: #1a65a6;
   gap: 2px;
   min-width: 0;
   width: 100%;
+}
+
+.bf-cases__filter--highlight {
+  outline: 2px solid $bf-highlight;
+  outline-offset: 1px;
 }
 
 .bf-cases__filter-label {

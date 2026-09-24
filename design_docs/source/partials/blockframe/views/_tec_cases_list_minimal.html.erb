@@ -7,8 +7,14 @@
     compact — true → standard 320px frame, 4-column table
               (default: wide frame, 6 columns)
     caption — frame label
+    highlight_state — yellow outline on the State filter, with the State label shown
+    highlight_nav — passed to chrome (e.g. :upload_batch)
+    nav — passed to chrome (e.g. :local_authority)
 %>
 <% compact = (defined?(compact) && compact) ? compact : false %>
+<% highlight_state = (defined?(highlight_state) && highlight_state) ? highlight_state : false %>
+<% highlight_nav = (defined?(highlight_nav) && highlight_nav) ? highlight_nav : nil %>
+<% nav = (defined?(nav) && nav) ? nav : nil %>
 <% caption = (defined?(caption) && caption) ? caption : (compact ? "Example — Case list (compact)" : "Example — Case list") %>
 <% cases_class = compact ? "bf-cases bf-cases--compact" : "bf-cases" %>
 <%
@@ -69,7 +75,9 @@
   '<div class="bf-cases__filters-head" title="Filters heading and actions"><span class="bf-text bf-text--title bf-text--callout" title="Filters">Filters</span><div class="bf-cases__actions" title="Filter actions"><span class="bf-action bf-action--primary" title="Apply" style="width: 22px"></span><span class="bf-action bf-action--secondary" title="Reset" style="width: 20px"></span></div></div>',
   '<div class="bf-cases__filter" title="Jurisdiction filter"><span class="bf-cases__filter-label" title="Jurisdiction" style="width: 52%"></span><span class="bf-cases__filter-control" title="Jurisdiction select"></span></div>',
   '<div class="bf-cases__filter" title="Case type filter"><span class="bf-cases__filter-label bf-cases__filter-label--callout" title="Case type">Case type</span><span class="bf-cases__filter-control bf-cases__filter-control--callout" title="Case type: TEC PCN">TEC PCN</span></div>',
-  '<div class="bf-cases__filter" title="State filter"><span class="bf-cases__filter-label" title="State" style="width: 28%"></span><span class="bf-cases__filter-control" title="State select"></span></div>',
+  (highlight_state ?
+    '<div class="bf-cases__filter bf-cases__filter--highlight" title="State filter"><span class="bf-cases__filter-label bf-cases__filter-label--callout" title="State">State</span><span class="bf-cases__filter-control" title="State select"></span></div>' :
+    '<div class="bf-cases__filter" title="State filter"><span class="bf-cases__filter-label" title="State" style="width: 28%"></span><span class="bf-cases__filter-control" title="State select"></span></div>'),
   '<div class="bf-cases__filter" title="Penalty charge number filter"><span class="bf-cases__filter-label" title="Penalty charge number" style="width: 78%"></span><span class="bf-cases__filter-control bf-cases__filter-control--input" title="Penalty charge number input"></span></div>',
   '<div class="bf-cases__filter" title="Local authority filter"><span class="bf-cases__filter-label" title="Local authority" style="width: 58%"></span><span class="bf-cases__filter-control" title="Local authority select"></span></div>',
   '<span class="bf-action bf-action--primary bf-cases__back-top" title="Back to top" style="width: 22px"></span>',
@@ -93,5 +101,7 @@
   show_tabs: false,
   minimal: true,
   frame: (compact ? nil : :cases),
-  body: body
+  body: body,
+  highlight_nav: highlight_nav,
+  nav: nav
 } %>

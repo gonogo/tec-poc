@@ -1,0 +1,23 @@
+<%#
+  Confirmation after an out-of-time accept or refuse.
+  Locals:
+    caption
+    decision — :accept (default) | :refuse
+    nav
+%>
+<% decision = (defined?(decision) && decision) ? decision.to_sym : :accept %>
+<% accepting = decision != :refuse %>
+<% page_title = accepting ? "Out of time application accepted" : "Out of time application refused" %>
+<% summary = accepting ?
+  "The out of time application has been accepted." :
+  "The out of time application has been refused." %>
+<% caption = (defined?(caption) && caption) ? caption : "Confirmation — #{page_title}" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form bf-form--full">',
+  partial("partials/blockframe/text", locals: { size: :title, label: page_title, callout: true }),
+  '<div class="bf-copy" title="Case number">Case number: 1788-2660-5799-1856</div>',
+  %(<div class="bf-copy" title="#{summary}">#{summary}</div>),
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>

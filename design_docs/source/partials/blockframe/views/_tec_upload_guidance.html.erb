@@ -1,0 +1,16 @@
+<%#
+  Upload batch file — interstitial guidance (Before you start).
+  Locals: caption, nav
+%>
+<% caption = (defined?(caption) && caption) ? caption : "Event — Before you start" %>
+<% nav = (defined?(nav) && nav) ? nav : :local_authority %>
+<% body = [
+  '<div class="bf-form bf-form--full">',
+  partial("partials/blockframe/text", locals: { size: :title, label: "Before you start", callout: true }),
+  '<div class="bf-copy" title="Before you upload your batch">Before you upload your batch</div>',
+  '<div class="bf-copy" title="Placeholder guidance">Placeholder guidance for the selected batch type will appear here.</div>',
+  '<div class="bf-copy" title="File format guidance">Make sure your file is in the correct format and that you have permission to submit this batch.</div>',
+  '<div class="bf-actions"><span class="bf-action bf-action--secondary" title="Previous"></span><span class="bf-action bf-action--primary" title="Continue"></span></div>',
+  "</div>"
+].map { |part| part.to_s.strip }.reject(&:empty?).join.gsub(/\n[ \t]*\n/, "\n") %>
+<%= partial "partials/blockframe/page", locals: { caption: caption, show_tabs: false, nav: nav, body: body } %>
